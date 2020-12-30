@@ -1,0 +1,13 @@
+name: "."
+title: "EMD: R Tips"
+description: |
+  R tips, R4DS, data science, R programming 
+output_dir: "docs"
+theme: theme.css
+navbar:
+  right:
+    - text: "Home"
+      href: index.html
+    - text: "About me"
+      href: about.html
+output: distill::distill_article
