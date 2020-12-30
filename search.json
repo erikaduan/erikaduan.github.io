@@ -6,7 +6,7 @@
       "description": "Motivation and resources\n",
       "author": [],
       "contents": "\r\nHello world\r\n\r\n\r\n\r\n",
-      "last_modified": "2020-12-30T20:39:09+10:30"
+      "last_modified": "2020-12-30T20:48:31+10:30"
     },
     {
       "path": "index.html",
@@ -14,7 +14,7 @@
       "description": "Welcome to the website. I hope you enjoy it!\n",
       "author": [],
       "contents": "\r\n\r\n\r\n\r\n",
-      "last_modified": "2020-12-30T20:39:10+10:30"
+      "last_modified": "2020-12-30T20:48:32+10:30"
     }
   ],
   "collections": ["posts/posts.json"]
