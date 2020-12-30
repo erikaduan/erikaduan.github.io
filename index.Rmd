@@ -2,7 +2,8 @@
 title: "EMD: R Tips"
 description: |
   Welcome to the website. I hope you enjoy it!
-site: distill::distill_website
+site: distill::distill_website  
+listing: posts
 ---
 
 ```{r setup, include=FALSE}

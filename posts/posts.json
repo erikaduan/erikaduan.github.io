@@ -5,7 +5,7 @@
     "description": "A short description of the post.",
     "author": [
       {
-        "name": "Unknown",
+        "name": "Erika Duan",
         "url": {}
       }
     ],
@@ -13,7 +13,7 @@
     "categories": [],
     "contents": "\r\nDistill is a publication format for scientific and technical writing, native to the web.\r\nLearn more about using Distill at https://rstudio.github.io/distill.\r\n\r\n\r\n\r\n",
     "preview": {},
-    "last_modified": "2020-12-30T17:43:57+10:30",
+    "last_modified": "2020-12-30T20:04:33+10:30",
     "input_file": {}
   }
 ]
