@@ -1,0 +1,19 @@
+[
+  {
+    "path": "posts/2020-12-30-wrangling-strings-and-cleaning-free-text/",
+    "title": "Wrangling strings & cleaning free text",
+    "description": "A short description of the post.",
+    "author": [
+      {
+        "name": "Unknown",
+        "url": {}
+      }
+    ],
+    "date": "2020-12-30",
+    "categories": [],
+    "contents": "\r\nDistill is a publication format for scientific and technical writing, native to the web.\r\nLearn more about using Distill at https://rstudio.github.io/distill.\r\n\r\n\r\n\r\n",
+    "preview": {},
+    "last_modified": "2020-12-30T17:43:57+10:30",
+    "input_file": {}
+  }
+]

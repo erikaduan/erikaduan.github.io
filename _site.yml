@@ -2,7 +2,7 @@ name: "."
 title: "EMD: R Tips"
 description: |
   R tips, R4DS, data science, R programming 
-output_dir: "docs"
+output_dir: "."
 theme: theme.css
 navbar:
   right:
