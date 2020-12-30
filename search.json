@@ -6,15 +6,15 @@
       "description": "Motivation and resources\n",
       "author": [],
       "contents": "\r\nHello world\r\n\r\n\r\n\r\n",
-      "last_modified": "2020-12-30T20:28:36+10:30"
+      "last_modified": "2020-12-30T20:39:09+10:30"
     },
     {
       "path": "index.html",
-      "title": "EMD: R Tips",
+      "title": "Notes from a (data) scientist",
       "description": "Welcome to the website. I hope you enjoy it!\n",
       "author": [],
       "contents": "\r\n\r\n\r\n\r\n",
-      "last_modified": "2020-12-30T20:28:37+10:30"
+      "last_modified": "2020-12-30T20:39:10+10:30"
     }
   ],
   "collections": ["posts/posts.json"]
