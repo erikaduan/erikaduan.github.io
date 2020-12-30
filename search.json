@@ -3,18 +3,17 @@
     {
       "path": "about.html",
       "title": "About me",
-      "description": "Motivation and resources\n",
       "author": [],
-      "contents": "\r\nHello world\r\n\r\n\r\n\r\n",
-      "last_modified": "2020-12-30T20:48:31+10:30"
+      "contents": "\r\nBackground\r\nInterests\r\nLearning more about statistical modelling and causal inference\r\nMachine learning explanability\r\nMachine learning ethical frameworks\r\nOpen government data applications\r\nSTEM teaching outreach\r\nPublic projects\r\n\r\n\r\n\r\n",
+      "last_modified": "2020-12-30T22:29:13+10:30"
     },
     {
       "path": "index.html",
       "title": "Notes from a (data) scientist",
-      "description": "Welcome to the website. I hope you enjoy it!\n",
+      "description": "Notes about R programming and data science. \n",
       "author": [],
       "contents": "\r\n\r\n\r\n\r\n",
-      "last_modified": "2020-12-30T20:48:32+10:30"
+      "last_modified": "2020-12-30T22:29:14+10:30"
     }
   ],
   "collections": ["posts/posts.json"]

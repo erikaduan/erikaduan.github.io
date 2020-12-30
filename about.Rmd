@@ -1,7 +1,6 @@
 ---
 title: "About me"
 description: |
-  Motivation and resources
 theme: theme.css
 ---
 
@@ -9,4 +8,15 @@ theme: theme.css
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-Hello world  
+## Background  
+
+## Interests     
+
++ Learning more about statistical modelling and causal inference 
++ Machine learning explanability     
++ Machine learning ethical frameworks   
++ Open government data applications    
++ STEM teaching [outreach]()  
+
+## Public projects  
+

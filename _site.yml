@@ -1,4 +1,4 @@
-name: "EMD: R notes"
+name: "erikaduan.github.io"
 title: "EMD: R notes"
 description: |
   A blog featuring R programming and data science tips.   
@@ -13,6 +13,8 @@ navbar:
       href: about.html
     - icon: fa-github fa-lg
       href: http://github.com/erikaduan/ 
+    - icon: fa fa-twitter
+      href: https://twitter.com/erikaduan  
 collections:
   posts:
     share: [twitter, linkedin]

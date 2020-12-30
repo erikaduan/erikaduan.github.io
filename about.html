@@ -86,21 +86,18 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   <!--radix_placeholder_meta_tags-->
   <title>EMD: R notes: About me</title>
   
-  <meta property="description" itemprop="description" content="Motivation and resources"/>
   
   
   
   <!--  https://developers.facebook.com/docs/sharing/webmasters#markup -->
   <meta property="og:title" content="EMD: R notes: About me"/>
   <meta property="og:type" content="article"/>
-  <meta property="og:description" content="Motivation and resources"/>
   <meta property="og:locale" content="en_US"/>
   <meta property="og:site_name" content="EMD: R notes"/>
   
   <!--  https://dev.twitter.com/cards/types/summary -->
   <meta property="twitter:card" content="summary"/>
   <meta property="twitter:title" content="EMD: R notes: About me"/>
-  <meta property="twitter:description" content="Motivation and resources"/>
   <meta property="twitter:site" content="@erikaduan"/>
   <meta property="twitter:creator" content="@erikaduan"/>
   
@@ -108,7 +105,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   <!--radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-rmarkdown-metadata">
-  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","theme"]}},"value":[{"type":"character","attributes":{},"value":["About me"]},{"type":"character","attributes":{},"value":["Motivation and resources\n"]},{"type":"character","attributes":{},"value":["theme.css"]}]}
+  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","theme"]}},"value":[{"type":"character","attributes":{},"value":["About me"]},{"type":"NULL"},{"type":"character","attributes":{},"value":["theme.css"]}]}
   </script>
   <!--/radix_placeholder_rmarkdown_metadata-->
   <!--radix_placeholder_navigation_in_header-->
@@ -2135,10 +2132,10 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   }
   
   .distill-site-footer {
-    --text-color:       rgba(255, 255, 255, 0.8);
-    --text-size:        15px;
-    --hover-color:      white;
-    --bkgd-color:       #0F2E3D;
+    --text-color:       #FFFFFF;
+    --text-size:        14px;
+    --hover-color:      #FDF3AF;
+    --bkgd-color:       #37ACA1;
   }
   
   /*-- Additional custom styles --*/
@@ -2146,8 +2143,8 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   
   /* Change bullets */
   ul > li::marker {
-    font-size: 1.1em;
-    color: #0F2E3D;
+    font-size: 1.125em;
+    color: #37ACA1;
   }
   
   /* Change link appearance */
@@ -2318,7 +2315,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <!--radix_placeholder_front_matter-->
 
 <script id="distill-front-matter" type="text/json">
-{"title":"About me","description":"Motivation and resources","authors":[]}
+{"title":"About me","authors":[]}
 </script>
 
 <!--/radix_placeholder_front_matter-->
@@ -2335,6 +2332,9 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <a href="http://github.com/erikaduan/">
 <i class="fa fa-github fa-lg" aria-hidden="true"></i>
 </a>
+<a href="https://twitter.com/erikaduan">
+<i class="fa fa-twitter" aria-hidden="true"></i>
+</a>
 <a href="javascript:void(0);" class="nav-toggle">&#9776;</a>
 </div>
 </nav>
@@ -2347,12 +2347,24 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <h1>About me</h1>
 <!--radix_placeholder_categories-->
 <!--/radix_placeholder_categories-->
-<p><p>Motivation and resources</p></p>
+
 </div>
 
 
 <div class="d-article">
-<p>Hello world</p>
+<h2 id="background">Background</h2>
+<h2 id="interests">Interests</h2>
+<ul>
+<li>Learning more about statistical modelling and causal inference</li>
+<li>Machine learning explanability<br />
+</li>
+<li>Machine learning ethical frameworks<br />
+</li>
+<li>Open government data applications<br />
+</li>
+<li>STEM teaching <a href="">outreach</a></li>
+</ul>
+<h2 id="public-projects">Public projects</h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
@@ -2368,6 +2380,9 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <div class="appendix-bottom"></div>
 <!--/radix_placeholder_appendices-->
 <!--radix_placeholder_navigation_after_body-->
+<div class="distill-site-nav distill-site-footer">
+<p>This blog was built using <a href="https://rstudio.github.io/distill/">Distill</a> for R Markdown</p>
+</div>
 <!--/radix_placeholder_navigation_after_body-->
 
 </body>
