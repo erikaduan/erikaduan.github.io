@@ -7,7 +7,7 @@
     <description>A blog featuring R programming and data science tips.   
 </description>
     <generator>Distill</generator>
-    <lastBuildDate>Thu, 31 Dec 2020 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 30 Dec 2020 00:00:00 +0000</lastBuildDate>
     <item>
       <title>Cleaning free text and wrangling strings</title>
       <dc:creator>Erika Duan</dc:creator>
@@ -16,7 +16,7 @@
       <category>data cleaning</category>
       <category>nlp</category>
       <guid>https://erikaduan.github.io/posts/2020-12-31-cleaning-free-text-and-wrangling-strings</guid>
-      <pubDate>Thu, 31 Dec 2020 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 30 Dec 2020 00:00:00 +0000</pubDate>
     </item>
   </channel>
 </rss>

@@ -2,14 +2,15 @@
 title: "Cleaning free text and wrangling strings"
 description: |
   These are some common data cleaning things.
-preview: ./images/2020-12-31_look-arounds.jpg
+preview: images/2020-12-31_look-arounds.jpg
 author: "Erika Duan"  
 date: "2020-12-31"
 categories: 
   - data cleaning  
   - nlp  
 output:
-  distill::distill_article 
+  distill::distill_article: 
+    toc: true
 ---
 
 
@@ -264,8 +265,8 @@ str_replace_all(messy_dates, "(?<=^\\S{1,100})\\s{1,4}" , "-")
 
 Look around operations are useful when you are unsure of the pattern itself, but you know exactly what its preceding or following pattern is. I've found that the clearest explanation of look around operations comes from the RStudio cheetsheet on [`string_r`](https://github.com/rstudio/cheatsheets/blob/master/strings.pdf) and is depicted below.         
 
-```{r, fig.align = 'center', out.width = '60%'} 
-knitr::include_graphics("./images/2020-12-31_look-arounds.jpg")  
+```{r, fig.align = 'center', fig.show = 'hold', out.width = '60%'} 
+knitr::include_graphics("../../images/2020-12-31_look-arounds.jpg")  
 ```
 
 ```{r, results = 'hide'}
@@ -562,7 +563,7 @@ str_replace_all(desserts, "chocolate", "vanilla")
 #> [6] "dark vanilla fudge" "fruit"              "fruit tart"         "fruit sorbet"    
 ```
 
-```{r, echo = FALSE, message = FALSE, fig.align = "center", out.width = '70%'}
+```{r, message = FALSE, fig.align = "center", out.width = '70%', preview = TRUE}
 baser_vs_stringr <- microbenchmark(grep = grep(".*\\bchocolate\\b.*", desserts, value = F),
                                    str_which = str_which(desserts, ".*\\bchocolate\\b.*"),
                                    gsub = gsub("chocolate", "vanilla", desserts),
@@ -572,7 +573,6 @@ baser_vs_stringr <- microbenchmark(grep = grep(".*\\bchocolate\\b.*", desserts, 
                              times = 1000)
 
 autoplot(baser_vs_stringr)  
-graphics.off()
 ```
 
 **Note:** Base R functions are significantly faster than their `stringr` equivalents.         
