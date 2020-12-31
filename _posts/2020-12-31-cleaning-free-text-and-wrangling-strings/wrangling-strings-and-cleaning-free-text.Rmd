@@ -2,6 +2,7 @@
 title: "Cleaning free text and wrangling strings"
 description: |
   These are some common data cleaning things.
+preview: ./images/2020-12-31_look-arounds.jpg
 author: "Erika Duan"  
 date: "2020-12-31"
 categories: 
@@ -264,7 +265,7 @@ str_replace_all(messy_dates, "(?<=^\\S{1,100})\\s{1,4}" , "-")
 Look around operations are useful when you are unsure of the pattern itself, but you know exactly what its preceding or following pattern is. I've found that the clearest explanation of look around operations comes from the RStudio cheetsheet on [`string_r`](https://github.com/rstudio/cheatsheets/blob/master/strings.pdf) and is depicted below.         
 
 ```{r, fig.align = 'center', out.width = '60%'} 
-knitr::include_graphics("./2020-12-31_look-arounds.jpg")  
+knitr::include_graphics("./images/2020-12-31_look-arounds.jpg")  
 ```
 
 ```{r, results = 'hide'}
@@ -488,10 +489,11 @@ tidy_survey %>%
 ```
 
 
-# Differences between base R and `stringr` functions    
+# Differences between base R and `stringr` functions      
 
-In R, string manipulation can be performed using either base R functions or `str_...` functions from the `stringr` library. A key difference between base R and `stringr` functions is the order that the string and pattern are specified. The pattern, not the string, is specified first in base R functions, i.e. not in a pipe friendly order.           
-```{r, results = 'hide'}
+In R, string manipulation can be performed using either base R functions or `str_...` functions from the `stringr` library. A key difference between base R and `stringr` functions is the order that the string and pattern are specified. The pattern, not the string, is specified first in base R functions, i.e. not in a pipe friendly order.          
+
+```{r}
 #-----use cases for grep()-----  
 desserts <- c("chocolate",
               "chocolate cake",
