@@ -2098,7 +2098,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
     /*-- Specify custom fonts ~~~ must be imported above   --*/
     --heading-font:    'Noto Sans JP', sans-serif;
     --mono-font:       'Noto Sans JP', sans-serif;
-    --body-font:       sans-serif;
+    --body-font:       'Noto Sans JP', sans-serif;  
     --navbar-font:     'Noto Sans JP', sans-serif;  /* websites + blogs only */
   }
   
@@ -2155,6 +2155,11 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   d-article a {
     border-bottom: 2px solid #1D818C;
     text-decoration: none;
+  }
+  
+  /* Change code chunk background */
+  d-code {
+    background: grey;
   }</style>
   <style type="text/css">
   /* base style */
@@ -2339,6 +2344,9 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <a href="https://twitter.com/erikaduan">
 <i class="fa fa-twitter" aria-hidden="true"></i>
 </a>
+<a href="https://www.linkedin.com/in/erika-duan-5b300420/">
+<i class="fa fa-linkedin" aria-hidden="true"></i>
+</a>
 <a href="javascript:void(0);" class="nav-toggle">&#9776;</a>
 </div>
 </nav>
@@ -2478,26 +2486,45 @@ function init_posts_list() {
 
 
 
-<div class="posts-container posts-apply-limit l-page">
+<div class="posts-container posts-with-sidebar posts-apply-limit l-screen-inset">
 <div class="posts-list">
 <h1 class="posts-list-caption" data-caption="Notes from a (data) scientist">Notes from a (data) scientist</h1>
-<a href="posts/2020-12-30-wrangling-strings-and-cleaning-free-text/" class="post-preview">
-<script class="post-metadata" type="text/json">{"categories":[]}</script>
+<a href="posts/2020-12-31-cleaning-free-text-and-wrangling-strings/" class="post-preview">
+<script class="post-metadata" type="text/json">{"categories":["data cleaning","nlp"]}</script>
 <div class="metadata">
-<div class="publishedDate">Dec. 30, 2020</div>
-<div class="dt-authors">
-<div class="dt-author">Erika Duan</div>
-</div>
+<div class="publishedDate">Dec. 31, 2020</div>
 </div>
 <div class="thumbnail">
 <img/>
 </div>
 <div class="description">
-<h2>Wrangling strings &amp; cleaning free text</h2>
-<div class="dt-tags"></div>
-<p>A short description of the post.</p>
+<h2>Cleaning free text and wrangling strings</h2>
+<div class="dt-tags">
+<div class="dt-tag">data cleaning</div>
+<div class="dt-tag">nlp</div>
+</div>
+<p>These are some common data cleaning things.</p>
 </div>
 </a>
+</div>
+<div class="posts-sidebar">
+<div class="sidebar-section categories">
+<h3>Categories</h3>
+<ul>
+<li>
+<a href="#category:articles">articles</a>
+<span class="category-count">(1)</span>
+</li>
+<li>
+<a href="#category:data_cleaning">data cleaning</a>
+<span class="category-count">(1)</span>
+</li>
+<li>
+<a href="#category:nlp">nlp</a>
+<span class="category-count">(1)</span>
+</li>
+</ul>
+</div>
 </div>
 <div class="posts-more">
 <a href="#">More articles &raquo;</a>

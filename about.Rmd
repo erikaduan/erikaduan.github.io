@@ -8,15 +8,38 @@ theme: theme.css
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## Background  
+```{r, echo = FALSE, fig.align = 'center', fig.show = 'hold', out.width = '40%'} 
+knitr::include_graphics("./images/profile.jpg")  
+```
+
+
+## Background     
+
+I was trained as a research scientist in respiratory immunology (PhD, UniMelb). During my post-doctoral research, I learnt R programming and applied statistical and machine learning workflows to discover how the human body orchestrates complex defensive processes against respiratory virus invasion.     
+
+
+## Education       
+
++ **2009-2014:** PhD - University of Melbourne    
++ **2008:** Bachelor of Science (Honours) - University of Melbourne     
++ **2005-2007:** Bachelor of Biomedical Science - University of Melbourne     
+
 
 ## Interests     
 
-+ Learning more about statistical modelling and causal inference 
-+ Machine learning explanability     
-+ Machine learning ethical frameworks   
-+ Open government data applications    
-+ STEM teaching [outreach]()  
++ Machine learning algorithmic weaknesses (when human learning is advisable)       
++ Machine learning explanability      
++ Machine learning ethical frameworks     
++ Open government data initiatives        
++ Improving data science career pathway accessibility      
++ STEM outreach initiatives     
 
-## Public projects  
+
+## Public projects    
+
++ [**Introduction to Python workshop materials**](https://github.com/erikaduan/Introduction-to-Python)   
+A repository of beginner-friendly Python tutorials compiled from the Research Platform Services Python workshops (UniMelb, 2019) and the DIPA Introduction to Python workshop (Data61, 2020). Each tutorial exists as a self-contained Jupyter notebook and some tutorials make use of public data sources.              
+
++ [**Introductory mathematics in R and Python**](https://github.com/erikaduan/Introductory-maths-in-R-and-Python)     
+A respository of introductory mathematics notes for beginners who are keen to understand how machine learning algorithms work but find the mathematical notations and concepts confusing (don't worry - they really are just confusing).        
 

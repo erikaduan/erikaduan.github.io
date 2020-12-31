@@ -15,9 +15,12 @@ navbar:
       href: http://github.com/erikaduan/ 
     - icon: fa fa-twitter
       href: https://twitter.com/erikaduan  
+    - icon: fa fa-linkedin
+      href: https://www.linkedin.com/in/erika-duan-5b300420/  
 collections:
   posts:
     share: [twitter, linkedin]
+    authors_metadata: false  
 twitter:
   site: "@erikaduan"
   creator: "@erikaduan"

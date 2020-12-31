@@ -29,7 +29,7 @@ html {
   /*-- Specify custom fonts ~~~ must be imported above   --*/
   --heading-font:    'Noto Sans JP', sans-serif;
   --mono-font:       'Noto Sans JP', sans-serif;
-  --body-font:       sans-serif;
+  --body-font:       'Noto Sans JP', sans-serif;  
   --navbar-font:     'Noto Sans JP', sans-serif;  /* websites + blogs only */
 }
 
@@ -86,4 +86,9 @@ ul > li::marker {
 d-article a {
   border-bottom: 2px solid #1D818C;
   text-decoration: none;
+}
+
+/* Change code chunk background */
+d-code {
+  background: grey;
 }
