@@ -2309,15 +2309,21 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   <script src="site_libs/distill-2.2.21/template.v2.js"></script>
   <!--radix_placeholder_site_in_header-->
   <style type="text/css">
-  /* Change code chunk background */
-  d-code {
-    font-family: 'Fira Mono', sans-serif;
-    background: #37ACA1;
+  @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro');
+  
+  /* Change the appearance of code chunks */
+  d-article div.sourceCode code, 
+  d-article pre code {
+    font-family: 'Source Code Pro';
+    color: #383838;
+    background: #f7fcfd;
+    font-weight: 500;
+    font-size: 1em;
   }
   
-  /* Change the appearance of in-line code chunks */
+  /* Change the appearance of in-line code segments */
   code {
-    font-family: 'Fira Mono', sans-serif;
+    font-family: 'Source Code Pro';
     color: #383838;
     background: #f7fcfd;
     font-weight: 500;
@@ -2506,7 +2512,7 @@ function init_posts_list() {
 <div class="publishedDate">Dec. 31, 2020</div>
 </div>
 <div class="thumbnail">
-<img/>
+<img src="posts/2020-12-31-cleaning-free-text-and-wrangling-strings/benchmark.png"/>
 </div>
 <div class="description">
 <h2>Cleaning free text and wrangling strings</h2>

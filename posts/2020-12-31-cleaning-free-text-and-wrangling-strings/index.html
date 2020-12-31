@@ -100,14 +100,20 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <meta property="og:type" content="article"/>
 <meta property="og:description" content="These are some common data cleaning things."/>
 <meta property="og:url" content="https://erikaduan.github.io/posts/2020-12-31-cleaning-free-text-and-wrangling-strings/"/>
+<meta property="og:image" content="https://erikaduan.github.io/posts/2020-12-31-cleaning-free-text-and-wrangling-strings/benchmark.png"/>
+<meta property="og:image:width" content="1949"/>
+<meta property="og:image:height" content="1200"/>
 <meta property="og:locale" content="en_US"/>
 <meta property="og:site_name" content="EMD: R notes"/>
 
 <!--  https://dev.twitter.com/cards/types/summary -->
-<meta property="twitter:card" content="summary"/>
+<meta property="twitter:card" content="summary_large_image"/>
 <meta property="twitter:title" content="EMD: R notes: Cleaning free text and wrangling strings"/>
 <meta property="twitter:description" content="These are some common data cleaning things."/>
 <meta property="twitter:url" content="https://erikaduan.github.io/posts/2020-12-31-cleaning-free-text-and-wrangling-strings/"/>
+<meta property="twitter:image" content="https://erikaduan.github.io/posts/2020-12-31-cleaning-free-text-and-wrangling-strings/benchmark.png"/>
+<meta property="twitter:image:width" content="1949"/>
+<meta property="twitter:image:height" content="1200"/>
 <meta property="twitter:site" content="@erikaduan"/>
 <meta property="twitter:creator" content="@erikaduan"/>
 
@@ -115,7 +121,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   <!--radix_placeholder_rmarkdown_metadata-->
 
 <script type="text/json" id="radix-rmarkdown-metadata">
-{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","author","date","preview","categories","output","canonical_url"]}},"value":[{"type":"character","attributes":{},"value":["Cleaning free text and wrangling strings"]},{"type":"character","attributes":{},"value":["These are some common data cleaning things."]},{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name"]}},"value":[{"type":"character","attributes":{},"value":["Erika Duan"]}]}]},{"type":"character","attributes":{},"value":["2020-12-31"]},{"type":"character","attributes":{},"value":["look-arounds.jpg"]},{"type":"character","attributes":{},"value":["data cleaning","nlp"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["distill::distill_article"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["toc"]}},"value":[{"type":"logical","attributes":{},"value":[true]}]}]},{"type":"character","attributes":{},"value":["https://erikaduan.github.io/posts/2020-12-31-cleaning-free-text-and-wrangling-strings/"]}]}
+{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","author","date","preview","categories","output","canonical_url"]}},"value":[{"type":"character","attributes":{},"value":["Cleaning free text and wrangling strings"]},{"type":"character","attributes":{},"value":["These are some common data cleaning things."]},{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name"]}},"value":[{"type":"character","attributes":{},"value":["Erika Duan"]}]}]},{"type":"character","attributes":{},"value":["2020-12-31"]},{"type":"character","attributes":{},"value":["benchmark.png"]},{"type":"character","attributes":{},"value":["data cleaning","nlp"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["distill::distill_article"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["toc"]}},"value":[{"type":"logical","attributes":{},"value":[true]}]}]},{"type":"character","attributes":{},"value":["https://erikaduan.github.io/posts/2020-12-31-cleaning-free-text-and-wrangling-strings/"]}]}
 </script>
 <!--/radix_placeholder_rmarkdown_metadata-->
   
@@ -3317,15 +3323,21 @@ distill-header .nav a {
 </script>
   <!--radix_placeholder_site_in_header-->
 <style type="text/css">
-/* Change code chunk background */
-d-code {
-  font-family: 'Fira Mono', sans-serif;
-  background: #37ACA1;
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro');
+
+/* Change the appearance of code chunks */
+d-article div.sourceCode code, 
+d-article pre code {
+  font-family: 'Source Code Pro';
+  color: #383838;
+  background: #f7fcfd;
+  font-weight: 500;
+  font-size: 1em;
 }
 
-/* Change the appearance of in-line code chunks */
+/* Change the appearance of in-line code segments */
 code {
-  font-family: 'Fira Mono', sans-serif;
+  font-family: 'Source Code Pro';
   color: #383838;
   background: #f7fcfd;
   font-weight: 500;
@@ -3406,7 +3418,7 @@ code {
 <li><a href="#look-arounds">Look arounds</a></li>
 </ul></li>
 <li><a href="#improving-comment-field-readability">Improving comment field readability</a></li>
-<li><a href="#extracting-topics-of-interest">Extracting topics of interest</a></li>
+<li><a href="#manually-extracting-topics-of-interest">Manually extracting topics of interest</a></li>
 <li><a href="#extracting-a-machine-learning-friendly-dataset">Extracting a machine learning friendly dataset</a></li>
 <li><a href="#differences-between-base-r-and-stringr-functions">Differences between base R and <code>stringr</code> functions</a></li>
 <li><a href="#other-resources">Other resources</a></li>
@@ -3414,11 +3426,12 @@ code {
 </nav>
 </div>
 <h1 id="introduction">Introduction</h1>
-<p>Comment fields sit right in between tidy tabular data entries and large text files (i.e. documents) in terms of wrangling effort. They require human naunce to decode and more problematically, both the quality and completeness of comment entries vary depending on individual engagement with reporting requirements.</p>
-<p>This can make it hard to gauge whether wrangling comment fields is a fruitful endeavour (especially when you have multiple other data sources that need examining). Luckily, some knowledge of string manipulations and regular expressions can help simplify this process.</p>
+<p>Comment fields sit somewhere in between tidy tabular data entries and large text files (i.e. documents) in terms of wrangling effort. They require human naunce to decode and the quality and completeness of comments vary between individual entries.</p>
+<p>This makes it hard to gauge whether cleaning comment fields is a worthwhile endeavour (especially when you have multiple other data sources that need examining). Luckily, some knowledge of string manipulations and regular expressions can help simplify this process.</p>
+<p>Let’s get started.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre><code><span class="co">#-----load required packages-----  </span>
+<pre><code><span class="co">#----load required packages----  </span>
 <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="st"><a href="https://github.com/trinker/pacman">&quot;pacman&quot;</a></span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">&quot;pacman&quot;</span><span class="op">)</span>
 <span class="fu">pacman</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/pacman/man/p_load.html">p_load</a></span><span class="op">(</span><span class="va">here</span>,  
                <span class="va">tidyverse</span>,  
@@ -3429,30 +3442,44 @@ code {
 </div>
 <h1 id="creating-a-test-dataset">Creating a test dataset</h1>
 <p>Let’s imagine that my local chocolate company, <a href="https://www.haighschocolates.com.au">Haighs Chocolates</a>, wants to understand what food critics versus Haighs fans think about their newest product. They send out a bag of free samples with a link to an online survey that asks individuals to rate their chocolates (on a scale of 1 to 10) and provide additional comments.</p>
-<p><strong>Note:</strong> The code used to create this dataset can be accessed from the <code>Rmd</code> file accompanying this tutorial.</p>
+<p><strong>Note:</strong> The code used to create this survey can be accessed from my github repository <a href="https://github.com/erikaduan/R-tips/tree/master/03_blog_posts/2020-05-16_untangling-strings">here</a>.</p>
 <div class="layout-chunk" data-layout="l-body">
 
 </div>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre><code><span class="co">#-----quickly visualise the test dataset-----  </span>
+<pre><code><span class="co">#----quickly visualise the test dataset----  </span>
 <span class="va">survey</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span> <span class="co"># fields containing html flags are not properly rendered by kable </span>
 </code></pre>
 </div>
+<pre><code># A tibble: 10 x 3
+   respondee rating comment_field                                     
+   &lt;chr&gt;     &lt;chr&gt;  &lt;chr&gt;                                             
+ 1 expert_1  8      &quot;&lt;textarea name=\&quot;comment\&quot; form=\&quot;1\&quot;&gt; &amp;lt;Grade~
+ 2 expert_2  7      &quot;&lt;textarea name=\&quot;comment\&quot; form=\&quot;1\&quot;&gt; &amp;lt;Grade~
+ 3 expert_3  8      &quot;&lt;textarea name=\&quot;comment\&quot; form=\&quot;1\&quot;&gt; &amp;lt;Grade~
+ 4 expert_4  10     &quot;&lt;textarea name=\&quot;comment\&quot; form=\&quot;1\&quot;&gt; &amp;lt;Grade~
+ 5 expert_5  7      &quot;&lt;textarea name=\&quot;comment\&quot; form=\&quot;1\&quot;&gt; &amp;lt;Grade~
+ 6 fan_1     9      &quot;&lt;textarea name=\&quot;comment\&quot; form=\&quot;1\&quot;&gt; Delicious~
+ 7 fan_2     10     &quot;&lt;textarea name=\&quot;comment\&quot; form=\&quot;1\&quot;&gt; Smooth da~
+ 8 fan_3     8      &quot;&lt;textarea name=\&quot;comment\&quot; form=\&quot;1\&quot;&gt; Tastes gr~
+ 9 fan_4     10     &quot;&lt;textarea name=\&quot;comment\&quot; form=\&quot;1\&quot;&gt; This will~
+10 fan_5     9      &quot;&lt;textarea name=\&quot;comment\&quot; form=\&quot;1\&quot;&gt; Haighs ha~</code></pre>
 </div>
+<p>Oh dear, it looks like we will first need to use regular expressions to remove all the html tags embedded within <code>survey$comment_field</code>.</p>
 <h1 id="introduction-to-regular-expressions">Introduction to regular expressions</h1>
-<p>Regular expressions (or regex) can be thought of as a separate syntax for handling patterns in strings. In R, regular expressions can be directly enclosed inside quotes (<code>&quot;&quot;</code> or <code>&#39;&#39;</code>) like regular character strings, or explicitly referenced inside <code>regex()</code>. For convenience, I prefer the former approach but the latter approach can help increase code readability.</p>
+<p>Regular expressions, or regex, can be thought of as a separate syntax for handling patterns in strings. In R, regular expressions can be directly enclosed inside quotes like character strings or explicitly referenced inside <code>regex()</code>. For convenience, I prefer the former approach but the latter approach can help increase code readability.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre><code><span class="co">#-----call regular expressions in R-----</span>
+<pre><code><span class="co">#----call regular expressions in R----</span>
 <span class="va">many_apples</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;Apple&quot;</span>, <span class="st">&quot;apple&quot;</span>, <span class="st">&quot;APPLE&quot;</span>, <span class="st">&quot;apples&quot;</span><span class="op">)</span>
 
-<span class="fu">str_extract</span><span class="op">(</span><span class="va">many_apples</span>, <span class="co"># the string</span>
-            <span class="st">&quot;apples?&quot;</span><span class="op">)</span> <span class="co"># the pattern i.e. regex  </span>
+<span class="fu">str_extract</span><span class="op">(</span><span class="va">many_apples</span>, 
+            <span class="st">&quot;apples?&quot;</span><span class="op">)</span>  
 <span class="co">#&gt; [1] NA       &quot;apple&quot;  NA       &quot;apples&quot;</span>
 
-<span class="co">#-----call regular expressions in R using regex()-----</span>
+<span class="co">#----call regular expressions in R using regex()----</span>
 <span class="co"># regex() provides additional arguments</span>
 
 <span class="fu">str_extract</span><span class="op">(</span><span class="va">many_apples</span>, 
@@ -3474,8 +3501,8 @@ code {
 <p>Some sequences of characters have specific meanings. For example, <code>s</code> refers to the letter <code>&quot;s&quot;</code> but <code>\s</code> refers to any type of white space. To call whitespace in R, a second backslash <code>\</code> is required to escape special character behaviour i.e. <code>\\s</code>.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre><code><span class="co">#-----examples of special character sequences-----  </span>
-<span class="va">words_and_spaces</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;a cat&quot;</span>,
+<pre><code><span class="co">#----examples of special character sequences----  </span>
+<span class="va">words_and_spaces</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot; a cat&quot;</span>,
                       <span class="st">&quot;acat&quot;</span>,
                       <span class="st">&quot;a   cat&quot;</span>,
                       <span class="st">&quot;a\ncat&quot;</span>,
@@ -3494,14 +3521,14 @@ code {
 </code></pre>
 </div>
 </div>
-<p><strong>Note:</strong> The special characters <code>\s</code> versus <code>\S</code>, <code>\d</code> versus <code>\D</code> and <code>\w</code> versus <code>\W</code> are handy as they allow the extraction of opposite pattern types. For example, <code>\w</code> refers to any word character whilst <code>\W</code> and <code>[^\w]</code> both refer to anything that is not a word character.</p>
+<p><strong>Note:</strong> The special characters <code>\s</code> versus <code>\S</code> allow the extraction of opposite pattern types. In another example, lowercase <code>\w</code> refers to any word character whilst uppercase <code>\W</code> and lowercase <code>[^\w]</code> both refer to anything that is not a word character.</p>
 <h2 id="character-anchors">Character anchors</h2>
-<p>I feel that the goal of writing good regex is to be as specific as possible. This is why character anchors can be useful (i.e. using <code>^</code> and <code>$</code> to denote the start and end of your string respectively).</p>
+<p>I feel that the goal of writing good regex is to be as specific as possible. This is why character anchors are useful (i.e. using <code>^</code> and <code>$</code> to denote the start and end of your string respectively).</p>
 <p>If we revisit the example above, we can see that the presence or absence of character anchors produces very different outputs.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre><code><span class="co">#-----impact of character anchors-----    </span>
-<span class="va">words_and_spaces</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;a cat&quot;</span>,
+<pre><code><span class="co">#----impact of character anchors----    </span>
+<span class="va">words_and_spaces</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot; a cat&quot;</span>,
                       <span class="st">&quot;acat&quot;</span>,
                       <span class="st">&quot;a   cat&quot;</span>,
                       <span class="st">&quot;a\ncat&quot;</span>,
@@ -3513,10 +3540,10 @@ code {
 <span class="co">#&gt; [1] &quot;a&quot;       &quot;acat&quot;    &quot;a&quot;       &quot;a&quot;       &quot;a\\ncat&quot;  </span>
 
 <span class="fu">str_extract</span><span class="op">(</span><span class="va">words_and_spaces</span>, <span class="st">&quot;^\\S+&quot;</span><span class="op">)</span>  
-<span class="co">#&gt; [1] &quot;a&quot;       &quot;acat&quot;    &quot;a&quot;       &quot;a&quot;       &quot;a\\ncat&quot;  # same output    </span>
+<span class="co">#&gt; [1] NA       &quot;acat&quot;    &quot;a&quot;       &quot;a&quot;       &quot;a\\ncat&quot;   </span>
 
 <span class="fu">str_extract</span><span class="op">(</span><span class="va">words_and_spaces</span>, <span class="st">&quot;\\S+$&quot;</span><span class="op">)</span> 
-<span class="co">#&gt; [1] &quot;cat&quot;     &quot;acat&quot;    &quot;cat&quot;     &quot;cat&quot;     &quot;a\\ncat&quot; # different output      </span>
+<span class="co">#&gt; [1] &quot;cat&quot;     &quot;acat&quot;    &quot;cat&quot;     &quot;cat&quot;     &quot;a\\ncat&quot;       </span>
 </code></pre>
 </div>
 </div>
@@ -3531,7 +3558,7 @@ code {
 </ul>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre><code><span class="co">#-----extract patterns using character classes i.e. []-----  </span>
+<pre><code><span class="co">#----extract patterns using character classes i.e. []----    </span>
 <span class="va">strange_fruits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;apple1&quot;</span>,
                     <span class="st">&quot;bapple2&quot;</span>,
                     <span class="st">&quot;capple3&quot;</span>,
@@ -3542,21 +3569,21 @@ code {
 <span class="fu">str_extract</span><span class="op">(</span><span class="va">strange_fruits</span>, <span class="st">&quot;[a-d]&quot;</span><span class="op">)</span>
 <span class="co">#&gt; [1] &quot;a&quot; &quot;b&quot; &quot;c&quot; &quot;d&quot; NA  &quot;a&quot;  </span>
 
-<span class="co"># &quot;[a-d][^p]&quot; refers to one character between a and d followed by one character that is not p  </span>
-
 <span class="fu">str_extract</span><span class="op">(</span><span class="va">strange_fruits</span>, <span class="st">&quot;[a-d][^p]&quot;</span><span class="op">)</span>
 <span class="co">#&gt; [1] NA   &quot;ba&quot; &quot;ca&quot; &quot;da&quot; NA   &quot;ag&quot;   </span>
 
-<span class="co"># &quot;[0|5-9]&quot; refers to a number that is zero or a number from 4 to 9</span>
+<span class="co"># [a-d][^p] refers to one character between a and d followed by one character that is not p  </span>
 
 <span class="fu">str_extract</span><span class="op">(</span><span class="va">strange_fruits</span>, <span class="st">&quot;[0|4-9]&quot;</span><span class="op">)</span>
 <span class="co">#&gt; [1] NA  NA  NA  &quot;4&quot; &quot;5&quot; &quot;0&quot;   </span>
+
+<span class="co"># [0|5-9] refers to one number that is zero or a number from 4 to 9</span>
 </code></pre>
 </div>
 </div>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre><code><span class="co">#-----extract character using groupings i.e. ()-----     </span>
+<pre><code><span class="co">#----extract character using groupings i.e. ()----     </span>
 <span class="va">strange_fruits</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;apple1&quot;</span>,
                     <span class="st">&quot;bapple2&quot;</span>,
                     <span class="st">&quot;capple3&quot;</span>,
@@ -3577,54 +3604,51 @@ code {
 </code></pre>
 </div>
 </div>
-<p><strong>Note:</strong> The difference between a character class and a grouping is that a character class refers to only one character (whilst allowing for multiple character forms), whereas a group refers to an entire sequence of characters.</p>
+<p><strong>Note:</strong> a character class <code>[a-z]</code> refers to only one character whereas a grouping <code>(a-z+)</code> refers to an entire sequence or group of characters.</p>
 <h2 id="greedy-versus-lazy-matches">Greedy versus lazy matches</h2>
-<p>Using a non-greedy as opposed to greedy match allows you to extract just the first sequence of characters separated by a white space or punctuation mark. This use case is most applicable to trimming strings or extracting file or object names.</p>
+<p>In R, regex is greedy by default. Using a non-greedy as opposed to greedy match allows you to extract just the first characters before a white space or punctuation mark. This is useful for trimming strings or extracting file or object names.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre><code><span class="co">#-----use cases for greedy matches-----   </span>
+<pre><code><span class="co">#----use cases for greedy matches----   </span>
 <span class="va">messy_dates</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;Thursday 24th May&quot;</span>,
                  <span class="st">&quot;Thursday  24th May  &quot;</span>,
-                 <span class="st">&quot;May&quot;</span>,
+                 <span class="st">&quot; May&quot;</span>,
                  <span class="st">&quot;May    &quot;</span><span class="op">)</span>
 
-<span class="co"># extract the first word in the string      </span>
+<span class="fu">str_extract</span><span class="op">(</span><span class="va">messy_dates</span>, <span class="st">&quot;^\\w+&quot;</span><span class="op">)</span>   
+<span class="co">#&gt; [1] &quot;Thursday&quot; &quot;Thursday&quot; NA      &quot;May&quot;   </span>
 
-<span class="fu">str_extract</span><span class="op">(</span><span class="va">messy_dates</span>, <span class="st">&quot;^\\w+&quot;</span><span class="op">)</span> <span class="co"># * represents zero or more of i.e. a greedy match   </span>
-<span class="co">#&gt; [1] &quot;Thursday&quot; &quot;Thursday&quot; &quot;May&quot;      &quot;May&quot;   </span>
+<span class="co"># greedily extract the first word in the string </span>
 
-<span class="fu">str_extract</span><span class="op">(</span><span class="va">messy_dates</span>, <span class="st">&quot;^\\w{0,}&quot;</span><span class="op">)</span> <span class="co"># * and {0,} are the same  </span>
-<span class="co">#&gt; [1] &quot;Thursday&quot; &quot;Thursday&quot; &quot;May&quot;      &quot;May&quot;    </span>
+<span class="fu">str_extract</span><span class="op">(</span><span class="va">messy_dates</span>, <span class="st">&quot;^\\w{1,}&quot;</span><span class="op">)</span> <span class="co"># + and {1,} are equivalent    </span>
+<span class="co">#&gt; [1] &quot;Thursday&quot; &quot;Thursday&quot; NA      &quot;May&quot;    </span>
 
-<span class="fu">str_extract</span><span class="op">(</span><span class="va">messy_dates</span>, <span class="st">&quot;^(\\S+)&quot;</span><span class="op">)</span> <span class="co"># also produces the same output  </span>
-<span class="co">#&gt; [1] &quot;Thursday&quot; &quot;Thursday&quot; &quot;May&quot;      &quot;May&quot;    </span>
+<span class="fu">str_extract</span><span class="op">(</span><span class="va">messy_dates</span>, <span class="st">&quot;^(\\S+)&quot;</span><span class="op">)</span>  
+<span class="co">#&gt; [1] &quot;Thursday&quot; &quot;Thursday&quot; NA      &quot;May&quot;    </span>
 
-<span class="co">#-----use cases for non-greedy matches-----  </span>
+<span class="co">#----use cases for non-greedy matches---- </span>
 <span class="fu">str_replace_all</span><span class="op">(</span><span class="va">messy_dates</span>, <span class="st">&quot;\\s&quot;</span> , <span class="st">&quot;-&quot;</span><span class="op">)</span> <span class="co"># replaces each individual whitespace</span>
-<span class="co">#&gt; [1] &quot;Thursday-24th-May&quot;    &quot;Thursday--24th-May--&quot; &quot;May&quot;                  &quot;May----&quot;       </span>
+<span class="co">#&gt; [1] &quot;Thursday-24th-May&quot;    &quot;Thursday--24th-May--&quot; &quot;-May&quot;                  &quot;May----&quot;       </span>
 
-<span class="fu">str_replace_all</span><span class="op">(</span><span class="va">messy_dates</span>, <span class="st">&quot;\\s{1,4}&quot;</span> , <span class="st">&quot;-&quot;</span><span class="op">)</span> 
-<span class="co">#&gt; [1] &quot;Thursday-24th-May&quot;  &quot;Thursday-24th-May-&quot; &quot;May&quot;                &quot;May-&quot;       </span>
+<span class="fu">str_replace_all</span><span class="op">(</span><span class="va">messy_dates</span>, <span class="st">&quot;\\s{1,2}&quot;</span> , <span class="st">&quot;-&quot;</span><span class="op">)</span> 
+<span class="co">#&gt; [1] &quot;Thursday-24th-May&quot;  &quot;Thursday-24th-May-&quot; &quot;-May&quot;                &quot;May--&quot;         </span>
 
 <span class="co"># use look arounds (next topic) to replace the whitespace(s) after the first word     </span>
 
-<span class="fu">str_replace_all</span><span class="op">(</span><span class="va">messy_dates</span>, <span class="st">&quot;(?&lt;=^\\S{1,100})\\s{1,4}&quot;</span> , <span class="st">&quot;-&quot;</span><span class="op">)</span> 
-<span class="co">#&gt; [1] &quot;Thursday-24th May&quot;   &quot;Thursday-24th May  &quot; &quot;May&quot;                 &quot;May-&quot;     </span>
+<span class="fu">str_replace_all</span><span class="op">(</span><span class="va">messy_dates</span>, <span class="st">&quot;(?&lt;=^\\w{1,100})\\s{1,2}&quot;</span> , <span class="st">&quot;-&quot;</span><span class="op">)</span> 
+<span class="co">#&gt; [1] &quot;Thursday-24th May&quot;   &quot;Thursday-24th May  &quot; &quot; May&quot;                 &quot;May-  &quot;     </span>
 </code></pre>
 </div>
 </div>
 <p><strong>Note:</strong> For further details explaining the regex syntax for the last example, read <a href="https://stackoverflow.com/questions/52431841/how-to-find-the-first-space-in-a-sentence-with-regular-expressions-within-r">this stack overflow post</a>.</p>
 <h2 id="look-arounds">Look arounds</h2>
-<p>Look around operations are useful when you are unsure of the pattern itself, but you know exactly what its preceding or following pattern is. I’ve found that the clearest explanation of look around operations comes from the RStudio cheetsheet on <a href="https://github.com/rstudio/cheatsheets/blob/master/strings.pdf"><code>string_r</code></a> and is depicted below.</p>
+<p>Look around operations are useful when you are unsure of the pattern itself, but you know exactly what its preceding or following pattern is. I’ve found that the clearest explanation of look around operations comes from the <a href="https://github.com/rstudio/cheatsheets/blob/master/strings.pdf">RStudio cheetsheet</a> on <code>string_r</code>, as depicted below.</p>
 <div class="layout-chunk" data-layout="l-body">
-<div class="sourceCode">
-<pre><code><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/include_graphics.html">include_graphics</a></span><span class="op">(</span><span class="st">&quot;https://github.com/erikaduan/erikaduan.github.io/blob/master/images/2020-12-31_look-arounds.jpg&quot;</span><span class="op">)</span>  
-</code></pre>
-</div>
+
 </div>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre><code><span class="co">#-----use cases for different types of look arounds-----  </span>
+<pre><code><span class="co">#----use cases for different types of look arounds----  </span>
 <span class="va">recipes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;crossiant recipes&quot;</span>,
              <span class="st">&quot;apple pie recipe&quot;</span>,
              <span class="st">&quot;chocolate cake  recipe&quot;</span>, <span class="co"># extra space</span>
@@ -3637,30 +3661,40 @@ code {
 <span class="fu">str_extract</span><span class="op">(</span><span class="va">recipes</span>, <span class="st">&quot;\\S+(?=\\s*recipes?)&quot;</span><span class="op">)</span>   
 <span class="co">#&gt; [1] &quot;crossiant&quot;  &quot;pie&quot;        &quot;cake&quot;       NA           &quot;KFC-&quot;       &quot;soft-serve&quot;   </span>
 
-<span class="co"># use positive look-behind (?&lt;=) to identify the secret recipe   </span>
-
 <span class="fu">str_extract</span><span class="op">(</span><span class="va">recipes</span>, <span class="st">&quot;(?&lt;=secret\\s{1,10})\\S+.+&quot;</span><span class="op">)</span>   
 <span class="co">#&gt; [1] NA                            NA                            NA                           </span>
 <span class="co">#&gt; [4] NA                            &quot;KFC-recipe&quot;                  &quot;McDonalds soft-serve recipe&quot;</span>
+
+<span class="co"># use positive look-behind (?&lt;=) on &quot;secret&quot; to identify the secret recipes    </span>
 </code></pre>
 </div>
 </div>
 <p><strong>Note:</strong> Positive look-behinds require defined boundary specifications i.e. the operation <code>+</code> needs to be converted into <code>{1,1000}</code>.</p>
 <h1 id="improving-comment-field-readability">Improving comment field readability</h1>
-<p>With regex revised, let us return to the Haighs chocolate survey. The first thing we can see is that html tags have been retained inside the comment field and that this field is very long (i.e. difficult to read).</p>
+<p>With regex revised, let us return to our Haighs chocolate survey. The first thing we can see is that html tags have been retained inside the comment field and that this field is very long (i.e. difficult to read).</p>
 <p>We can improve the readability of the survey by:</p>
 <ul>
 <li>Removing all html tags using regex.<br />
 </li>
-<li>Separating phrases into individual fields i.e. columns using <a href="https://tidyr.tidyverse.org/reference/separate.html"><code>separate()</code></a>.</li>
+<li>Separating phrases into columns using <a href="https://tidyr.tidyverse.org/reference/separate.html"><code>separate()</code></a>.</li>
 </ul>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre><code><span class="co">#-----examine survey data-----</span>
+<pre><code><span class="co">#----re-examine survey data----</span>
 <span class="va">survey</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>   
-
-<span class="co">#-----remove html tags-----</span>
+</code></pre>
+</div>
+<pre><code># A tibble: 5 x 3
+  respondee rating comment_field                                      
+  &lt;chr&gt;     &lt;chr&gt;  &lt;chr&gt;                                              
+1 expert_1  8      &quot;&lt;textarea name=\&quot;comment\&quot; form=\&quot;1\&quot;&gt; &amp;lt;Grade ~
+2 expert_2  7      &quot;&lt;textarea name=\&quot;comment\&quot; form=\&quot;1\&quot;&gt; &amp;lt;Grade ~
+3 expert_3  8      &quot;&lt;textarea name=\&quot;comment\&quot; form=\&quot;1\&quot;&gt; &amp;lt;Grade ~
+4 expert_4  10     &quot;&lt;textarea name=\&quot;comment\&quot; form=\&quot;1\&quot;&gt; &amp;lt;Grade ~
+5 expert_5  7      &quot;&lt;textarea name=\&quot;comment\&quot; form=\&quot;1\&quot;&gt; &amp;lt;Grade ~</code></pre>
+<div class="sourceCode">
+<pre><code><span class="co">#----remove html tags----</span>
 <span class="va">remove_html_tags</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/regex.html">regex</a></span><span class="op">(</span><span class="st">&quot;
                           &lt;  # starts with &lt;
                           [^&gt;]+  # contains one or more of all characters excepting &gt; 
@@ -3677,41 +3711,46 @@ code {
   <span class="fu">mutate</span><span class="op">(</span>comment_field <span class="op">=</span> <span class="fu">str_replace_all</span><span class="op">(</span><span class="va">comment_field</span>, <span class="va">remove_html_tags</span>, <span class="st">&quot;&quot;</span><span class="op">)</span>,
          comment_field <span class="op">=</span> <span class="fu">str_replace_all</span><span class="op">(</span><span class="va">comment_field</span>, <span class="va">remove_more_html</span>, <span class="st">&quot;&quot;</span><span class="op">)</span><span class="op">)</span>
 
-<span class="co">#-----examine comment field-----  </span>
+<span class="co">#----examine comment field----  </span>
 <span class="va">survey</span> <span class="op">%&gt;%</span>
   <span class="fu">select</span><span class="op">(</span><span class="va">comment_field</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="op">)</span>
+  <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span> 
 </code></pre>
 </div>
+<pre><code># A tibble: 5 x 1
+  comment_field                                                       
+  &lt;chr&gt;                                                               
+1 &quot; Grade A beans. Easily melts. Smooth chocolate shell, with a crunc~
+2 &quot; Grade A beans with subtle caramel hints. Melts well. Smooth exter~
+3 &quot; Grade a beans.  Caramel and vanilla undertones complement the bit~
+4 &quot; Grade A cocoa beans. Melts easily. Smooth dark chocolate contrast~
+5 &quot; Grade A beans, likely of Ecuador origin. Smooth dark chocolate co~</code></pre>
 </div>
-<p>We can split the comment field into smaller phrases, separating by punctuation marks or conjunctions.</p>
+<p>We can then split the single long comment field into multiple smaller columns. <a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre><code><span class="co">#-----separate comment field into an unknown number of columns of phrases-----    </span>
-<span class="va">nmax</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="fu">str_count</span><span class="op">(</span><span class="va">survey</span><span class="op">$</span><span class="va">comment_field</span>, <span class="st">&quot;[:punct:]|and|with|against&quot;</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span>
+<pre><code><span class="co">#----separate comment field into an unknown number of columns----    </span>
+<span class="va">nmax</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="fu">str_count</span><span class="op">(</span><span class="va">survey</span><span class="op">$</span><span class="va">comment_field</span>, <span class="st">&quot;[[:punct:]]|and|with|against&quot;</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span>
 
 <span class="va">survey</span> <span class="op">&lt;-</span> <span class="va">survey</span> <span class="op">%&gt;%</span>   
   <span class="fu">separate</span><span class="op">(</span><span class="va">comment_field</span>,
            into <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">&quot;Field&quot;</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="va">nmax</span><span class="op">)</span><span class="op">)</span>,
            sep <span class="op">=</span> <span class="st">&quot;[[:punct:]]|and|with|against&quot;</span>, <span class="co"># separate on punctuation or conjunctions  </span>
            remove <span class="op">=</span> <span class="cn">F</span>,
-  extra <span class="op">=</span> <span class="st">&quot;warn&quot;</span>,
-  fill <span class="op">=</span> <span class="st">&quot;right&quot;</span><span class="op">)</span> 
+           extra <span class="op">=</span> <span class="st">&quot;warn&quot;</span>,
+           fill <span class="op">=</span> <span class="st">&quot;right&quot;</span><span class="op">)</span> 
 
-<span class="co">#-----examine comment field-----  </span>
+<span class="co">#----examine comment fields----  </span>
 <span class="va">survey</span> <span class="op">%&gt;%</span>
-  <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">respondee</span>, <span class="va">rating</span>, <span class="va">comment_field</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="op">)</span>
+  <span class="fu">select</span><span class="op">(</span><span class="fu">starts_with</span><span class="op">(</span><span class="st">&quot;Field&quot;</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span> 
 </code></pre>
 </div>
 </div>
-<p><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
-<h1 id="extracting-topics-of-interest">Extracting topics of interest</h1>
-<p>After separating the comment field into individual phrases, I can see that there are references to:</p>
+<h1 id="manually-extracting-topics-of-interest">Manually extracting topics of interest</h1>
+<p>After separating the comment field into smaller fields, we see references to:</p>
 <ul>
-<li>the cocoa bean grade<br />
+<li>cocoa bean grade<br />
 </li>
 <li>presence of caramel or vanilla flavour<br />
 </li>
@@ -3728,11 +3767,11 @@ code {
 <p>Information about cocoa bean grade is highly structured. This means that extracting the letter following the word “Grade” is sufficient. A similar logic can be applied to extract whether caramel or vanilla flavour or chocolate smoothness was mentioned.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre><code><span class="co">#-----extract information about cocoa bean grade, flavour and smoothness-----</span>
+<pre><code><span class="co">#----extract information about cocoa bean grade, flavour and smoothness----</span>
 <span class="va">tidy_survey</span> <span class="op">&lt;-</span> <span class="va">survey</span> <span class="op">%&gt;%</span>
   <span class="fu">select</span><span class="op">(</span><span class="va">respondee</span>,
          <span class="va">comment_field</span><span class="op">)</span> <span class="op">%&gt;%</span> 
-  <span class="fu">mutate</span><span class="op">(</span>cocoa_grade <span class="op">=</span> <span class="fu">str_extract</span><span class="op">(</span><span class="va">comment_field</span>, <span class="st">&quot;(?&lt;=[G|g]rade\\s{0,2})[A-C]&quot;</span><span class="op">)</span>,
+  <span class="fu">mutate</span><span class="op">(</span>cocoa_grade <span class="op">=</span> <span class="fu">str_extract</span><span class="op">(</span><span class="va">comment_field</span>, <span class="st">&quot;(?&lt;=[G|g]rade\\s{0,10})[A-C|a-c]&quot;</span><span class="op">)</span>,
          is_caramel <span class="op">=</span> <span class="fu">case_when</span><span class="op">(</span><span class="fu">str_detect</span><span class="op">(</span><span class="va">comment_field</span>, <span class="st">&quot;[C|c]aramel&quot;</span><span class="op">)</span> <span class="op">~</span> <span class="st">&quot;yes&quot;</span>,
                                 <span class="cn">TRUE</span> <span class="op">~</span> <span class="st">&quot;NA&quot;</span><span class="op">)</span>, 
          is_vanilla <span class="op">=</span> <span class="fu">case_when</span><span class="op">(</span><span class="fu">str_detect</span><span class="op">(</span><span class="va">comment_field</span>, <span class="st">&quot;[V|v]anilla&quot;</span><span class="op">)</span> <span class="op">~</span> <span class="st">&quot;yes&quot;</span>,
@@ -3740,7 +3779,7 @@ code {
          is_smooth <span class="op">=</span> <span class="fu">case_when</span><span class="op">(</span><span class="fu">str_detect</span><span class="op">(</span><span class="va">comment_field</span>, <span class="st">&quot;[S|s]mooth&quot;</span><span class="op">)</span> <span class="op">~</span> <span class="st">&quot;yes&quot;</span>,
                                <span class="cn">TRUE</span> <span class="op">~</span> <span class="st">&quot;NA&quot;</span><span class="op">)</span><span class="op">)</span> 
 
-<span class="co"># note that when using case_when, TRUE cannot be converted into a logical vector  </span>
+<span class="co"># we cannot assign TRUE ~ NA inside case_when  </span>
 
 <span class="va">tidy_survey</span> <span class="op">&lt;-</span> <span class="va">tidy_survey</span> <span class="op">%&gt;%</span>
   <span class="fu">mutate_at</span><span class="op">(</span><span class="fu">vars</span><span class="op">(</span><span class="va">cocoa_grade</span><span class="op">)</span>, <span class="op">~</span> <span class="fu">replace_na</span><span class="op">(</span><span class="va">.</span>, <span class="st">&quot;NA&quot;</span><span class="op">)</span><span class="op">)</span>
@@ -3749,15 +3788,15 @@ code {
 </code></pre>
 </div>
 </div>
-<p>For more descriptive fields i.e. whether or how the chocolate melts, I find it easier to first extract a matrix of fields containing the topic of interest.</p>
+<p>For more descriptive fields such as whether the chocolate melts, I find it easier to first extract a matrix of fields.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre><code><span class="co">#-----extract information about chocolate texture-----</span>
+<pre><code><span class="co">#----extract information about chocolate texture----</span>
 <span class="va">melt_matrix</span> <span class="op">&lt;-</span> <span class="va">survey</span> <span class="op">%&gt;%</span>
   <span class="fu">select_at</span><span class="op">(</span><span class="fu">vars</span><span class="op">(</span><span class="va">respondee</span>,
                  <span class="fu">starts_with</span><span class="op">(</span><span class="st">&quot;Field&quot;</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> 
   <span class="fu">mutate_at</span><span class="op">(</span><span class="fu">vars</span><span class="op">(</span><span class="fu">starts_with</span><span class="op">(</span><span class="st">&quot;Field&quot;</span><span class="op">)</span><span class="op">)</span>,
-            <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/replace.html">replace</a></span><span class="op">(</span><span class="va">.</span>, <span class="op">!</span><span class="op">(</span><span class="fu">str_detect</span><span class="op">(</span><span class="va">.</span>, <span class="st">&quot;.*\\b[M|m]elt.*\\b.*&quot;</span><span class="op">)</span><span class="op">)</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span> 
+            <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/replace.html">replace</a></span><span class="op">(</span><span class="va">.x</span>, <span class="op">!</span><span class="op">(</span><span class="fu">str_detect</span><span class="op">(</span><span class="va">.x</span>, <span class="st">&quot;.*\\b[M|m]elt.*\\b.*&quot;</span><span class="op">)</span><span class="op">)</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span> 
 
 <span class="co"># convert fields which do not contain &quot;melt&quot; into NA and unite all fields     </span>
 
@@ -3770,9 +3809,11 @@ code {
         remove <span class="op">=</span> <span class="cn">T</span>,
         na.rm <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> <span class="co"># make sure to remove NAs  </span>
 
-<span class="co">#-----convert responses into factors and recode factor levels-----  </span>
+<span class="co">#----convert responses into factors and recode factor levels----  </span>
 <span class="va">melt_status</span><span class="op">$</span><span class="va">is_melty</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">melt_status</span><span class="op">$</span><span class="va">is_melty</span><span class="op">)</span>
+
 <span class="fu"><a href="https://rdrr.io/r/base/levels.html">levels</a></span><span class="op">(</span><span class="va">melt_status</span><span class="op">$</span><span class="va">is_melty</span><span class="op">)</span> 
+<span class="co">#&gt; [1] &quot;&quot;                     &quot; Easily melts&quot;        &quot; Melts easily&quot;        &quot; melts in your mouth&quot; &quot; Melts well&quot;         </span>
 
 <span class="va">melt_status</span> <span class="op">&lt;-</span> <span class="va">melt_status</span> <span class="op">%&gt;%</span>
   <span class="fu">mutate</span><span class="op">(</span>is_melty <span class="op">=</span> <span class="fu">fct_collapse</span><span class="op">(</span><span class="va">is_melty</span>,
@@ -3782,36 +3823,40 @@ code {
                                            <span class="st">&quot; melts in your mouth&quot;</span><span class="op">)</span>,
                                  <span class="st">&quot;NA&quot;</span> <span class="op">=</span> <span class="st">&quot;&quot;</span><span class="op">)</span><span class="op">)</span>
 
-<span class="co">#-----left join tidy_survey to melt_status-----  </span>
+<span class="co">#----left join tidy_survey to melt_status----  </span>
 <span class="va">tidy_survey</span> <span class="op">&lt;-</span> <span class="va">tidy_survey</span> <span class="op">%&gt;%</span>
   <span class="fu">left_join</span><span class="op">(</span><span class="va">melt_status</span>,
             by <span class="op">=</span> <span class="st">&quot;respondee&quot;</span><span class="op">)</span>
 </code></pre>
 </div>
 </div>
+<p>This process is repeated for chocolate sweetness. <a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre><code><span class="co">#-----extract information about chocolate sweetness-----  </span>
+<pre><code><span class="co">#----extract information about chocolate sweetness----  </span>
 <span class="va">sweetness_matrix</span> <span class="op">&lt;-</span> <span class="va">survey</span> <span class="op">%&gt;%</span>
   <span class="fu">select_at</span><span class="op">(</span><span class="fu">vars</span><span class="op">(</span><span class="va">respondee</span>,
                  <span class="fu">starts_with</span><span class="op">(</span><span class="st">&quot;Field&quot;</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> 
   <span class="fu">mutate_at</span><span class="op">(</span><span class="fu">vars</span><span class="op">(</span><span class="fu">starts_with</span><span class="op">(</span><span class="st">&quot;Field&quot;</span><span class="op">)</span><span class="op">)</span>,
-            <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/replace.html">replace</a></span><span class="op">(</span><span class="va">.</span>, <span class="op">!</span><span class="op">(</span><span class="fu">str_detect</span><span class="op">(</span><span class="va">.</span>, <span class="st">&quot;.*\\b[S|s](weet)|(ugar).*\\b.*&quot;</span><span class="op">)</span><span class="op">)</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span> 
+            <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/replace.html">replace</a></span><span class="op">(</span><span class="va">.x</span>, <span class="op">!</span><span class="op">(</span><span class="fu">str_detect</span><span class="op">(</span><span class="va">.x</span>, <span class="st">&quot;.*\\b[S|s](weet)|(ugar).*\\b.*&quot;</span><span class="op">)</span><span class="op">)</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span> 
 
 <span class="co"># convert fields which do not contain &quot;sweet&quot; or &quot;sugar&quot; into NA and unite all fields     </span>
 
 <span class="va">sweetness_cols</span> <span class="op">&lt;-</span> <span class="fu">str_which</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">sweetness_matrix</span><span class="op">)</span>, <span class="st">&quot;^Field.+&quot;</span><span class="op">)</span>
 
 <span class="va">sweetness_status</span> <span class="op">&lt;-</span> <span class="va">sweetness_matrix</span> <span class="op">%&gt;%</span>
-  <span class="fu">unite</span><span class="op">(</span><span class="st">&quot;is_sweet&quot;</span>, <span class="co"># new column </span>
-        <span class="fu">all_of</span><span class="op">(</span><span class="va">sweetness_cols</span><span class="op">)</span>, <span class="co"># unite these columns  </span>
+  <span class="fu">unite</span><span class="op">(</span><span class="st">&quot;is_sweet&quot;</span>, 
+        <span class="fu">all_of</span><span class="op">(</span><span class="va">sweetness_cols</span><span class="op">)</span>, 
         sep <span class="op">=</span> <span class="st">&quot;&quot;</span>,
         remove <span class="op">=</span> <span class="cn">T</span>,
         na.rm <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> <span class="co"># make sure to remove NAs  </span>
 
-<span class="co">#-----convert responses into factors and recode factor levels-----  </span>
+<span class="co">#----convert responses into factors and recode factor levels---- </span>
 <span class="va">sweetness_status</span><span class="op">$</span><span class="va">is_sweet</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">sweetness_status</span><span class="op">$</span><span class="va">is_sweet</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/levels.html">levels</a></span><span class="op">(</span><span class="va">sweetness_status</span><span class="op">$</span><span class="va">is_sweet</span><span class="op">)</span> 
+
+<span class="fu"><a href="https://rdrr.io/r/base/levels.html">levels</a></span><span class="op">(</span><span class="va">sweetness_status</span><span class="op">$</span><span class="va">is_sweet</span><span class="op">)</span>
+<span class="co">#&gt; [1] &quot;&quot;                                      &quot; low sugar content &quot;                   &quot; not so sweet  I enjoyed this&quot;        </span>
+<span class="co">#&gt; [4] &quot;filled core may be too sweet for some&quot;</span>
 
 <span class="va">sweetness_status</span> <span class="op">&lt;-</span> <span class="va">sweetness_status</span> <span class="op">%&gt;%</span>
   <span class="fu">mutate</span><span class="op">(</span>is_sweet <span class="op">=</span> <span class="fu">fct_collapse</span><span class="op">(</span><span class="va">is_sweet</span>,
@@ -3820,7 +3865,7 @@ code {
                                           <span class="st">&quot; not so sweet  I enjoyed this&quot;</span><span class="op">)</span>,
                                  <span class="st">&quot;NA&quot;</span> <span class="op">=</span> <span class="st">&quot;&quot;</span><span class="op">)</span><span class="op">)</span>
 
-<span class="co">#-----left join tidy_survey to melt_status-----  </span>
+<span class="co">#----left join tidy_survey to melt_status----  </span>
 <span class="va">tidy_survey</span> <span class="op">&lt;-</span> <span class="va">tidy_survey</span> <span class="op">%&gt;%</span>
   <span class="fu">left_join</span><span class="op">(</span><span class="va">sweetness_status</span>,
             by <span class="op">=</span> <span class="st">&quot;respondee&quot;</span><span class="op">)</span>
@@ -3829,10 +3874,10 @@ code {
 </div>
 <p><strong>Note:</strong> This method of converting topics into tabular variables works well when we are not dealing with too many factors (i.e. when recoding factors is not too cumbersome).</p>
 <h1 id="extracting-a-machine-learning-friendly-dataset">Extracting a machine learning friendly dataset</h1>
-<p>A reason why we might be interested in converting unstructured comment fields into structured variables is to generate data features for machine learning (i.e. predictive) purposes. For instance, we might be interested in whether there is a relationship between the topic commented on, whether the comment comes from a critic or chocolate fan, and the chocolate rating.</p>
+<p>A reason why we might be interested in converting unstructured comment fields into structured variables is to generate data features for machine learning. For instance, we might be interested in whether there is a relationship between survey topics, whether the comment comes from a critic or chocolate fan, and the chocolate rating.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre><code><span class="co">#-----create final tidy_survey-----</span>
+<pre><code><span class="co">#----create final tidy_survey----</span>
 <span class="va">survey_rating</span> <span class="op">&lt;-</span> <span class="va">survey</span> <span class="op">%&gt;%</span>
   <span class="fu">select</span><span class="op">(</span><span class="va">respondee</span>,
          <span class="va">rating</span><span class="op">)</span> <span class="co"># extract rating  </span>
@@ -3845,16 +3890,15 @@ code {
 
 <span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span> <span class="co"># sample reproducibly  </span>
 <span class="va">tidy_survey</span> <span class="op">%&gt;%</span>
-  <span class="fu">sample_n</span><span class="op">(</span><span class="fl">5</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html">kable</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># machine learning friendly format  </span>
+  <span class="fu">sample_n</span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>   
 </code></pre>
 </div>
 </div>
 <h1 id="differences-between-base-r-and-stringr-functions">Differences between base R and <code>stringr</code> functions</h1>
-<p>In R, string manipulation can be performed using either base R functions or <code>str_...</code> functions from the <code>stringr</code> library. A key difference between base R and <code>stringr</code> functions is the order that the string and pattern are specified. The pattern, not the string, is specified first in base R functions, i.e. not in a pipe friendly order.</p>
+<p>In R, string manipulation can be performed using either base R functions or functions from the <code>stringr</code> library. A key difference between base R and <code>stringr</code> functions is the order that the string and pattern are specified. The pattern, not the string, is specified first in base R functions, which is not in a pipe friendly order.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre><code><span class="co">#-----use cases for grep()-----  </span>
+<pre><code><span class="co">#----use cases for grep()----  </span>
 <span class="va">desserts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;chocolate&quot;</span>,
               <span class="st">&quot;chocolate cake&quot;</span>,
               <span class="st">&quot;chocolate tart&quot;</span>,
@@ -3868,12 +3912,16 @@ code {
 <span class="fu"><a href="https://rdrr.io/r/base/grep.html">grep</a></span><span class="op">(</span><span class="st">&quot;.*\\bchocolate\\b.*&quot;</span>, <span class="va">desserts</span>, value <span class="op">=</span> <span class="cn">F</span><span class="op">)</span> <span class="co"># default is value = FALSE</span>
 <span class="co">#&gt; [1] 1 2 3 4 5 6  </span>
 
+<span class="co"># grep, value = FALSE only extracts the position of matching elements in the vector  </span>
+
 <span class="fu">str_which</span><span class="op">(</span><span class="va">desserts</span>, <span class="st">&quot;.*\\bchocolate\\b.*&quot;</span><span class="op">)</span>  
 <span class="co">#&gt; [1] 1 2 3 4 5 6  </span>
 
 <span class="fu"><a href="https://rdrr.io/r/base/grep.html">grep</a></span><span class="op">(</span><span class="st">&quot;.*\\bchocolate\\b.*&quot;</span>, <span class="va">desserts</span>, value <span class="op">=</span> <span class="cn">T</span><span class="op">)</span> 
 <span class="co">#&gt; [1] &quot;chocolate&quot;            &quot;chocolate cake&quot;       &quot;chocolate tart&quot;       &quot;chocolate icecream&quot;  </span>
-<span class="co">#&gt; [5] &quot;chocolate cookies&quot;    &quot;dark chocolate fudge&quot;  </span>
+<span class="co">#&gt; [5] &quot;chocolate cookies&quot;    &quot;dark chocolate fudge&quot;   </span>
+
+<span class="co"># grep, value = TRUE extracts the matching elements in the vector  </span>
 
 <span class="fu">str_subset</span><span class="op">(</span><span class="va">desserts</span>, <span class="st">&quot;.*\\bchocolate\\b.*&quot;</span><span class="op">)</span> 
 <span class="co">#&gt; [1] &quot;chocolate&quot;            &quot;chocolate cake&quot;       &quot;chocolate tart&quot;       &quot;chocolate icecream&quot;  </span>
@@ -3885,7 +3933,7 @@ code {
 </div>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre><code><span class="co">#-----use cases for grepl()-----  </span>
+<pre><code><span class="co">#----use cases for grepl()----  </span>
 <span class="va">desserts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;chocolate&quot;</span>,
               <span class="st">&quot;chocolate cake&quot;</span>,
               <span class="st">&quot;chocolate tart&quot;</span>,
@@ -3906,7 +3954,7 @@ code {
 </div>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre><code><span class="co">#-----use cases for gsub()-----   </span>
+<pre><code><span class="co">#----use cases for gsub()----   </span>
 <span class="va">desserts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;chocolate&quot;</span>,
               <span class="st">&quot;chocolate cake&quot;</span>,
               <span class="st">&quot;chocolate tart&quot;</span>,
@@ -3940,28 +3988,26 @@ code {
 <span class="fu">autoplot</span><span class="op">(</span><span class="va">baser_vs_stringr</span><span class="op">)</span>  
 </code></pre>
 </div>
-<p><img src="data:image/png;base64,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" width="70%" style="display: block; margin: auto;" /></p>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABOAAAAMACAMAAAC6huhOAAABTVBMVEUAAAAAADoAAGYAOjoAOmYAOpAAZpAAZrYzMzM6AAA6OgA6Ojo6OmY6ZpA6ZrY6kJA6kNtNTU1NTW5NTY5Nbm5Nbo5NbqtNjshmAABmOgBmOjpmZmZmkLZmkNtmtttmtv9uTU1uTW5ubk1ubm5ubo5ujo5ujqtujshuq8huq+SOTU2Obk2Obm6Ojk2Ojm6Ojo6Oq6uOq8iOq+SOyOSOyP+QOgCQZjqQZmaQkDqQttuQ2/+rbk2rbm6rjm6rq46rq8iryOSr5P+2ZgC2Zjq2kDq2kGa229u22/+2///Ijk3Ijm7Iq27Iq47Iq6vIyI7I5OTI5P/I/8jI///bkDrbtmbbtpDb27bb2//b///kq27kq47kyI7kyKvkyMjk/8jk/+Tk///r6+v/tmb/yI7/25D/27b/29v/5Kv/5Mj/5OT//7b//8j//9v//+T///8mi+4yAAAACXBIWXMAAB2HAAAdhwGP5fFlAAAgAElEQVR4nO2d+5tbh3Vd5SZpmLRJfUcm2bRpM/WLJqX6UTFpE1a15DSPseKYlZvEDNWWNuuSLT34/3/sfQAzuAe4M5hzNi6WgL2+fBYHA2CW1lzs4Em9tzDGmCPlvUMLGGPMvvDAGWOOFg+cMeZo8cAZY44WD5wx5mjxwBljjhYPnDHmaPHAGWOOFg+cMeZo8cAZY44WD5wx5mjxwBljjhYPnDHmaDnGgftFkfo1CEG5kGQCWDVWNJLMfsqEMfDAbUukCC0C5UKSCWDVWNFIMh64JPVEitAiUC4kmQBWjRWNJOOBS1JPpAgtAuVCkglg1VjRSDIeuCT1RIrQIlAuJJkAVo0VjSTjgUtST6QILQLlQpIJYNVY0UgyHrgk9USK0CJQLiSZAFaNFY0k44FLUk+kCC0C5UKSCWDVWNFIMh64JPVEitAiUC4kmQBWjRWNJOOBS1JPpAgtAuVCkglg1VjRSDIeuCT1RIrQIlAuJJkAVo0VjSTjgUtST6QILQLlQpIJYNVY0UgyHrgk9USK0CJQLiSZAFaNFY0k44FLUk+kCC0C5UKSCWDVWNFIMh64JPVEitAiUC4kmQBWjRWNJOOBS1JPpAgtAuVCkglg1VjRSDIeuCT1RIrQIlAuJJkAVo0VjSTjgUtST6QILQLlQpIJYNVY0UgyHrgk9USK0CJQLiSZAFaNFY0k44FLUk+kCC0C5UKSCWDVWNFIMh64JPVEitAiUC4kmQBWjRWNJOOBS1JPpAgtAuVCkglg1VjRSDIeuCT1RIrQIlAuJJkAVo0VjSTjgUtST6QILQLlQpIJYNVY0UgyHrgk9USK0CJQLiSZAFaNFY0k44FLUk+kCC0C5UKSCWDVWNFIMh64JPVEitAiUC4kmQBWjRWNJOOBS1JPpAgtAuVCkglg1VjRSDIeuCT1RIrQIlAuJJkAVo0VjSTjgUtST6QILQLlQpIJYNVY0UgyHrgk9USK0CJQLiSZAFaNFY0k44FLUk+kCC0C5UKSCWDVWNFIMh64JPVEitAiUC4kmQBWjRWNJOOBS1JPpAgtAuVCkglg1VjRSDIeuCT1RIrQIlAuJJkAVo0VjSTjgUtST6QILQLlQpIJYNVY0UgyHrgk9USK0CJQLiSZAFaNFY0k44FLUk+kCC0C5UKSCWDVWNFIMh64JPVEitAiUC4kmQBWjRWNJOOBS1JPpAgtAuVCkglg1VjRSDIeuCT1RIrQIlAuJJkAVo0VjSTjgUtST6QILQLhcm/FoUWmQXTaBupoQmXywCWpJ1KEFkFwuTfm0DpbIXTaCupoQmXywCWpJ1KEFgFwaTdtWRY8coBO20EdTahMHrgk9USK0CIO7nLvet8GmBt38E5ToI4mVCYPXJJ6IkVoEYd22di3Ht7EHbrTJKijCZXJA5eknkgRWsShXbbNWw9s4g7daRLU0YTK5IFLUk+kCC3iwC5b778tQS0c6Xc2AnU0oTJ54JLUEylCizisy037ttg+cQeaPdLvbATqaEJl8sAlqSdShBZxUJdb9m3jceoB30tC+p2NQB1NqEweuCT1RIrQIg7pcuu+LdZfblhN22FegiD9zkagjiZUJg9cknoiRWgRB3TZZd8W62+OWzv/7AtH+p2NQB1NqEweuCT1RIrQIg46cLsWD+t2ddqMsqTf2QjU0YTK5IFLUk+kCC3icC473oGbZN6FI/3ORqCOJlQmD1ySeiJFaBEHc6nu26KfuNl0Sb+zEaijCZXJA5eknkgRWsShXAT7NuvCkX5nI1BHEyqTBy5JPZEitIjDuGz/gNbdme9hKul3NgJ1NKEyeeCS1BMpQos4iItq32ZcONLvbATqaEJlOsKBu/ybR7ec43Xz8G6X2fLteiJFaBGHcJHNW8dME0f6nY1AHU2oTEc4cJvzdfs5brnMlm/XEylCi5jdZcs7PmrM865f0u9sBOpoQmXywO1yGQ+clG3vaCszx8SRfmcjUEcTKpMHbpfLeOBkxE8jCNn/h7dIv7MRqKMJlelYBu7th03TfOOjxeLyWfuHdo9eN49fnjf3Pw3na087+2i5V28/Pm+abz6/vszaSR1ffNA0X/to/dtr1BMpQovYr8u9DfZ1FAg+hn/jpUm/sxGoowmV6UgG7s150wwrdD1w32pPe/BqfL6L/lzf69dqeZmzp9cLdn1Sy4vhKh974ErMNW5LNtdUzMS/2h4L7gDqaPLAyWkn6DvtlH1xfvbp6vHk68116048+2hxedGv1bsnzaNXi8vPmvc/X11mdFI7du11vlz7ds9Mt9Oj4TCtCgNWu3TtB5svJ3sfuHdPzq4fi64G7iw+PO3uwD1e9HP4sLuDNozWi+604TKjk5ZfXDRPPXAFDnEbnn2bJMwUx+iZ4x7c/Z+uvlgN3OYduNUOvugfyi4H8M15e8b+MqOT2qt8uhhf5Yj6nVzFXWURe3SZ+5Y8/lEbBnfQ3HJu0u9sBOpoQmU6joeow/Nl93/YT9pNA9c93hzOMTyx1tOeuBy4tZO23CkcUU+kCC1iHpf9b9wtK1aG9DsbgTqaUJmOZOAWL7/eD9OjV9cDt/nGjzfn1wP37snGwI1OWo3hYrH9yuqJFKFFzOqyt4nb77h1kH5nI1BHEyrTsQxce//rJx/2r3neMHDr9+BG99BWA7d2ku/B7ZF9TNz+5411yx2BOppQmY5n4FouP2tWz6dNDNz6c3Brz7FdPUS9PsnPwe0V+cLNMG+sW+4I1NGEynQcA7d67Hn9gsH2zyaMX0V9sHzK7uoyo5OWr6L2//DA6ZEu3CzzxrrljkAdTahMxzFw7WQ9eL5YvH02rNGDVxMD9+a8e9/uj1fvg+su8/J8eB9Id5nRScP74L5Y+/aIeiJFaBFf8r8uaba/L4n0OxuBOppQmY5j4K4+yXB/eIduu0fbP136Yu2TDK+Xl3m0WF1mdNLqkwwPr7+9Tj2RIrSIL/dfeDnf3+lL+p2NQB1NqExHMnDDh0i/9oN+hP7xfHLguldbw2dRP1lcXWZ80tVnUa+/vUY9kSK0iAO5iBZutn1D3XJHoI4mVKZjGbjZqSdShBZxwP8mg+I/OuP/JgPqaEJl8sAlqSdShBZxOJfyws04b6xb7gjU0YTK5IFLUk+kCC3iSzFw2z4FMefdt1+wbrkjUEcTKtORD9zrZp2nt19gZ+qJFKFFHNBlx4Xb+mnWOd7bO4L0OxuBOppQmTxwSeqJFKFFHNJll4VbW7JbPg6/X0i/sxGoowmV6cgHbn/UEylCizjwwN22cHHJDjRvrFvuCNTRhMrkgUtST6QILeKwLrcs3CGWbALS72wE6mhCZfLAJaknUoQWcfCBm1440LwdutMNoI4mVCYPXJJ6IkVoEQd2mR64gzwQnYb0OxuBOppQmTxwSeqJFKFFHNpl6324Az3PdhOH7jQJ6mhCZfLAJaknUoQWcXCXsHCHepX0Ng7eaQrU0YTK5IFLUk+kCC3i8C7X72+jjlvH4TtNgDqaUJk8cEnqiRShRRBcDvj2tp0hdNoK6mhCZfLAJaknUoQWAXFZ3os7tMY0WDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIrQIlAtJJoBVY0UjyXjgktQTKUKLQLmQZAJYNVY0kowHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIrQIlAtJJoBVY0UjyXjgktQTKUKLQLmQZAJYNVY0kowHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIrQIlAtJJoBVY0UjyXjgktQTKUKLQLmQZAJYNVY0kowHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIrQIlAtJJoBVY0UjyXjgktQTKUKLQLmQZAJYNVY0kowHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIrQIlAtJJoBVY0UjyXjgktQTKUKLQLmQZAJYNVY0kowHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIrQIlAtJJoBVY0UjyXjgktQTKUKLQLmQZAJYNVY0kowHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIrQIlAtJJoBVY0UjyXjgktQTKUKLQLmQZAJYNVY0kowHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIrQIlAtJJoBVY0UjyXjgktQTKUKLQLmQZAJYNVY0kowHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIrQIlAtJJoBVY0UjyXjgktQTKUKLQLmQZAJYNVY0kowHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIrQIlAtJJoBVY0UjyXjgktQTKUKLQLmQZAJYNVY0kowHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIrQIlAtJJoBVY0UjyXjgktQTKUKLQLmQZAJYNVY0kowHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST3RTd+9d031B+0kM8cP2RHWbXUMVo0VjSTjgUtSTzT5rXvbqP68m2X2eu13g3VbHYNVY0UjyXjgktQTbT99uWdXP2fr2qnH7/iPSA1YNVY0kowHLkk90bZTw7pds9+ZO/4jUgNWjRWNJOOBS1JPtHna1LrdQn3ljv+I1IBVY0UjyXjgktQTxVOS87aicm/u+I9IDVg1VjSSjAcuST3R+OvivC1JPno9/iNSA1aNFY0k44FLUk+0/pVm3q646xN1x39EasCqsaKRZDxwO/Huyfufj0+pJ7r+s3jeNrh1547/iNSAVWNFI8l44HZijwN3b9/zts7Ezh3/EakBq8aKRpLxwO3E3gZu1nm7Iq7c8R+RGrBqrGgkGQ/cTuxj4FYDc5h/o47KC697g3VbHYNVY0UjyZzywF3+uGnuP3/RPF4sXjePX5439z9dLN5+fN4033zeff+iefrmg+bsB6/UA7e+K4f4Fx9xt9db9w/rtjoGq8aKRpI54YG7fNa0nH13GLhvtbv24NXizXnTn/p00Q3c9/uvHmoGbuOZ/oP8W0+x6wuue4d1Wx2DVWNFI8mc8MC9aM4+Wbz9oBkGrlu3bsiaR68Wl5813Z5dtCc+X7T37J6uDVxuncjTts7mzH1JOXRIc0ogB669A9fdTWvvsvUDd/Zpd+KL7u5a/8/H3cD1q/ai3b7iwH3pbniH2CQphw5oTgnkwL057++ztTPWD1z/xeWzYeeGb/bfGR6eFh+ifllugfuam1tajM7IerQ1BqvGikaSOd2HqK/X76xdDVyzoh20i/4uXr96qhcZsCN30yTNC+u2OgarxopGkvHALQeu/+Ldkz0P3ArQyEF27QrWbXUMVo0VjSRzygM3PEQdD9zyIWrPHgeuD3/oiaNN2wDrtjoGq8aKRpI53YELz8H1A7d84WHJ8jm4N+fl5+C2Jur+9zAbt/m8V/k3roN1Wx2DVWNFI8mc7sAtx6x9VPp4/fHqsHr93buL4YvuldXj+Czq5PNsx39EasCqsaKRZE534Lr3wX16/T64YeDauXvwfDG89617H9zDV/F9cCvqia7+uM+Jm3yxcixT/bcRwrqtjsGqsaKRZE544MafZBgGbvF6+CRD82jRDdz3+j8/3vdflySeuO2jdtMTbcd/RGrAqrGikWROeOCWn0W9GA3c8rOon3R/vGietnffvvbRYu8D9wvR3wl3h00by1T/bYSwbqtjsGqsaCSZUx64gYv11xV2/M6C999kKL0ievxHpAasGisaSeZ0B657cXQR3xkyYuaB2+2B6ub3S9O2lKn9u0hh3VbHYNVY0Ugypztw7550LyFcLl8q3cbcAzf9rpHpZ9XK2zbIVC4shnVbHYNVY0UjyZzuwC1eDi8nTN6BO8DA/WLtMw79T9ll2QTv0T3+I1IDVo0VjSRzwgO3+OLDdt6+/Xzy+wcZuO2fRq/+tNtk9nz9d4F1Wx2DVWNFI8mc8sCVqCe68dszLdtKZp4fsxOs2+oYrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAazaDdHutcxo0kHK5IFLUk+kCC0C5UKSCWDVpqPdG5hTBpXJA5eknkgRWgTKhSQTwKpNRmu3bbGYe+FImTxwSeqJFKFFoFxIMgGs2g0D1x+t8y4cKZMHLkk9kSK0CJQLSSaAVbtt4OZdOFImD1ySeiJFaBEoF5JMAKs2FW21b/MuHCmTBy5JPZEitAiUC0kmgFWbiHbveuAWHjjptY7wwG1LpAgtAuVCkglg1SYH7vqA9cBJr3WEB25bIkVoESgXkkwAq+aBm8IDl6SeSBFaBMqFJBPAqu0wcDMuHCmTBy5JPZEitAiUC0kmgFXbHm20bx446bWO8MBtS6QILQLlQpIJYNV2Gbj5Fo6UyQOXpJ5IEVoEyoUkE8CqeeCm8MAlqSdShBaBciHJBLBqW6OFffPAKa91hAduWyJFaBEoF5JMAKvmgZvCA5eknkgRWgTKhSQTwKptixb3bb6FI2XywCWpJ1KEFoFyIckEsGoeuCk8cEnqiRShRaBcSDIBrNpuAzfXwpEyeeCS1BMpQotAuZBkAlg1D9wUHrgk9USK0CJQLiSZAFbNAzeFBy5JPZEitAiUC0kmgFXbEm3LvnngdNc6wgO3LZEitAiUC0kmgFXzwE3hgUtST6QILQLlQpIJYNU2o23bt7kWjpTJA5eknkgRWgTKhSQTwKp54KbwwCWpJ1KEFoFyIckEsGq7Dtw8C0fK5IFLUk+kCC0C5UKSCWDVPHBTeOCS1BMpQotAuZBkAlg1D9wUHrgk9USK0CJQLiSZAFZtI9rEvnngVNc6wgO3LZEitAiUC0kmgFXbeeBmWThSJg9cknoiRWgRKBeSTACrdpeB2//CkTJ54JLUEylCi0C5kGQCWLUYbXLfZrkLR8rkgUtST6QILQLlQpIJYNU8cFN44JLUEylCi0C5kGQCWLU7DdzeF46UyQOXpJ5IEVoEyoUkE8Cq3WHgZlg4UiYPXJJ6IkVoESgXkkwAqxai3bRvMzxIJWXywCWpJ1KEFoFyIckEsGoeuCk8cEnqiRShRaBcSDIBrNo42s37tv/HqKRMHrgk9USK0CJQLiSZAFbtTgO394UjZfLAJaknUoQWgXIhyQSwaqNo924buH0/SCVl8sAlqSdShBaBciHJBLBq69Fu37d934UjZfLAJaknUoQWgXIhyQSwauOBu/3o3e/CkTJ54JLUEylCi0C5kGQCWLW1aDvcgVv0C7e/iSNl+jIM3OXfPMpe9N2T9z+v/fDhOjavp55IEVoEyoUkE8CqXUfbbd/6gdvbyJEyfRkG7nXzMHtRD9xOoFxIMgGs2lW0HfetY38TR8rkgdvpOjxws4EKE2Cqre3UHfat5941QiFSJg/cTtfhgZsNVJgAUe3emLse3eNLa5RImbAD9/bDpmm+8dFicfms/UM7ca+bxy/Pm/ufjs51feLbj8+b5pvPuxMvmqdvPmjOfvDqauC+6K7sa90J3RcftH/+aPlTri8VuL6IB25WUGECKLXRqGX37YqbR+5uA0jKRB24N+dNMwzb9cB9qz3twavR2a5OXJ7/7OmiG7jvnw+XWQ7cj5vVlbW8GP78eO2n9Jcas3YRD9ysoMIEMGqV+2w3cO/ObNhM3h2cnsj9vmWFOXDtqn2nnbIvzs8+XT1Efb2xbmsnvnvSPHq1uPys6Xbooj3x+aK9Z/d0GLjXzdkn7XleNt2VtZvWXvPL/oyjS4Xrvb7IeOD2cFgZczf2eQhuH6ubvncUlJrdfeDePTm7fiy6GrizTzfOtzrxxfJpuhfdPbOLYbBetNvXD9PFcHetHc2nV+e8WPvzcKkR6xfxwBkYez0Eb7j9zzI1h6GULHUP7v5PV1+sBm7zDtzqxMtny/F7c95+vVyn0TD93//xXz5o2rUaVm71Q9YvtcHqIn6IOiuoMAGKmuyWGbn7MESd8K0N57lTQR+iDs+U3f9hvzu7DFyzor/H1m9Yt1/DML39YPnNp6O7huNLjRldxAM3I6gwAZJa2Ljq2k0O0+hn7aZGykQduMXLr/f78ujV9cBtebPI8sR3T24auO6lhLNvfv+nq8ebqwuPLzUiXsQDNxuoMAGgWvmh1g13urKQMmEHrh2on3w4vNq5y8CtPz8XBq69o/ZweTdvfA9ufKnRjx5fxAM3I6gwAaTa2jTdfeDE0zZAygQeuG5gPusegt4+cOvPrF29QvDmfBim1Y61d9jic3DN5vtDFsNZ1y7igZsVVJgAVm0V7U734fb2rBgpE3TgunEa/rnTwPWvmA5f9y8y9F90r5GuD9zr/u7gi9W74R6GS60zuogHblZQYQJYtcRnUff4pD8pE3Tg2jtXD54vFm+fdTs07M+NA9fe1erO37/3rXsfXPsA8+p9cMPjzfbOYD9ww/vgvujPOLpU+PHXF/HAzQoqTACrlvrbRPZns7drvjvQgbv6JMP9z4c/P3h148AtXi/P3/3FShfN91YfVli+0bfnwWf9mV+sfaph/VLheq8v4oGbFVSYAFYt8ffB7dNmj9d9V6gDN3xKdPnx0X88v3Xglp8q7T5+0L3I0N4p6z9uOgzT8tOny0eim59F/WTzitcu4oGbFVSYAFbNf6PvFNiBK3Ax9dqBknoiRWgRKBeSTACr5v8mwxQeuCT1RIrQIlAuJJkAVs3/Va0pPHBJ6okUoUWgXEgyAaya/7uoU3zZBu51s872IcsM3C7XO6KeSBFaBMqFJBPAqvm/bD+FB2736x1RT6QILQLlQpIJYNVCtJsXbu+feCdl+rINHIZ6IkVoESgXkkwAq+aBm8IDl6SeSBFaBMqFJBPAqsVoNy3c/v/KIlImD1ySeiJFaBEoF5JMAKt2h4Gb4e9kI2XywCWpJ1KEFoFyIckEsGp3Grj92+z9J+yOBy5JPZEitAiUC0kmgFXzwE3hgUtST6QILQLlQpIJYNU2ok0u3Bx/azgpkwcuST2RIrQIlAtJJoBVu8vAzWCz/x+xMx64JPVEitAiUC4kmQBWbeeBm+W/+kLK5IFLUk+kCC0C5UKSCWDVNqNNLJwHTnStIzxw2xIpQotAuZBkAlg1D9wUHrgk9USK0CJQLiSZAFbNAzeFBy5JPZEitAiUC0kmgFXbdeDm+Q8vkzJ54JLUEylCi2sCu0cAACAASURBVEC5kGQCWDUP3BQeuCT1RIrQIlAuJJkAVm1LtG0LN8++oTJ54JLUEylCi0C5kGQCWDUP3BQeuCT1RIrQIlAuJJkAVm1btC0L54GTXesID9y2RIrQIlAuJJkAVs0DN4UHLkk9kSK0CJQLSSaAVfPATeGBS1JPpAgtAuVCkglg1XYbuJn2DZXJA5eknkgRWgTKhSQTwKp54KbwwCWpJ1KEFoFyIckEsGpbo8WFm2vfUJk8cEnqiRShRaBcSDIBrNrEwI0XzgMnvNYRHrhtiRShRaBcSDIBrNr2aB44D1yaeiJFaBEoF5JMAKvmgZvCA5eknkgRWgTKhSQTwKrtMnCz7RsqkwcuST2RIrQIlAtJJoBVm4g2WjgPnPJaR3jgtiVShBaBciHJBLBqOwzcfPuGyuSBS1JPpAgtAuVCkglg1TxwU3jgktQTKUKLQLmQZAJYtaloawvngZNe6wgP3LZEitAiUC4kmQBWbXrgVgs3x38P9cpmtp90Ox64JPVEitAiUC4kmQBWbTLaauDm3DdUJg9cknoiRWgRKBeSTACrdsvA3Zt131CZPHBJ6okUoUWgXEgyAazaDQO3ZFabOX/YLXjgktQTKUKLQLmQZAJYtelo888bK5MHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIrQIlAtJJoBVY0UjyXjgktQTKUKLQLmQZAJYNVY0kowHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIrQIlAtJJoBVY0UjyXjgktQTKUKLQLmQZAJYNVY0kowHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIrQIlAtJJoBVY0UjyXjgktQTKUKLQLmQZAJYNVY0kowHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIrQIlAtJJoBVY0UjyXjgktQTKUKLQLmQZAJYNVY0kowHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIrQIlAtJJoBVY0UjyXjgktQTKUKLQLmQZAJYNVY0kowHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIrQIlAtJJoBVY0UjyXjgktQTKUKLQLmQZAJYNVY0kowHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIrQIlAtJJoBVY0UjyXjgktQTKUKLQLmQZAJYNVY0kowHLkk9kSK0CJQLSSaAVWNFI8l44JLUEylCi0C5kGQCWDVWNJKMBy5JPZEitAiUC0kmgFVjRSPJeOCS1BMpQotAuZBkAlg1VjSSjAcuST2RIvQN3NvKxBn27HIXWLfVMVg1VjSSjAcuST2RIvQm23ctx34Mb4F1Wx2DVWNFI8l44JLUEylCr7ExT9usJ85A2jnWbXUMVo0VjSTjgUtST6QI3XP7ruU4zMixbqtjsGqsaCQZD1ySeiJB5z0t25iZR451Wx2DVWNFI8l44JLUE9UuP8e0XTPjxrFuq2OwaqxoJBkP3M1cNE+3f6OeKHvJeaftmplGjnVbHYNVY0UjyXjgbgY2cAfathVzbBzrtjoGq8aKRpLxwN0MaOAOOm3X7HvkWLfVMVg1VjSSjAfuZiADBxm3JXt9dZV1Wx2DVWNFI8mc9MBd/rhp7j9/0Txu//z2w6ZpvvFRd/JFf8LiRfOwH7gvvt6c/eBVvGw90c5nRY3binvbqEa5Y5jZwaqxopFkTnngLp+1m9acfbfbszfnTU+7aWHgvnd1+oh6ol3PyRu3a7bO3EGp/l5uhHTLHeGBm+KUB+5Fc/bJ4u0HTbtn7dZ9p72T9sX52adx4JoHzxcvz68eqa5uSPNpYtdtg0MOG41D/y7MjDAHrh21brXa+26PF++edMu2ZDxw73/e//nB8kHq/Acw/NZywBEhc+hfi5kR5sC9OR9G62K4B3f/p6tvjAeu//O7J/3OrVG/k7vrOam3mMnb9lxh5gerxopGkjnhh6ivl0+s9S8yvOieaLv/w6vFW1y/yND9+fLZ2j28nnqi3c/Lu1ug27NSmLnBqrGikWQ8cMPALV5+vX8x4dEr4MB1cB787GvZkmHmBKvGikaSOemBGx6iDgPXjthPuneKPIYOXMfhn+LZ87h1sG6rY7BqrGgkmRMeuPXn4JZcftaN3pbn4N6cH+45uMABV27v49bBuq2OwaqxopFkTnjglq+ivnvSbthqwPrR65et+3Y/cP0Kvth4I1w9UeXSs79et/97bitYt9UxWDVWNJLMCQ9c9z64T6/fB/fg+WLxth+1103zUffH5fvgHr5avGw2PrFVT1SuPNv7EmZ4YHoN67Y6BqvGikaSOeWB2/ZJhvufr05//2/XP8nwKF64nkgR+hcbf1W5tND+XiudhnVbHYNVY0UjyZzywC0/izo8zfb243bivjZ85vTy4+7018sXGV6eN2cfbVy2nkgR+hrFzt2bQqt6M6zb6hisGisaSeakB25g8i8MuZF6IkXoyOREJdmH4y2wbqtjsGqsaCSZEx645QsLo09p7U49kSL0FF+ePduAdVsdg1VjRSPJnPDAvXvSvX5weXH1MdM7UU+kCC0C5UKSCWDVWNFIMic8cN1ro/2rDJk7cB64fYEKE8CqsaKRZE554BZffNjO27efpy5bT6QILQLlQpIJYNVY0UgyJz1wFeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEymWrzL0lc9uMIXUagTqaUJk8cEnqiRShRaBcosy9wEGsBkidRqCOJlQmD1ySeiJFaBEol3WZ61kbqh944kidRqCOJlQmD1ySeiJFaBEolyuZ8batOOTEkTqNQB1NqEweuCT1RIrQIlAuS5lt4zZwuIkjdRqBOppQmTxwSeqJFKFFoFx6mcl16wnPxs32FB2p0wjU0YTK5IFLUk+kCC0C5dLJ3DhvHfGVh3kmjtRpBOpoQmXywCWpJ1KEFoFyWdw+bwPxFYjrE/fmtq8rroI6mlCZPHBJ6okUoUWgXBY77tsUe1w4UqcRqKMJlckDl6SeSBFaBMqlNm8de5s4UqcRqKMJlckDl6SeSBFaBMilePdtYF8LB+o0BnU0oTJ54JLUEylCi+C4SPZt0U/cHuw4nQKoowmVyQOXpJ5IEVoExkU0b4s93YnDdIqgjiZUJg9cknoiRWgREJeb3/x2R/axcJBOm6COJlSmox24y795tOM5L5rHV39+sfbnjW+OqCdShBbBcFHOW4d+4RidtoA6mlCZjnbgXjcPdzynBw5xRKrnbbGHO3GETltBHU2oTB646Q278Zv1RIrQIg7uMv3B0xLqTzYcvNMUqKMJlckD54E79BG59S8NEaGdONLvbATqaEJlOq6Be/th0zTf+GixuHzW/qGduNfN45fnzf1P187z7slZ9+WLfgDfnD941W7Ymw+a5tuvFlcPUb9ov/7aR92f1r85op5IEVrEYVzWPz+6x4NC+ClV0u9sBOpoQmU6qoF7c940w7BdD9y32tMejObponna/293ajdzF/15muXX3cC9GK7mcX+262+OqCdShBYxm8v2T8fv+7i46ZP5mxA63RXU0YTKdEwD167ad9od+uK8u4s2PER9vWWa+hF796R5//Nh7C7a8zxftHf0ni6/1+5kez0vl2e4/mbPXDfKo2TmYbvlxx8Zc9c0V8w0cMsHnwOrgTv7NJ7tzfnD7n++0X7n3ZN2xIb7csOzbS+G/+mfvuvv6a1/s8eHUwHOjfEgE7RfDp30hJnvHtz9n66+WA3cxh249mztqr1ovn/+tH8Krh2vfs/6WesGrr2ap1dnXv/miPqdXMVdZRFzuRzwZqnZkOS/6R6TDqCOJj9E3Rf9c2f3f9hP2vTALS7a+24X7/+3J4+HO2zLe2dXAze6I7j+zRH1RIrQIuZ2mXnltkxVzpv0OxuBOppQmY5q4BYvv96/OvDo1fXAbXmzyOvm6bsnD/7Xs4eXz7op2xy47sm3JR64/bL/jVPeiSL9zkagjiZUpuMauPbx508+HF7/vGHg3pw/bv9vcfHgfz4ZXkfwPbjD/vg9Tpz2ESLpdzYCdTShMh3bwLVcftY9Lr1h4C6fPXjZPF28fv9v++/GgQvPwXng5mBPEyd+AuzwnSZAHU2oTMc0cG/Oh8eW/UsHNwzc4uL9f9/eSXvz7767fEfceOBWa9b/wwM3F/uYOPXz+4ROW0EdTahMxzRw7V2vB88Xi7fPujUaXl7YPnDDu+PePRneQ7IxcMP74L44H94m4oGbC/XC6V+/ZHTaAupoQmU6poG7+iTD/c+HPz94tX3g2u89HPZw7T1u1wO3+iRDfPw6op5IEVoExUU6cXt4ewal0waoowmV6agGbvH243bWvvaD/p0h/3g+OXDttA0fw+rHa3Pgxp9FvfrmiHoiRWgRGBfhwO3j7WeYThHU0YTKdFwDNyP1RIrQIjguqvtw+3l7LadTAHU0oTJ54JLUEylCiwC5aBZuT58eAHUagzqaUJk8cEnqiRShRZBcBAu3t09HkTqNQB1NqEwnMXCvm3We3n6BHagnUoQWgXK503/ZfttZ9/fpT1KnEaijCZXJA5eknkgRWgTKZbHjW+K2fpx1vx9uJ3UagTqaUJlOYuD2QT2RIrQIlMtilzf9Xn1oXvZB+p3c9nfVNVBHEyqTBy5JPZEitAiUSy9z88dTN4ZsjnX7BavTCNTRhMrkgUtST6QILQLlspSZ/ltG9j9kk24H+ak7gDqaUJk8cEnqiRShRaBcrmS2/1VKh5s3VqcRqKMJlckDl6SeSBFaBMplJLPlKbaDzRur0wjU0YTK5IFLUk+kCC0C5bIhQ5k3VqcRqKMJlckDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeSBFaBMqFJBPAqrGikWQ8cEnqiRShRaBcSDIBrBorGknGA5eknkgRWgTKhSQTwKqxopFkPHBJ6okUoUWgXEgyAawaKxpJxgOXpJ5IEVoEyoUkE8CqsaKRZDxwSeqJFKFFoFxIMgGsGisaScYDl6SeaPfz3rtX/Wm3cPxHpAasGisaScYDl6SeaIcz3duk+nO3y+zlWnOwbqtjsGqsaCQZD1ySeqJbzrBl3CaoqpzCEakBq8aKRpLxwCWpJ7rx28vt2vix+xm74z8iNWDVWNFIMh64JPVE09+bGLcJBEN3/EekBqwaKxpJxgOXpJ5o6jt3m7cxyYe0x39EasCqsaKRZDxwSeqJtp5cWbc1dhq666U7/iNSA1aNFY0k44FLUk+05UTRvN3Mlpk7/iNSA1aNFY0k44FLUk8UT5ll3dbJP2e3T1i31TFYNVY0kowHLkk90ejLe7PP2wrayLFuq2OwaqxoJBkPXJJ6oqs/3jvcuq0ArRzrtjoGq8aKRpLxwCWpJ/rF6M28h/73wYwc67Y6BqvGikaSOfWBu/xx09x//qJ5vFi8bh6/PG/uf7pYvP34vGm++bz7/kXz9M0HzdkPXsULlvqEp/nn/9ee5PDPy7Fuq2OwaqxoJJkTH7jLZ03L2XeHgftWu2sPXi3enDf9qU8X3cB9v//qYbxkosqWN2oc4F/5drZ45kkcO4m0M4FVY0UjyZz4wL1ozj5ZvP2gGQauW7fF4t2T5tGrxeVnzfufdwPXPHi+aO/ZPV1eIj9N+GELSHfu2Dj0L8eQwA5ceweuG672Lls/cGefdie+WN5d6x+3XvQz1/75wfJBav4I/5LdQuaejC8Xh/7tGBLYgXtzPuzWxTBw/ReXz4adG77Zf6e7V9fv3BqJ+7VflhvKhqT8Hv5NsB5tjcGqsaKRZE77Ierr9TtrVwPXrGhH7WJ4bHq1elcUC0Fn7mCzdg3rtjoGq8aKRpLxwHUsB67/4t2TOQZuGR60cYeftvUwTLBqrGgkmVMfuOEh6njg1rdszwM3cPiNY2xbD+u2OgarxopGkjntgQvPwfUDt3zhYcnyObg354Ln4EKi0ZeH2zjQtvWwbqtjsGqsaCSZ0x645Zi1j0ofrz9eHVavv3t3MXzxYuONcPVE8ZS5J+5wryPcCOu2OgarxopGkjntgeveB/fp9fvghhFr5+7B88XyvW8XTfPw1fr74FbUE205cb8Tt+1V3GHajv+I1IBVY0UjyZz4wI0/ybC8l/Z6+CRD82jRDdz3+j8/jpesJ9p6suZu3PYp2zZtS5nqv40Q1m11DFaNFY0kc+IDt/ws6sVo4JafRf2k++NF87S9+/a1jzYuWE808Y3Cs3G7L1qUqf7bCGHdVsdg1VjRSDKnPnADFxuPQG/9Tj3R9Pd2mrjUkk3JVP5NxLBuq2OwaqxoJJnTHrjli6Pjd4aMOMjATf8Vcdm7aLfJZC+4B1i31TFYNVY0ksxpD9y7J91LCJcXV5803eBAA/eLHf7Dz1WDdRnhdVVh3VbHYNVY0Ugypz1wi5fDywmTd+AOOHAde121dZn9XG0K1m11DFaNFY0kc+IDt/jiw3bevv188vuHHbi5QLmQZAJYNVY0ksypD1yaeiJFaBEoF5JMAKvGikaS8cAlqSdShBaBciHJBLBqrGgkGQ9cknoiRWgRKBeSTACrxopGkvHAJaknUoQWgXIhyQSwaqxoJBkPXJJ6IkVoESgXkkwAq8aKRpLxwCWpJ1KEFoFyIckEsGqsaCQZD1ySeiJFaBEoF5JMAKvGikaS8cAlqSdShBaBciHJBLBqrGgkGQ9cknoiRWgRKBeSTACrxopGkvHAJaknUoQWgXIhyQSwaqxoJBkPXJJ6IkVoESgXkkwAq8aKRpLxwCWpJ1KEFoFyIckEsGqsaCQZD1ySeiJFaBEoF5JMAKvGikaS8cAlqSdShBaBciHJBLBqrGgkGQ9cknoiRWgRKBeSTACrxopGkvHAJaknUoQWgXIhyQSwaqxoJBkPXJJ6IkVoESgXkkwAq8aKRpLxwCWpJ1KEFoFyIckEsGqsaCQZD1ySeiJFaBEoF5JMAKvGikaS8cAlqSdShBaBciHJBLBqrGgkGQ9cknoiRWgRKBeSTACrxopGkvHAJaknUoQWgXIhyQSwaqxoJBkPXJJ6IkVoESgXkkwAq8aKRpLxwCWpJ1KEFoFyIckEsGqsaCQZD1ySeiJFaBEoF5JMAKvGikaS8cAlqSdShBaBciHJBLBqrGgkGQ9cknoiRWgRKBeSTACrxopGkvHAJaknA086ngAACY1JREFUUoQWgXIhyQSwaqxoJBkPXJJ6IkVoESgXkkwAq8aKRpLxwCWpJ1KEFoFyIckEsGqsaCQZD1ySeiJFaBEoF5JMAKvGikaS8cAlqSdShBaBciHJBLBqrGgkGQ9cknoiRWgRKBeSTACrxopGkvHAJaknUoQWgXIhyQSwaqxoJBkPXJJ6IkVoESgXkkwAq8aKRpLxwCWpJ1KEFoFyIckEsGqsaCQZD1ySeiJFaBEoF5JMAKvGikaS8cAlqSdShBaBciHJBLBqrGgkGQ9cknoiRWgRKBeSTACrxopGkvHAJaknUoQWgXIhyQSwaqxoJBkPXJJ6IkVoESgXkkwAq8aKRpLxwCWpJ1KEFoFyIckEsGqsaCQZD1ySeiJFaBEoF5JMAKvGikaS8cAlqSdShBaBciHJBLBqrGgkGQ9cknoiRWgRKBeSTACrxopGkvHAJaknUoQWgXIhyQSwaqxoJBkPXJJ6IkVoESgXkkwAq8aKRpLxwCWpJ1KEFoFyIckEsGqsaCQZD1ySeiJFaBEoF5JMAKvGikaS8cAdiHv3Dm0AxWESONoUs5TxwG3iQ3ICh0ngaFN44A6ED8kJHCaBo03hgTsQPiQncJgEjjaFB+5A+JCcwGESONoUHrgD4UNyAodJ4GhTeOAOhA/JCRwmgaNN4YE7ED4kJ3CYBI42hQfOGGMqeOCMMUeLB84Yc7R44IwxR4sHzhhztHjgjDFHiwfOGHO0eOCMMUeLB26dd08eLv90+fF503z7+UFtKHzxQdOc/eDV8IXD3M7EYXTq6aaPoz2W8cCtc9Esj8x3T5qO9z8/rA+CF32K5n7fwmF2YPthdOrppo+jfZbxwF1zedGsjsyL5sHzxdtnzYNXh1UC8Ob87KPF4u0HQxqHuZWpw+jE091wHO2zjAfuiu4e9PLIfHPe/3+Td0/OPj2sE4CL5nH3jyGJw9zK1GF06ummj6O9lvHArWjvQT96uTwyX1z98/EhlUi8e9IdhQ5zG5OHkdP1bDmO9lrGA7fixf1PFq+XqS+ap/0/V1+b9v/Ndg8gHOY2Jg8jp+vZchzttYwHbp1l4stnyzvLw2/DLBYvz7uj0GF2Ytth5HQ9W46j/ZbxwK3jgdvORdOcfbJwmB3xwE2w9TjywM3H5pF5si/qr3P5n79x3pz9B4fZkW2HkdNNHUf7LeOBW8f34Cb5onts4TA74Xtw02weR74HNx8euGleN76V7ogH7gY2jiMP3Hz4VdRp+sPPYXbBr6LewOZx5FdRZ+N1eEfOib9nqePy2fLw6w9Mh9mFrYfRiae74TjaaxkP3DqrI/PU33W+zsXV3ZGHDrMbWw+jU083fRz5kwyzsToy2/93c/+UPze4zpvz5tGrxeWPm+7wc5hd2HoYnXq66eNor2U8cOtcPQvw9sT/5od1Xg9/C8RZ/wjDYXZg+2F06ummj6N9lvHArXP9NOfbj9vi3z7N/18befthe1iu/rYuh7mdicPo1NNNH0d7LOOBM8YcLR44Y8zR4oEzxhwtHjhjzNHigTPGHC0eOGPM0eKBM8YcLR44Y8zR4oEzxhwtHjhjzNHigTPGHC0eOGPM0eKBM8YcLR44I+JH7435an/ab/08cVX/+3e6K/ijG39Y6orV/Oy9f/LX8bRfdu5f+bND6JgNPHBGhAduwANHwgNnRGgH7qZ1y1+xmm0Dt+g2zgMHwQNnpPz6j9/77fKV3D5wEDxwdDxwRooHbuGBA+GBM1I8cAsPHAgPnJEyHrjhqbL+tL/7g/fe+8rvt1/93b967733fu+vluf41Z/8Tnv61ZcDq4GbvuDVc3D95f/5n65+9h915/6NP9u84v7L1Rm3/Nz164nf/n//8r2v/vovfre94j9cPfHXubRSq4EL1+6Bw+CBM1ImBu6fLl+C+Cd//efDH5YL8LPVSxK/v34lawM3ccHVwP1s/eLt2f/1cN7rb3zl3/TX+N9XP+c3/3rrz/3Z9i+HS7cD9y/+YP3i7Q8apP5kGLh47R44DB44I2Vi4Nrp+Pni1+1G/cZ7v/cPi1//1/eGgfrZcJfs//z5eOHWBm7igj+6uvxv/VX/7a8uz94uy6/+tP/Gb/7lYvH3fzC826S9wvZ8/cV7u/hzx9cTL90OXDt1P1/86o+X3//RlVU/cPHaPXAcPHBGytTA9cPQLcVvL7+xXIblmX82moT1gdt6weUVtyf3O9eerzu1O/vw3N3qG6vvXD1Xtv3nhuuJl+5++sqn+0Z78a8uL73t2j1wIDxwRsrEwF0twNVD0+4P18/Rjy+2NnDbL7i84l+uBm1YlOuzX+/lMEbj/dz4ueF64qWvBm+5YKsd674xDFzYMw8cBg+ckTIxcKOBWCwnYP28o3furg3c1guuzh5exNxy9m6DhgX7yu/95TbH/orC9cRLD//b0Z9x7eLDOcfXvvDAgfDAGSmTr6Iuv17fqe6h3zVrGzN6FXXLBVdXHD7PcHX266Vb/XF4heI3/vAfutM2fu74ejYu3b2KOnzdD9z13q2WcXTtCw8cCA+ckUIZuHjXsH+PSfc655/uMnDjS28O3PLLq7t+69e+8MCB8MAZKXccuO1vCtbfg+v4+//4u90I/dHmz63egxtd+8IDB8IDZ6TcZeDWlmTM7gO3PHU445azhzEb3may8XPD9Wx5Dm594Daegxtf+8IDB8IDZ6TcZeCuXxsNW7frwF29+jlc4PrsP7v6y5Z+2b3RJE5S/LnhesKl48Bd328bXrbdHDwPHAYPnJFyp4Hr3iH78+XX658+3XXgrt6/8aPV++CWZ998H9xycYZBiz83XM+W98GNBu7qbXRX74MbXbsHDoQHzki508D1Hxn407XHdkt2Hbhun8afZLh+cuzqswjdd9qJ+sq/bS/wq+VbgePP/eXkJxmWlx4N3PKDEFefZIjX7oHj4IEzUu42cNefCR09KbbzwG18FvXqZ4fPog5/R3DHV0ffXv3c2z6LOh645ftC3vvN/zR8Ha/dA4fBA2ek3HHgFr/6k+7Fx+u/xqNn94GLf5vI9c8e/j6Q31+9Ne3Xf/HPureqXX0df+7Wv01kee7NgVv8/fhvEwnX7oHD4IEzPL40fx/cBB44DB44w8MDZ0R44AwPD5wR4YEzPDxwRoQHzvC4/b+LCsb/XVQSHjjDwwNnRHjgjDFHiwfOGHO0eOCMMUeLB84Yc7R44IwxR4sHzhhztHjgjDFHiwfOGHO0eOCMMUeLB84Yc7R44IwxR4sHzhhztHjgjDFHiwfOGHO0/H+2UX33geGEagAAAABJRU5ErkJggg==" width="624" style="display: block; margin: auto;" /></p>
 </div>
 <p><strong>Note:</strong> Base R functions are significantly faster than their <code>stringr</code> equivalents.</p>
 <h1 id="other-resources">Other resources</h1>
 <ul>
-<li>Tips on regular expression usage are based on the excellent <a href="https://cran.r-project.org/web/packages/stringr/vignettes/regular-expressions.html">regular expressions vignette</a> from <code>stringr</code>.<br />
+<li>Tips on regular expression usage are based on the excellent <a href="https://cran.r-project.org/web/packages/stringr/vignettes/regular-expressions.html">regular expressions vignette</a> from <code>stringr</code><br />
 </li>
-<li><a href="https://r4ds.had.co.nz/strings.html">Strings chapter</a> from R4DS by Garrett Grolemund and Hadley Wickham.<br />
+<li><a href="https://r4ds.had.co.nz/strings.html">Strings chapter</a> from R4DS by Garrett Grolemund and Hadley Wickham<br />
 </li>
-<li>The Rstudio <a href="https://github.com/rstudio/cheatsheets/blob/master/strings.pdf"><code>stringr</code> cheatsheet</a>.<br />
+<li>Rstudio <a href="https://github.com/rstudio/cheatsheets/blob/master/strings.pdf"><code>stringr</code> cheatsheet</a><br />
 </li>
-<li>Sites for testing your own regular expressions:
-<ul>
-<li><a href="https://regex101.com/" class="uri">https://regex101.com/</a><br />
+<li><a href="https://regex101.com/" class="uri">https://regex101.com/</a> - a website for testing regular expressions<br />
 </li>
 </ul>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div></li>
-</ul>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <section class="footnotes" role="doc-endnotes">
 <hr />
 <ol>
 <li id="fn1" role="doc-endnote"><p>Many R functions require R regex classes to be wrapped in a second set of <code>[ ]</code>, e.g. <code>[[:punct:]]</code>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩</a></p></li>
+<li id="fn2" role="doc-endnote"><p>If this is a repetitive step within the workflow, it is preferrable to rewrite the generic part of this cleaning step as a function in a separate R script for maximal readability.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩</a></p></li>
 </ol>
 </section>
 <!--radix_placeholder_article_footer-->
