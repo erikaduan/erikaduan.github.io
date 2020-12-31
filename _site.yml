@@ -21,7 +21,10 @@ collections:
   posts:
     share: [twitter, linkedin]
     authors_metadata: false  
+    citations: false  
 twitter:
   site: "@erikaduan"
   creator: "@erikaduan"
-output: distill::distill_article
+output: 
+  distill::distill_article:
+    css: styles.css  
