@@ -1,7 +1,7 @@
 ---
 title: "Notes from a (data) scientist"
 description: |
-  Notes about R programming and data science. 
+  Notes about R and Python programming and data science workflows. 
 site: distill::distill_website  
 listing: posts
 ---

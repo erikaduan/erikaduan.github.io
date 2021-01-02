@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
   <channel>
-    <title>EMD: R notes</title>
+    <title>R|Py notes</title>
     <link>https://erikaduan.github.io/</link>
     <atom:link href="https://erikaduan.github.io/index.xml" rel="self" type="application/rss+xml"/>
-    <description>A blog featuring R programming and data science tips.   
+    <description>A blog featuring R, Python and general data science tips.   
 </description>
     <generator>Distill</generator>
     <lastBuildDate>Thu, 31 Dec 2020 00:00:00 +0000</lastBuildDate>
@@ -15,6 +15,7 @@
       <description>These are some common data cleaning things.</description>
       <category>data cleaning</category>
       <category>nlp</category>
+      <category>R</category>
       <guid>https://erikaduan.github.io/posts/2020-12-31-cleaning-free-text-and-wrangling-strings</guid>
       <pubDate>Thu, 31 Dec 2020 00:00:00 +0000</pubDate>
       <media:content url="https://erikaduan.github.io/posts/2020-12-31-cleaning-free-text-and-wrangling-strings/benchmark.png" medium="image" type="image/png" width="1949" height="1200"/>

@@ -8,6 +8,7 @@ preview: benchmark.png
 categories: 
   - data cleaning  
   - nlp  
+  - R  
 output:
   distill::distill_article: 
     toc: true
@@ -270,7 +271,7 @@ str_replace_all(messy_dates, "(?<=^\\w{1,100})\\s{1,2}" , "-")
 Look around operations are useful when you are unsure of the pattern itself, but you know exactly what its preceding or following pattern is. I've found that the clearest explanation of look around operations comes from the [RStudio cheetsheet](https://github.com/rstudio/cheatsheets/blob/master/strings.pdf) on `string_r`, as depicted below.           
 
 ```{r, echo = FALSE, fig.align = 'center', out.width = '60%'} 
-knitr::include_graphics("../../images/2020-12-31_look-arounds.jpg")  
+knitr::include_graphics(here("images/2020-12-31_look-arounds.jpg"))    
 ```
 
 ```{r}

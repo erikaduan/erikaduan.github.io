@@ -1,7 +1,7 @@
 name: "erikaduan.github.io"
-title: "EMD: R notes"
+title: "R|Py notes"
 description: |
-  A blog featuring R programming and data science tips.   
+  A blog featuring R, Python and general data science tips.   
 output_dir: "."
 base_url: https://erikaduan.github.io/   
 theme: theme.css
