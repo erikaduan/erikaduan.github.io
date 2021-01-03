@@ -7,14 +7,26 @@
     <description>A blog featuring R, Python and general data science tips.   
 </description>
     <generator>Distill</generator>
-    <lastBuildDate>Thu, 31 Dec 2020 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 02 Jan 2021 00:00:00 +0000</lastBuildDate>
+    <item>
+      <title>Volcano plots with ggplot2</title>
+      <dc:creator>Erika Duan</dc:creator>
+      <link>https://erikaduan.github.io/posts/2021-01-02-volcano-plots-with-ggplot2</link>
+      <description>Revising my grammar of graphics.</description>
+      <category>data visualisation</category>
+      <category>ggplot2</category>
+      <category>R</category>
+      <guid>https://erikaduan.github.io/posts/2021-01-02-volcano-plots-with-ggplot2</guid>
+      <pubDate>Sat, 02 Jan 2021 00:00:00 +0000</pubDate>
+      <media:content url="https://erikaduan.github.io/posts/2021-01-02-volcano-plots-with-ggplot2/finalplot.png" medium="image" type="image/png" width="2187" height="1350"/>
+    </item>
     <item>
       <title>Cleaning free text and wrangling strings</title>
       <dc:creator>Erika Duan</dc:creator>
       <link>https://erikaduan.github.io/posts/2020-12-31-cleaning-free-text-and-wrangling-strings</link>
       <description>These are some common data cleaning things.</description>
       <category>data cleaning</category>
-      <category>nlp</category>
+      <category>regex</category>
       <category>R</category>
       <guid>https://erikaduan.github.io/posts/2020-12-31-cleaning-free-text-and-wrangling-strings</guid>
       <pubDate>Thu, 31 Dec 2020 00:00:00 +0000</pubDate>

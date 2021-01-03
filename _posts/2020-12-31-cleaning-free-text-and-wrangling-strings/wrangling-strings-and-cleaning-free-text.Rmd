@@ -7,15 +7,14 @@ date: "2020-12-31"
 preview: benchmark.png  
 categories: 
   - data cleaning  
-  - nlp  
+  - regex  
   - R  
 output:
   distill::distill_article: 
     toc: true
 ---
 
-
-```{r setup, include=FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE, results = 'hide')     
 ```
 
@@ -38,14 +37,14 @@ pacman::p_load(here,
 ```
 
 
-# Creating a test dataset   
+# Create a test dataset   
 
 Let's imagine that my local chocolate company, [Haighs Chocolates](https://www.haighschocolates.com.au), wants to understand what food critics versus Haighs fans think about their newest product. They send out a bag of free samples with a link to an online survey that asks individuals to rate their chocolates (on a scale of 1 to 10) and provide additional comments.    
 
 **Note:** The code used to create this survey can be accessed from my github repository [here](https://github.com/erikaduan/R-tips/tree/master/03_blog_posts/2020-05-16_untangling-strings).      
 
 ```{r, echo = FALSE, warning = FALSE}
-#----creating a test dataset----
+#----create a test dataset----
 # this chunk of code has no other purpose except to provide us with an example dataset    
 survey_list <- list(
   expert_1 = c(8, '<textarea name="comment" form="1"> &lt;Grade A beans.&gt; Easily melts. Smooth chocolate shell, with a crunchy malty filling, and not so sweet <p> I enjoyed this. </textarea>'), 
@@ -81,9 +80,9 @@ survey <- survey %>%
 ```
 
 ```{r, results = 'markup'}
-#----quickly visualise the test dataset----  
+#----examine the first few rows of data----  
 survey %>%
-  head(10) # fields containing html flags are not properly rendered by kable 
+  head(6) # fields containing html flags are not properly rendered by kable 
 ```
 
 Oh dear, it looks like we will first need to use regular expressions to remove all the html tags embedded within `survey$comment_field`.       
@@ -298,7 +297,7 @@ str_extract(recipes, "(?<=secret\\s{1,10})\\S+.+")
 **Note:** Positive look-behinds require defined boundary specifications i.e. the operation `+` needs to be converted into `{1,1000}`.       
 
 
-# Improving comment field readability   
+# Improve comment field readability   
 
 With regex revised, let us return to our Haighs chocolate survey. The first thing we can see is that html tags have been retained inside the comment field and that this field is very long (i.e. difficult to read).   
 
@@ -356,7 +355,7 @@ survey %>%
 ```
  
 
-# Manually extracting topics of interest        
+# Manually extract topics of interest        
 
 After separating the comment field into smaller fields, we see references to:  
 
@@ -476,7 +475,7 @@ tidy_survey <- tidy_survey %>%
 **Note:** This method of converting topics into tabular variables works well when we are not dealing with too many factors (i.e. when recoding factors is not too cumbersome).    
 
 
-# Extracting a machine learning friendly dataset    
+# Extract a machine learning friendly dataset    
 
 A reason why we might be interested in converting unstructured comment fields into structured variables is to generate data features for machine learning. For instance, we might be interested in whether there is a relationship between survey topics, whether the comment comes from a critic or chocolate fan, and the chocolate rating.        
 
@@ -582,7 +581,7 @@ baser_vs_stringr <- microbenchmark(grep = grep(".*\\bchocolate\\b.*", desserts, 
                                    str_replace_all = str_replace_all(desserts, "chocolate", "vanilla"),
                                    grepl = grepl(".*\\bchocolate\\b.*", desserts),
                                    str_detect = str_detect(desserts, ".*\\bchocolate\\b.*"),  
-                             times = 1000)
+                                   times = 1000)
 
 autoplot(baser_vs_stringr)  
 ```
@@ -592,7 +591,7 @@ autoplot(baser_vs_stringr)
 
 # Other resources   
 
-+ Tips on regular expression usage are based on the excellent [regular expressions vignette](https://cran.r-project.org/web/packages/stringr/vignettes/regular-expressions.html) from `stringr`          
-+ [Strings chapter](https://r4ds.had.co.nz/strings.html) from R4DS by Garrett Grolemund and Hadley Wickham             
-+ Rstudio [`stringr` cheatsheet](https://github.com/rstudio/cheatsheets/blob/master/strings.pdf)        
-+ https://regex101.com/ - a website for testing regular expressions            
++ Tips on regular expression usage are based on the excellent [regular expressions vignette](https://cran.r-project.org/web/packages/stringr/vignettes/regular-expressions.html) from `stringr`           
++ [Strings chapter](https://r4ds.had.co.nz/strings.html) from R4DS by Garrett Grolemund and Hadley Wickham              
++ RStudio [`stringr` cheatsheet](https://github.com/rstudio/cheatsheets/blob/master/strings.pdf)          
++ https://regex101.com/ - a website for testing regular expressions             
