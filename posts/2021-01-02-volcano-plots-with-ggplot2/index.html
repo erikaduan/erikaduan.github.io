@@ -2096,6 +2096,7 @@ d-appendix {
 /* Optional: embed custom fonts here with `@import`          */
 /* This must remain at the top of this file.                 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab');
 
 html {
   /*-- Main font sizes --*/
@@ -2112,7 +2113,7 @@ html {
   --fig-cap-color:   rgba(0, 0, 0, 0.6);
   /*-- Specify custom fonts ~~~ must be imported above   --*/
   --heading-font:    'Noto Sans JP';
-  --mono-font:       'Noto Sans JP';
+  --mono-font:       'Roboto Slab';
   --body-font:       'ariel';  
   --navbar-font:     'Noto Sans JP';  /* websites + blogs only */
 }
@@ -3362,9 +3363,6 @@ code {
 <header class="header header--fixed" role="banner">
 <nav class="distill-site-nav distill-site-header">
 <div class="nav-left">
-<a class="logo">
-<img src="../../images/logo.png" alt="Logo"/>
-</a>
 <a href="../../index.html" class="title">R|Py notes</a>
 <input id="distill-search" class="nav-search hidden" type="text" placeholder="Search..."/>
 </div>

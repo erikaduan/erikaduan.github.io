@@ -6,8 +6,6 @@ output_dir: "."
 base_url: https://erikaduan.github.io/   
 theme: theme.css
 navbar:
-  logo:
-      image: images/logo.png
   right:
     - text: "Home"
       href: index.html
