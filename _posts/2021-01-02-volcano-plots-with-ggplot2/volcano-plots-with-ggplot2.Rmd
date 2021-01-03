@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo = TRUE, results = 'hide')
 
 # Introduction  
 
-In 2018, whilst still an R newbie, I participated in the [RLadies Melbourne community lightning talks](https://github.com/R-LadiesMelbourne/2018-10-16_How-R-You) and presented on how to visualise volcano plots in R. Volcano plots are probably an obscure concept outside of bioinformatics, but their construction nicely showcases the elegance of `ggplot2`.             
+In 2018, whilst still an R newbie, I participated in the [RLadies Melbourne community lightning talks](https://github.com/R-LadiesMelbourne/2018-10-16_How-R-You) and talked about how to visualise volcano plots in R. Volcano plots are probably an obscure concept outside of bioinformatics, but their construction nicely showcases the elegance of `ggplot2`.             
 
 In the last two years, a number of small and handy functions have been added to `dplyr` and `ggplot2`, which this post has been updated to reflect. ^[The original coding logic should still be attributed to Chuanxin Liu, my former PhD student. I also recommend the excellent RStudio Cloud ggplot2 tutorials, which have taught me a few new tricks.]           
 
@@ -38,7 +38,7 @@ pacman::p_load(here,
 ```
 
 
-# Create a test dataset  
+# Import a test dataset  
 
 We start with a dataset with four columns:    
 
@@ -397,9 +397,11 @@ final_plot <- ggplot(data = diseased_vs_healthy,
   theme_bw() + # creates a white background
   theme(panel.border = element_rect(colour = "black", fill = NA, size= 0.5), # creates a plot border 
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_line(colour = "grey", linetype = "dotted")) 
+        panel.grid.major = element_blank()) 
 
 final_plot 
+
+# use panel.grid... = element_line(colour = "grey", linetype = "dotted" to add panel gridlines
 ```
 
 
