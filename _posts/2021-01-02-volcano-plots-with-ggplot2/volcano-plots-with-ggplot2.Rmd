@@ -103,7 +103,7 @@ vol_plot # a simple volcano plot is created
 
 # Add horizontal and vertical plot lines     
 
-The functions `geom_hline()` and `geom_vline()` can be used to add extra horizontal and vertical lines on your plot respectively. In our example, I am interested in constructing boundaries for genes which have a padj <= 0.05 and a fold change <= 0.05 or >= 2.      
+The functions `geom_hline()` and `geom_vline()` can be used to add extra horizontal and vertical lines on your plot respectively. In our example, I am interested in constructing boundaries for genes which have `adj_p_val <= 0.05` and `fold_change <= 0.5` or `fold_change >= 2`.      
 
 ```{r, results = 'markup'}
 #----plot extra quandrants----
@@ -400,9 +400,9 @@ final_plot <- ggplot(data = diseased_vs_healthy,
         panel.grid.major = element_blank()) 
 
 final_plot 
-
-# use panel.grid... = element_line(colour = "grey", linetype = "dotted" to add panel gridlines
 ```
+
+**Note:** You can specify `panel.grid... = element_line(linetype = "dotted")` inside `theme()` to create dotted gridlines along the x and/or y axis. Major gridline positions are inherited from the values of axis breaks.         
 
 
 # Annotate text   

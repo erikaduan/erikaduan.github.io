@@ -5,7 +5,7 @@
       "title": "About me",
       "author": [],
       "contents": "\r\n\r\n\r\n\r\nBackground\r\nI trained as a research scientist in respiratory immunology (PhD, UniMelb). During my post-doctoral research, I learnt R programming and applied statistical and machine learning workflows to discover how the human body orchestrates complex defensive processes against respiratory virus invasion.\r\nI now work (and enjoy working) in the public sector as a data scientist.\r\nEducation\r\n2009-2014: PhD - University of Melbourne\r\n2008: Bachelor of Science (Honours) - University of Melbourne\r\n2005-2007: Bachelor of Biomedical Science - University of Melbourne\r\nInterests\r\nMachine learning algorithmic weaknesses (when human learning is advisable)\r\nMachine learning explanability\r\nMachine learning ethical frameworks\r\nOpen government data initiatives\r\nImproving data science career pathway accessibility\r\nSTEM outreach initiatives\r\nPublic projects\r\nIntroduction to Python workshop materials\r\nA repository of beginner-friendly Python tutorials compiled from the Research Platform Services Python workshops (UniMelb, 2019) and the DIPA Introduction to Python workshop (Data61, 2020). Each tutorial exists as a self-contained Jupyter notebook and some tutorials make use of public data sources.\r\nIntroductory mathematics in R and Python\r\nA respository of introductory mathematics notes for beginners who are keen to understand how machine learning algorithms work but find the mathematical notations and concepts confusing (don’t worry - they really are just confusing).\r\n\r\n\r\n\r\n",
-      "last_modified": "2021-01-04T10:14:58+10:30"
+      "last_modified": "2021-01-29T23:41:18+11:00"
     },
     {
       "path": "index.html",
@@ -13,7 +13,7 @@
       "description": "Notes about R and Python programming and data science workflows. \n",
       "author": [],
       "contents": "\r\n\r\n\r\n\r\n",
-      "last_modified": "2021-01-04T10:14:59+10:30"
+      "last_modified": "2021-01-29T23:41:18+11:00"
     }
   ],
   "collections": ["posts/posts.json"]

@@ -28,11 +28,10 @@ This makes it hard to gauge whether cleaning comment fields is a worthwhile ende
 Let's get started.   
 
 ```{r, message = FALSE, warning = FALSE}  
-#----load required packages----  
+#-----load required packages-----  
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(here,  
                tidyverse,  
-               DT, # for visualising tables   
                microbenchmark) 
 ```
 
@@ -44,7 +43,7 @@ Let's imagine that my local chocolate company, [Haighs Chocolates](https://www.h
 **Note:** The code used to create this survey can be accessed from my github repository [here](https://github.com/erikaduan/R-tips/tree/master/03_blog_posts/2020-05-16_untangling-strings).      
 
 ```{r, echo = FALSE, warning = FALSE}
-#----create a test dataset----
+#-----create a test dataset-----
 # this chunk of code has no other purpose except to provide us with an example dataset    
 survey_list <- list(
   expert_1 = c(8, '<textarea name="comment" form="1"> &lt;Grade A beans.&gt; Easily melts. Smooth chocolate shell, with a crunchy malty filling, and not so sweet <p> I enjoyed this. </textarea>'), 
@@ -80,7 +79,7 @@ survey <- survey %>%
 ```
 
 ```{r, results = 'markup'}
-#----examine the first few rows of data----  
+#-----examine the first few rows of data-----  
 survey %>%
   head(6) # fields containing html flags are not properly rendered by kable 
 ```
@@ -93,14 +92,14 @@ Oh dear, it looks like we will first need to use regular expressions to remove a
 Regular expressions, or regex, can be thought of as a separate syntax for handling patterns in strings. In R, regular expressions can be directly enclosed inside quotes like character strings or explicitly referenced inside `regex()`. For convenience, I prefer the former approach but the latter approach can help increase code readability.                  
 
 ```{r}
-#----call regular expressions in R----
+#-----call regular expressions in R-----
 many_apples <- c("Apple", "apple", "APPLE", "apples")
 
 str_extract(many_apples, 
             "apples?")  
 #> [1] NA       "apple"  NA       "apples"
 
-#----call regular expressions in R using regex()----
+#-----call regular expressions in R using regex()-----
 # regex() provides additional arguments
 
 str_extract(many_apples, 
@@ -123,7 +122,7 @@ str_extract(many_apples,
 Some sequences of characters have specific meanings. For example, `s` refers to the letter `"s"` but `\s` refers to any type of white space. To call whitespace in R, a second backslash `\` is required to escape special character behaviour i.e. `\\s`.          
 
 ```{r}
-#----examples of special character sequences----  
+#-----examples of special character sequences-----  
 words_and_spaces <- c(" a cat",
                       "acat",
                       "a   cat",
@@ -152,7 +151,7 @@ I feel that the goal of writing good regex is to be as specific as possible. Thi
 If we revisit the example above, we can see that the presence or absence of character anchors produces very different outputs.        
 
 ```{r}
-#----impact of character anchors----    
+#-----impact of character anchors-----    
 words_and_spaces <- c(" a cat",
                       "acat",
                       "a   cat",
@@ -178,10 +177,12 @@ Character classes and groupings are handy for extracting specific letter and/or 
 
 + The operation `or` is represented by `|` i.e `[a|c]`     
 + The operation `range` is represented by `-` i.e. `[a-z]`    
-+ The operation `excludes` is represented by `^` i.e. `[^a-c]`           
++ The operation `excludes` is represented by `^` i.e. `[^a-c]`    
+
+**Note:** Representation of a single character is denoted by `[]` and representation of a grouping i.e. combination of characters is denoted by `()`.     
 
 ```{r}
-#----extract patterns using character classes i.e. []----    
+#-----extract patterns using character classes i.e. []-----    
 strange_fruits <- c("apple1",
                     "bapple2",
                     "capple3",
@@ -200,11 +201,11 @@ str_extract(strange_fruits, "[a-d][^p]")
 str_extract(strange_fruits, "[0|4-9]")
 #> [1] NA  NA  NA  "4" "5" "0"   
 
-# [0|5-9] refers to one number that is zero or a number from 4 to 9
+# [0|4-9] refers to one number that is zero or a number from 4 to 9    
 ```
 
 ```{r}
-#----extract character using groupings i.e. ()----     
+#-----extract character using groupings i.e. ()-----     
 strange_fruits <- c("apple1",
                     "bapple2",
                     "capple3",
@@ -215,7 +216,7 @@ strange_fruits <- c("apple1",
 str_extract(strange_fruits, "a(pp|gg)le")
 #> [1] "apple" "apple" "apple" "apple" NA      "aggle"    
 
-# groups can be referenced by their order of appearance i.e. \\1 = first group = (e)  
+# groups can be referenced by their order of appearance i.e. \\1 = first group  
 
 str_extract(strange_fruits, "(a)(p|g)\\2")
 #> [1] "app" "app" "app" "app" NA    "agg"   
@@ -224,32 +225,39 @@ str_extract(strange_fruits, "(a)(p|g)\\2")
 # (p|g) is group 2 and can be called using \\2     
 ```
 
-**Note:** a character class `[a-z]` refers to only one character whereas a grouping `(a-z+)` refers to an entire sequence or group of characters.        
-
 
 ## Greedy versus lazy matches   
 
-In R, regex is greedy by default. Using a non-greedy as opposed to greedy match allows you to extract just the first characters before a white space or punctuation mark. This is useful for trimming strings or extracting file or object names.         
+In R, regular expression parsing is non-greedy by default. This means that we need to add quantifiers `*` and `+` to greedily extract zero or more and one or more characters respectively.      
+
+In contrast, using a non-greedy match allows you to extract just the first characters before a white space or punctuation mark. This is useful for trimming strings or extracting file or object names. 
+
+```{r, echo = FALSE, results = 'markup' , fig.align = 'center', out.width = '90%'} 
+knitr::include_graphics("../../images/2020-12-31_greedy-matches.jpg")    
+```
 
 ```{r}
-#----use cases for greedy matches----   
+#-----use cases for greedy matches-----   
 messy_dates <- c("Thursday 24th May",
                  "Thursday  24th May  ",
                  " May",
                  "May    ")
 
+str_extract(messy_dates, "^\\w")      
+#> [1] "T" "T" NA  "M"   
+
+# greedily extract the first word in the string    
+
 str_extract(messy_dates, "^\\w+")   
 #> [1] "Thursday" "Thursday" NA      "May"   
 
-# greedily extract the first word in the string 
-
-str_extract(messy_dates, "^\\w{1,}") # + and {1,} are equivalent    
+str_extract(messy_dates, "^\\w{1,}") # the quantifier + and {1,} are equivalent    
 #> [1] "Thursday" "Thursday" NA      "May"    
 
 str_extract(messy_dates, "^(\\S+)")  
 #> [1] "Thursday" "Thursday" NA      "May"    
 
-#----use cases for non-greedy matches---- 
+#-----use cases for non-greedy matches----- 
 str_replace_all(messy_dates, "\\s" , "-") # replaces each individual whitespace
 #> [1] "Thursday-24th-May"    "Thursday--24th-May--" "-May"                  "May----"       
 
@@ -269,12 +277,12 @@ str_replace_all(messy_dates, "(?<=^\\w{1,100})\\s{1,2}" , "-")
 
 Look around operations are useful when you are unsure of the pattern itself, but you know exactly what its preceding or following pattern is. I've found that the clearest explanation of look around operations comes from the [RStudio cheetsheet](https://github.com/rstudio/cheatsheets/blob/master/strings.pdf) on `string_r`, as depicted below.           
 
-```{r, echo = FALSE, fig.align = 'center', out.width = '60%'} 
-knitr::include_graphics(here("images/2020-12-31_look-arounds.jpg"))    
+```{r, echo = FALSE, results = 'markup', fig.align = 'center', out.width = '90%', fig.cap = 'Taken from the RStudio stringr cheatsheet'} 
+knitr::include_graphics("../../images/2020-12-31_look-arounds.jpg")    
 ```
 
 ```{r}
-#----use cases for different types of look arounds----  
+#-----use cases for different types of look arounds-----  
 recipes <- c("crossiant recipes",
              "apple pie recipe",
              "chocolate cake  recipe", # extra space
@@ -287,11 +295,11 @@ recipes <- c("crossiant recipes",
 str_extract(recipes, "\\S+(?=\\s*recipes?)")   
 #> [1] "crossiant"  "pie"        "cake"       NA           "KFC-"       "soft-serve"   
 
+# use positive look-behind (?<=) on "secret" to identify the secret recipes  
+
 str_extract(recipes, "(?<=secret\\s{1,10})\\S+.+")   
 #> [1] NA                            NA                            NA                           
-#> [4] NA                            "KFC-recipe"                  "McDonalds soft-serve recipe"
-
-# use positive look-behind (?<=) on "secret" to identify the secret recipes    
+#> [4] NA                            "KFC-recipe"                  "McDonalds soft-serve recipe"   
 ```
 
 **Note:** Positive look-behinds require defined boundary specifications i.e. the operation `+` needs to be converted into `{1,1000}`.       
@@ -307,11 +315,11 @@ We can improve the readability of the survey by:
 + Separating phrases into columns using [`separate()`](https://tidyr.tidyverse.org/reference/separate.html).     
 
 ```{r, results = 'markup'}
-#----re-examine survey data----
+#-----re-examine survey data-----
 survey %>%
   head(5)   
 
-#----remove html tags----
+#-----remove html tags-----
 remove_html_tags <- regex("
                           <  # starts with <
                           [^>]+  # contains one or more of all characters excepting > 
@@ -328,7 +336,7 @@ survey <- survey %>%
   mutate(comment_field = str_replace_all(comment_field, remove_html_tags, ""),
          comment_field = str_replace_all(comment_field, remove_more_html, ""))
 
-#----examine comment field----  
+#-----examine comment field-----  
 survey %>%
   select(comment_field) %>%
   head(5) 
@@ -337,7 +345,7 @@ survey %>%
 We can then split the single long comment field into multiple smaller columns. ^[Many R functions require R regex classes to be wrapped in a second set of `[ ]`, e.g. `[[:punct:]]`.]             
 
 ```{r}
-#----separate comment field into an unknown number of columns----    
+#-----separate comment field into an unknown number of columns-----    
 nmax <- max(str_count(survey$comment_field, "[[:punct:]]|and|with|against")) + 1
 
 survey <- survey %>%   
@@ -348,7 +356,7 @@ survey <- survey %>%
            extra = "warn",
            fill = "right") 
 
-#----examine comment fields----  
+#-----examine comment fields-----  
 survey %>%
   select(starts_with("Field")) %>%
   head(5) 
@@ -431,7 +439,7 @@ tidy_survey <- tidy_survey %>%
             by = "respondee")
 ```
 
-This process is repeated for chocolate sweetness. ^[If this is a repetitive step within the workflow, it is preferrable to rewrite the generic part of this cleaning step as a function in a separate R script for maximal readability.]      
+This process is repeated for chocolate sweetness. ^[As a repetitive step within the workflow, we might want to rewrite the generic part of this cleaning step as a function stored in a separate R script for maximal readability.]      
 
 ```{r}
 #----extract information about chocolate sweetness----  
@@ -499,10 +507,10 @@ tidy_survey %>%
 
 # Differences between base R and `stringr` functions      
 
-In R, string manipulation can be performed using either base R functions or functions from the `stringr` library. A key difference between base R and `stringr` functions is the order that the string and pattern are specified. The pattern, not the string, is specified first in base R functions, which is not in a pipe friendly order.           
+In R, string manipulation can be performed using either base R functions or functions from the `stringr` library. A key difference between base R and `stringr` functions is the order that the string and pattern are specified. The pattern, not the string, is specified first inside base R functions, which is not a pipe friendly argument order.            
 
 ```{r}
-#----use cases for grep()----  
+#-----use cases for grep()-----  
 desserts <- c("chocolate",
               "chocolate cake",
               "chocolate tart",
@@ -535,7 +543,7 @@ str_subset(desserts, ".*\\bchocolate\\b.*")
 ```
 
 ```{r}
-#----use cases for grepl()----  
+#-----use cases for grepl()-----  
 desserts <- c("chocolate",
               "chocolate cake",
               "chocolate tart",
@@ -550,11 +558,14 @@ grepl(".*\\bchocolate\\b.*", desserts)
 #> [1]  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE FALSE FALSE FALSE  
 
 str_detect(desserts, ".*\\bchocolate\\b.*")  
-#> [1]  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE FALSE FALSE FALSE  
+#> [1]  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE FALSE FALSE FALSE 
+
+desserts[str_detect(desserts, ".*\\bchocolate\\b.*")]
+#> [1] "chocolate"            "chocolate cake"       "chocolate tart"       "chocolate icecream"   "chocolate cookies"    "dark chocolate fudge"  
 ```
 
 ```{r}
-#----use cases for gsub()----   
+#-----use cases for gsub()-----   
 desserts <- c("chocolate",
               "chocolate cake",
               "chocolate tart",
@@ -565,13 +576,13 @@ desserts <- c("chocolate",
               "fruit tart",
               "fruit sorbet")
 
-gsub("chocolate", "vanilla", desserts) 
-#> [1] "vanilla"            "vanilla cake"       "vanilla tart"       "vanilla icecream"   "vanilla cookies"   
-#> [6] "dark vanilla fudge" "fruit"              "fruit tart"         "fruit sorbet"  
+gsub("(dark )?chocolate", "vanilla", desserts) 
+#> [1] "vanilla"          "vanilla cake"     "vanilla tart"     "vanilla icecream" "vanilla cookies"  "vanilla fudge"    "fruit"           
+#> [8] "fruit tart"       "fruit sorbet"    
 
-str_replace_all(desserts, "chocolate", "vanilla") 
-#> [1] "vanilla"            "vanilla cake"       "vanilla tart"       "vanilla icecream"   "vanilla cookies"   
-#> [6] "dark vanilla fudge" "fruit"              "fruit tart"         "fruit sorbet"    
+str_replace_all(desserts, "(dark )?chocolate", "vanilla") 
+#> [1] "vanilla"          "vanilla cake"     "vanilla tart"     "vanilla icecream" "vanilla cookies"  "vanilla fudge"    "fruit"           
+#> [8] "fruit tart"       "fruit sorbet"            
 ```
 
 ```{r, message = FALSE, fig.align = "center"}
