@@ -7,7 +7,22 @@
     <description>A blog featuring R, Python and general data science tips.   
 </description>
     <generator>Distill</generator>
-    <lastBuildDate>Sat, 02 Jan 2021 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 30 Jan 2021 00:00:00 +0000</lastBuildDate>
+    <item>
+      <title>Introduction to R data.table</title>
+      <dc:creator>Erika Duan</dc:creator>
+      <link>https://erikaduan.github.io/posts/2021-01-30-data-table-part-1</link>
+      <description>To data.table, dplyr or Pandas?</description>
+      <category>data cleaning</category>
+      <category>data.table</category>
+      <category>dplyr</category>
+      <category>Pandas</category>
+      <category>R</category>
+      <category>Python</category>
+      <guid>https://erikaduan.github.io/posts/2021-01-30-data-table-part-1</guid>
+      <pubDate>Sat, 30 Jan 2021 00:00:00 +0000</pubDate>
+      <media:content url="https://erikaduan.github.io/posts/2021-01-30-data-table-part-1/finalplot.png" medium="image" type="image/png" width="1125" height="726"/>
+    </item>
     <item>
       <title>Volcano plots with ggplot2</title>
       <dc:creator>Erika Duan</dc:creator>
@@ -15,6 +30,7 @@
       <description>Revising my grammar of graphics.</description>
       <category>data visualisation</category>
       <category>ggplot2</category>
+      <category>tidyverse</category>
       <category>R</category>
       <guid>https://erikaduan.github.io/posts/2021-01-02-volcano-plots-with-ggplot2</guid>
       <pubDate>Sat, 02 Jan 2021 00:00:00 +0000</pubDate>

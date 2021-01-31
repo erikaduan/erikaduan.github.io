@@ -17,7 +17,7 @@ knitr::include_graphics("./images/profile.jpg")
 
 I trained as a research scientist in respiratory immunology (PhD, UniMelb). During my post-doctoral research, I learnt R programming and applied statistical and machine learning workflows to discover how the human body orchestrates complex defensive processes against respiratory virus invasion.   
 
-I now work (and enjoy working) in the public sector as a data scientist.         
+I now work (and greatly enjoy working) in the public sector as a data scientist.         
 
 
 ## Education       

@@ -44,7 +44,6 @@ Let's imagine that my local chocolate company, [Haighs Chocolates](https://www.h
 
 ```{r, echo = FALSE, warning = FALSE}
 #-----create a test dataset-----
-# this chunk of code has no other purpose except to provide us with an example dataset    
 survey_list <- list(
   expert_1 = c(8, '<textarea name="comment" form="1"> &lt;Grade A beans.&gt; Easily melts. Smooth chocolate shell, with a crunchy malty filling, and not so sweet <p> I enjoyed this. </textarea>'), 
   
@@ -81,7 +80,7 @@ survey <- survey %>%
 ```{r, results = 'markup'}
 #-----examine the first few rows of data-----  
 survey %>%
-  head(6) # fields containing html flags are not properly rendered by kable 
+  head(6)  
 ```
 
 Oh dear, it looks like we will first need to use regular expressions to remove all the html tags embedded within `survey$comment_field`.       

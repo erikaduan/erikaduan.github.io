@@ -8,6 +8,7 @@ preview: finalplot.png
 categories: 
   - data visualisation  
   - ggplot2  
+  - tidyverse  
   - R  
 output:
   distill::distill_article: 
@@ -98,7 +99,7 @@ vol_plot <- diseased_vs_healthy %>%
 vol_plot # a simple volcano plot is created
 ```
 
-**Note:** For single layer plots, use `%>%` pipes with `ggplot2` functions for convenience and readability.                      
+**Note:** For single layer plots, use `%>%` pipes with `ggplot2` functions for convenience and readability.   
 
 
 # Add horizontal and vertical plot lines     
