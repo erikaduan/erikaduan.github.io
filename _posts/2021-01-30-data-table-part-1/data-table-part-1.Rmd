@@ -28,7 +28,7 @@ options(scipen = 999)
 
 An inevitability of programming is that languages come and go. I am reminded of this when colleagues tell me about the first languages that they learnt or used in their academic research.  
 
-It's taken me a while to realise that programming languages are still human constructs - they hold sway when they are utilised en mass (i.e. Python for machine learning) and user factions may emerge if two very different ways of doing the same thing exist in parallel.    
+It's taken me a while to realise that programming languages are still human constructs - they hold sway when they are utilised en mass (i.e. Python for machine learning) and user factions may emerge if two very different ways of doing the same thing concurrently exist.      
 
 In R, the latter can manifest in the form of `data.table` versus `dplyr` debates. ^[I am extremely thankful for these Twitter debates, as they first drew my attention to `data.table`.]    
 
@@ -41,7 +41,7 @@ Both R packages contain a comprehensive stack of functions for data wrangling. T
 Whilst I prefer to use `dplyr` on small datasets where `data.table` efficiency gains are negligible, I recommend using `data.table` when:      
 
 + You are using very large datasets (datasets over 1 million rows) **and**   
-+ You need to use `group by` operations for data cleaning or feature generation.    
++ You need to use **group by** operations for data cleaning or feature engineering.         
 
 Let's explore this for ourselves.            
 
@@ -60,9 +60,12 @@ pacman::p_load(here,
 #-----set up the Python reticulate engine-----  
 conda_list() # list available conda environments
 use_condaenv("r-reticulate")
+```
 
-py_run_string("import os as os")
-py_run_string("os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = 'C:/Users/user/Anaconda3/Library/plugins/platforms'")
+```{r, echo = FALSE}
+#-----print python code in RMD file-----  
+# py_run_string("import os as os")
+# py_run_string("os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = 'C:/Users/user/Anaconda3/Library/plugins/platforms'")
 ```
 
 
@@ -71,10 +74,10 @@ py_run_string("os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = 'C:/Users/user/Anacon
 Imagine you have a dataset describing how students are engaging with online courses:     
 
 + Each student has a unique ID.  
-+ There are 5 different online platforms (labelled platforms A, B, C and D).
-+ Students have the option of taking different courses within the same platform or by switching to a different platform.  
-+ Start dates are recorded when the student first signs up to a platform and starts the first course within a platform.    
-+ End dates are also recorded when the student exits a platform.      
++ There are 5 different online platforms (labelled platforms A, B, C, D and E).  
++ Students have the option of taking different courses within the same platform or switching to a different platform.   
++ Start dates are recorded when the student starts the first course in a new platform.       
++ End dates are also recorded when the student exits a platform.       
 
 **Note:** The code used to create this survey can be accessed from my github repository [here](https://github.com/erikaduan/R-tips/blob/master/03_blog_posts/2020-04-07_data-table-versus-dplyr/2020-04-07_data-table-versus-dplyr.md).    
 
@@ -211,7 +214,9 @@ student_courses %>%
 
 # Principles of `data.table`     
 
-In R, datasets exist as `data.frame` type objects. To apply `data.table` functions on a dataset, we need to convert a `data.frame` into a `data.table` object using the `setDT` function. This function is flexible as it converts the `data.frame` by reference (i.e. without creating a duplicate data.table copy) and assigns both `data.table` and `data.frame` classes to the converted object.         
+In R, datasets exist as `data.frame` type objects. To apply `data.table` functions on a dataset, we need to convert a `data.frame` into a `data.table` object using the `setDT` function.   
+
+This function is flexible as it converts a `data.frame` by reference (i.e. without creating a duplicate `data.table` copy) and assigns both `data.table` and `data.frame` classes to the converted object.    
 
 ```{r}
 #-----converting a data frame into a data table-----  
@@ -221,10 +226,10 @@ class(student_courses)
 mem_used()
 #> 222,639,352 B
 
-tracemem(student_courses)  
+tracemem(student_courses) # track object assignment in memory  
 #> [1] "<0000022B07B7AB70>"   
 
-setDT(student_courses)  
+setDT(student_courses) # data.table is assigned to a new location in memory   
 #> tracemem[0x0000022b07b7ab70 -> 0x0000022b047a8478]: as.list.data.frame as.list vapply vapply_1i setDT   
 
 untracemem(student_courses)   
@@ -254,24 +259,24 @@ knitr::include_graphics("../../images/2021-01-30_DT-query-structure.jpg")
 
 There are a few reasons why `data.table` operations are fast:  
 
-+ Many operations, including grouping, reading and writing, are parallelised by default.   
++ Many of its operations, including grouping, reading and writing, are parallelised by default.   
 + `data.table` automatically creates a secondary index (or key) of the columns used to subset data, so that subsequent operations on the same column are much faster.  
-+ `data.table` has a much faster `order()` function, which is also utilised to evaluate groupings.  
-+ `data.table` allows you to use the operator `:=` to add, delete or modify columns in place, as a faster alternative to R's default copy-on-modify behaviour.   
++ `data.table` has a much faster `order()` function, which is also utilised for the evaluation of groupings.  
++ You can use the operator `:=` to add, delete or modify columns in place, which is a faster alternative to R's default copy-on-modify behaviour.     
 
 ```{r}
-#-----create data frame and data.table objects----- 
+#-----create data.frame and data.table objects----- 
 df <- data.frame(id = seq(1:5),
                       letter = letters[1:5])
 
 dt <- as.data.table(df)  
 
-#-----update a data frame column using copy-on-modify----- 
+#-----update a data.frame column using copy-on-modify----- 
 df_2 <- df %>%
   mutate(letter = toupper(letter)) 
 
 # the new data frame is a shallow copy of the original data frame 
-# it only binds to new copies of modified columns   
+# only modified columns are newly created in memory     
 
 ref(df, df_2)
 #> o [1:0x22b03b6c998] <df[,2]> 
@@ -282,7 +287,7 @@ ref(df, df_2)
 #> +-id = [2:0x22b7f3f6350] 
 #> \-letter = [5:0x22b05f9b890] <chr> 
 
-#-----update a data table column by reference-----
+#-----update a data.table column by reference-----
 obj_addr(dt)
 #> [1] "0x22b016ed030"
 
@@ -293,8 +298,7 @@ obj_addr(dt)
 ```
 
 ```{r, results = 'markup'}
-# check that dt has been modified in place 
-dt    
+dt # check that dt has been modified in place    
 ```
 
 
@@ -342,25 +346,24 @@ student_courses[student_id == "00007f23" & platform_start_date %between% c("2017
 student_courses[online_course %like% "R_"]
 
 # %chin% is equivalent to but much faster than %in%  
-# %like% allows you to search for a regex pattern in a character vector 
-# %between% allows you to search for values in a closed i.e. boundary inclusive interval  
+# %like% allows you to search for a pattern in a character vector 
+# %between% allows you to search for values in a closed interval  
 ```
 
 
 ## Using `Pandas`    
 
-And because I think R versus Python language wars are unnecessary, let's filter the same dataset using the Python `Pandas` package and benchmark the results. 
+And because R versus Python language wars are unnecessary, let's filter the same dataset using the Python `Pandas` package and benchmark the results. 
 
-**Note:** Objects generated in R only exist within the R environment. To share data frames between R <> Python environments, we need to convert R data.frames into Pandas DataFrames and assign it in the Python environment.    
+**Note:** Objects generated in R only exist within the R environment. To share data between R <> Python environments, we need to convert R `data.frames` into Pandas `DataFrames` by calling them into the Python environment.    
 
 ```{python, message = FALSE}
 #-----convert R data.frame object into the Python environment-----  
 import pandas as pd  
 
-pd_courses = r.student_courses 
+pd_courses = r.student_courses # call R data.frame into Python environment  
 
 # convert pd_courses date columns using pd.to_datetime  
-
 pd_courses["platform_start_date"] = pd.to_datetime(pd_courses["platform_start_date"])  
 pd_courses["platform_end_date"] = pd.to_datetime(pd_courses["platform_end_date"]) 
 
@@ -382,7 +385,11 @@ pd_courses[student & date_start & date_end]
 
 ## Benchmark data filtering   
 
-You can use the R package `microbenchmark` and Python package `timeit` to measure code performance. The function `microbenchmark()` runs each expression 100 times by default whereas `timeit.timeit()` runs each expression 1000000 times by default. We will change the latter number to 100 times to match our R `microbenchmark()` output.        
+You can use the R package `microbenchmark` and Python package `timeit` to measure code performance. ^[To print more accurate benchmarks for this blog, I had to save the values produced by `microbenchmark()` and explicitly print them out, rather than rely on outputs produced during document knitting.]       
+
+The R function `microbenchmark()` runs each expression 100 times by default with the argument `times = 100L`. It outputs summary statistics for how long it takes to evaluate a single expression.  
+
+The Python  function `timeit()` runs each expression 1,000,000 times by default and outputs in seconds the time taken to evaluate everything. We will change the latter number to 100 times with the argument `number = 100` to match our R `microbenchmark()` input.         
 
 ```{r, echo = FALSE}
 #-----benchmark dplyr and data.table functions-----  
@@ -398,7 +405,7 @@ mb <- microbenchmark(filter(student_courses, online_platform == "A"),
 knitr::kable(summary(mb), caption = "Units: milliseconds")    
 ```
 
-```{python, echo = FALSE, message = FALSE, results = 'markup'}
+```{python, echo = FALSE}
 #-----print timeit outputs-----   
 import timeit
 
@@ -417,8 +424,8 @@ def filter_str_r():
   pd_courses[pd_courses["online_course"].str.startswith("R_")] 
 '''
 
-# total timeit output needs to be converted from seconds into milliseconds   
-# total timeit output needs to be divided by the number of individual iterations 
+# total timeit output needs to be converted from seconds into milliseconds      
+# total timeit output needs to be divided by the number of iterations 
 
 output_a = 10 * timeit.timeit(filter_a, number = 100)
 output_ac = 10 * timeit.timeit(filter_ac, number = 100)
@@ -443,7 +450,7 @@ knitr::kable(pandas_mb, caption = "Units: milliseconds")
 
 ## Using `dplyr` versus `data.table`    
 
-Sorting a dataframe can be computationally expensive when you need to order your dataset by multiple variables. This is why I always only sort my dataframe once, at the start of the data cleaning workflow after basic data cleaning operations have been performed.         
+Sorting a dataframe can be computationally expensive when you need to order your dataset by multiple variables. This is why I only sort my dataframe once, at the start of the data cleaning workflow after basic data cleaning operations have been performed.         
 
 ```{r}
 #-----sort data using dplyr-----    
@@ -458,7 +465,8 @@ student_courses %>%
 # a descending start date shows the most recent dates first  
 ```
 
-In `data.table`, data sorting is also performed inside `i` of `DT[i, j, by]`. Placing the operator `-` in front of a variable enables sorting by descending order.   
+In `data.table`, data sorting is also performed inside `i` of `DT[i, j, by]`.   
+Placing the operator `-` in front of a variable enables sorting by descending order.     
 
 ```{r}
 #-----sort student_courses using data.table----- 
@@ -468,10 +476,10 @@ student_courses[order(student_id,
                       online_platform,
                       -platform_start_date)]  
 
-# you can also order columns in reference using setorder()  
+# you can also order columns in place using setorder()  
 
 setorder(student_courses,
-         student_id, online_platform, -platform_start_date)
+         student_id, online_platform, -platform_start_date)  
 ```
 
 
@@ -480,17 +488,17 @@ setorder(student_courses,
 ```{python}
 #-----sort student_courses using Pandas----- 
 pd_courses.sort_values("student_id")
-# for the ascending argument, True sorts in ascending order and False sorts in descending order 
 pd_courses.sort_values(["student_id", "online_platform", "platform_start_date"],
                        ascending = [True, True, False])
+# for ascending, True sorts in ascending order and False sorts in descending order 
 ```
 
 
 ## Benchmark data sorting   
 
-Benchmarking results highlight that `data.table` has a much faster `order()` method than `dplyr`.      
+We can see that the `order()` method from `data.table` sorts data much faster than its equivalent `dplyr` function.        
 
-```{r, echo = FALSE, results = 'markup'}
+```{r, echo = FALSE}
 #-----benchmark dplyr and data.table functions-----  
 mb <- microbenchmark(arrange(student_courses, student_id),
                      student_courses[order(student_id)],
@@ -503,7 +511,7 @@ mb <- microbenchmark(arrange(student_courses, student_id),
 knitr::kable(summary(mb), caption = "Units: milliseconds")    
 ```
 
-```{python, echo = FALSE, message = FALSE, results = 'markup'}
+```{python, echo = FALSE}
 #-----print timeit outputs-----   
 import timeit
 
@@ -576,20 +584,20 @@ student_courses[,
                   online_platform,
                   online_course)]
 
-student_courses[,
-                grep("date", names(student_courses), value = T),
-                with = F]
-
 grep("date", names(student_courses), value = T)
-#> [1] "platform_start_date" "platform_end_date"    
+#> [1] "platform_start_date" "platform_end_date" 
 
-#-----output a vector-----
-class(student_courses[, student_id])
-#> [1] "character"
+student_courses[,
+                grep("date", names(student_courses), value = T), 
+                with = F]
 
 #-----output a data frame by wrapping column names inside a list-----  
 class(student_courses[, .(student_id)])
-#> [1] "data.table" "data.frame"  
+#> [1] "data.table" "data.frame"   
+
+#-----output a vector-----
+class(student_courses[, student_id])  
+#> [1] "character"
 ```   
 
 
@@ -607,6 +615,12 @@ pd_courses.filter(regex = "date")
 ```
 
 ```{python}
+#-----output a Pandas DataFrame-----
+type(pd_courses[["student_id"]])
+#> <class 'pandas.core.frame.DataFrame'>
+```
+
+```{python}
 #-----output a Pandas Series or list-----
 type(pd_courses["student_id"])
 #> <class 'pandas.core.series.Series'> 
@@ -615,16 +629,10 @@ type(list(pd_courses["student_id"]))
 #> <class 'list'>   
 ```
 
-```{python}
-#-----output a Pandas DataFrame-----
-type(pd_courses[["student_id"]])
-#> <class 'pandas.core.frame.DataFrame'>
-```
-
 
 ## Benchmark column selection        
 
-Interestingly, benchmarking results highlight that `dplyr` actually performs slightly faster than `data.table` for column selections.      
+Interestingly, the benchmarking results show that `dplyr` actually performs slightly faster than `data.table` for column selections.        
 
 ```{r, echo = FALSE, results = 'markup'}
 #-----benchmark dplyr and data.table functions-----  
@@ -666,6 +674,16 @@ pandas_mb <- data.frame("expr" = c('pd_courses[["student_id", "online_platform",
 
 knitr::kable(pandas_mb, caption = "Units: milliseconds")     
 ```
+
+
+# Column creation  
+
+
+# Column modification  
+
+
+# Simple groupings  
+
 
 
 # Other resources    
