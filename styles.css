@@ -4,23 +4,34 @@
 /* Change the appearance of code chunks */
 d-article div.sourceCode code, 
 d-article pre code {
-  font-family: 'Source Code Pro';
-  color: #383838;
-  background: #f7fcfd;
-  font-weight: 500;
-  font-size: 1em;
+  font-family      : 'Source Code Pro';
+  color            : #383838;
+  background       : #f7fcfd;
+  font-weight      : 500;
+  font-size        : 1em;
 }
 
 /* Change the appearance of in-line code segments */
 code {
-  font-family: 'Source Code Pro';
-  color: #383838;
-  background: #f7fcfd;
-  font-weight: 500;
-  font-size: 0.9em;
+  font-family      : 'Source Code Pro';
+  color            : #383838;
+  background       : #f7fcfd;
+  font-weight      : 500;
+  font-size        : 0.9em;
 }
 
+/* Change the appearance of blog title */
 d-title h1 {
-  font-family: 'Noto Sans JP';
-  font-weight: 800;
-}  
+    font-weight    : 700;
+    text-transform : uppercase ;
+    font-size      : 28px ;
+    line-height    : 1.1em ;
+    margin-top     : 20px ;
+}
+
+/* Change the appearance of tags*/
+.posts-list .dt-tags .dt-tag {
+  font-weight      : bold;
+  background-color : #37ACA1;
+  color            : #EAF8F8;
+}
