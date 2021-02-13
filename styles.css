@@ -20,7 +20,7 @@ code {
   font-size        : 0.9em;
 }
 
-/* Change the appearance of blog title */
+/* Change the appearance of blog title - not working */
 d-title h1 {
     font-weight    : 700;
     text-transform : uppercase ;
@@ -28,6 +28,8 @@ d-title h1 {
     line-height    : 1.1em ;
     margin-top     : 20px ;
 }
+
+/* Change the appearance of blog title - not working */
 
 /* Change the appearance of tags*/
 .posts-list .dt-tags .dt-tag {

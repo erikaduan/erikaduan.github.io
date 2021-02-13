@@ -87,3 +87,10 @@ d-article a {
   border-bottom: 2px solid #1D818C;
   text-decoration: none;
 }
+
+/* Change the appearance of tags*/
+.posts-list .dt-tags .dt-tag {
+  font-weight      : bold;
+  background-color : #37ACA1;
+  color            : #EAF8F8;
+}
