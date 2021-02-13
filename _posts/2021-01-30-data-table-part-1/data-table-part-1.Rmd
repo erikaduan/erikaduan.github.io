@@ -636,8 +636,6 @@ type(list(pd_courses["student_id"]))
 #> <class 'list'>   
 ```
 
-**Note:** Selecting columns is a computationally expensive operation for R and Python Pandas data frames as data are stored as rows.     
-
 
 ## Benchmark column selection     
 
@@ -787,7 +785,7 @@ pd_courses.drop(columns = ["platform_dwell_length", "platform_start_year","studi
 ```
 
 
-## Benchmark column selection          
+## Benchmark column creation            
 
 ```{r, echo = FALSE, results = 'markup'}
 #-----benchmark dplyr and data.table functions-----  
@@ -915,7 +913,7 @@ When grouping on Pandas DataFrames, remember to reset the data frame index using
 ```
 
 
-## Benchmark column selection    
+## Benchmark simple group by operations      
 
 ```{r, echo = FALSE, results = 'markup'}
 #-----benchmark dplyr and data.table functions-----  
@@ -955,8 +953,8 @@ def groupby_two_cols():
 '''
 
 output_groupby_count = 10 * timeit.timeit(groupby_count, number = 100)       
-output_groupby_nunique = 10 * timeit.timeit(groupby_nunique, setup = setup_apply_lan, number = 100)    
-output_groupby_two_cols = 10 * timeit.timeit(groupby_two_cols, setup = setup_apply_lan, number = 100)    
+output_groupby_nunique = 10 * timeit.timeit(groupby_nunique, number = 100)    
+output_groupby_two_cols = 10 * timeit.timeit(groupby_two_cols, number = 100)    
 ```
 
 ```{r, echo = FALSE, results = 'markup'}
