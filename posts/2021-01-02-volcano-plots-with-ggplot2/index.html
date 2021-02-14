@@ -2151,7 +2151,7 @@ html {
   --aside-size:      12px;
   --fig-cap-size:    13px;
   /*-- Main font colors --*/
-  --title-color:     #000000;
+  --title-color:     #2C8980;
   --header-color:    rgba(0, 0, 0, 0.8);
   --body-color:      rgba(0, 0, 0, 0.8);
   --aside-color:     rgba(0, 0, 0, 0.6);
@@ -2205,7 +2205,22 @@ d-appendix {
 
 /*-- Additional custom styles --*/
 
-/* MAIN PAGE */
+/* MAIN PAGE */  
+
+/* Change front page header */
+.posts-list h1 {
+    font-weight    : 900!important;   
+    font-size      : 42px;
+    text-transform : uppercase;
+    line-height    : 1.1em;
+    margin-top     : 20px;
+  }
+
+/* Change front page post titles*/
+.posts-list .post-preview h2 {
+    font-weight    : 700;
+}
+
 /* Change categories sidebar title appearance */
 .posts-sidebar h3 {
     font-weight    : 900;
@@ -2213,27 +2228,33 @@ d-appendix {
 }
 
 /* Change categories list appearance */
-
 .sidebar-section.categories a:hover {
     font-weight    : 400;
     color          : rgba(0, 0, 0, 0.8);
     border-bottom  : 1px solid #37ACA1;
-}
+} 
 
 /* ARTICLES */  
+
+/* Change link appearance in articles */
+d-article a {
+  border-bottom    : 1.5px solid #37ACA1;
+  text-decoration  : none;
+}
+
+/* Change link hover appearance in articles and table of contents */
+d-article.d-article-with-toc a:hover {
+  border-bottom    : 1px solid #37ACA1;
+  text-decoration  : none;
+}
 
 /* Change article title appearance*/
 d-title h1 {
     font-weight    : 900;
     text-transform : uppercase;
-    font-size      : 36px;
+    font-size      : 32px;
     line-height    : 1.1em;
     margin-top     : 20px;
-}
-
-/* Change article title tagline appearance*/
-d-title {
-    color          : #2C8980;
 }
 
 /* Change article subtitle appearance*/
@@ -2262,26 +2283,7 @@ d-byline .authors-affiliations {
 } 
 
 d-byline .byline h3 {
-    margin-block-start: 0.5em;
-
-/* Change bullet appearances*/
-ul > li::marker {
-  font-size        : 1.125em;
-  color            : #37ACA1;
-}
-
-/* Change link appearance in articles */
-d-article a {
-  border-bottom    : 1.5px solid #37ACA1;
-  text-decoration  : none;
-}
-
-/* Change link hover appearance in articles and table of contents */
-d-article.d-article-with-toc a:hover {
-  border-bottom    : 1px solid #37ACA1;
-  text-decoration  : none;
-}
-</style>
+    margin-block-start: 0.5em;</style>
 <style type="text/css">
 /* base style */
 
@@ -2451,6 +2453,12 @@ d-appendix d-footnote-list a.footnote-backlink {
 <style type="text/css">
 @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro');
 
+/* Change bullet appearances*/
+ul > li::marker {
+  font-size        : 1.125em;
+  color            : #37ACA1;
+}
+
 /* Change the appearance of code chunks */
 d-article div.sourceCode code, 
 d-article pre code {
@@ -2469,20 +2477,6 @@ code {
   font-weight      : 500;
   font-size        : 0.9em;
 }
-
-/* Change front page headers */
-.posts-list h1 {
-    font-weight    : 900;   
-    text-transform : uppercase;
-    font-size      : 36px;
-  }
-
-/* Change the appearance of front page post titles*/
-.posts-list .post-preview h2 {
-    font-weight    : 500;
-}
-
-
 </style>
 <!--/radix_placeholder_site_in_header-->
 
@@ -3056,7 +3050,7 @@ code {
 <!--/radix_placeholder_appendices-->
 <!--radix_placeholder_navigation_after_body-->
 <div class="distill-site-nav distill-site-footer">
-  <p>This blog was built using <a href="https://rstudio.github.io/distill/">Distill</a> for R Markdown</p>
+  <p>This blog was built using <a href="https://rstudio.github.io/distill/">Distill</a> for R Markdown. Blog design inspired by <a href="https://dubbelshot.github.io/handbook/">Helen Arnold</a>.</p>
 </div>
 <!--/radix_placeholder_navigation_after_body-->
 
