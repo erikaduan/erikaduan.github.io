@@ -2189,9 +2189,9 @@ d-appendix {
 /* These properties only apply to Distill sites and blogs  */
 
 .distill-site-header {
-  --title-size:       18px;
+  --title-size:       20px;
   --text-color:       #FFFFFF;
-  --text-size:        15px;
+  --text-size:        18px;
   --hover-color:      #EAF8F8;
   --bkgd-color:       #37ACA1;
 }
@@ -2205,16 +2205,81 @@ d-appendix {
 
 /*-- Additional custom styles --*/
 
-/* Change bullets */
-ul > li::marker {
-  font-size: 1.125em;
-  color: #37ACA1;
+/* MAIN PAGE */
+/* Change categories sidebar title appearance */
+.posts-sidebar h3 {
+    font-weight    : 900;
+    color          : #2C8980;
 }
 
-/* Change link appearance */
+/* Change categories list appearance */
+
+.sidebar-section.categories a:hover {
+    font-weight    : 400;
+    color          : rgba(0, 0, 0, 0.8);
+    border-bottom  : 1px solid #37ACA1;
+}
+
+/* ARTICLES */  
+
+/* Change article title appearance*/
+d-title h1 {
+    font-weight    : 900;
+    text-transform : uppercase;
+    font-size      : 36px;
+    line-height    : 1.1em;
+    margin-top     : 20px;
+}
+
+/* Change article title tagline appearance*/
+d-title {
+    color          : #2C8980;
+}
+
+/* Change article subtitle appearance*/
+d-article h1 {
+    font-weight    : 700;
+    font-size      : 30px;
+}
+
+/* Change article subtitle appeance */
+d-article h2,h3,h4 {
+    font-weight    : 700;
+    font-size      : 26px;
+}
+
+/* Change authors-affiliation into a wide column */ 
+d-byline .byline {
+    grid-template-columns: 100px 1px 100px 100px;
+    grid-column-gap: 0px;
+    margin-top: 0.2em;
+}
+
+d-byline .authors-affiliations {
+    grid-column-end: span 2;
+    grid-template-columns: 100px 1px ;
+    margin-bottom: 0.2em;
+} 
+
+d-byline .byline h3 {
+    margin-block-start: 0.5em;
+
+/* Change bullet appearances*/
+ul > li::marker {
+  font-size        : 1.125em;
+  color            : #37ACA1;
+}
+
+/* Change link appearance in articles */
 d-article a {
-  border-bottom: 2px solid #1D818C;
-  text-decoration: none;
+  border-bottom    : 1.5px solid #37ACA1;
+  text-decoration  : none;
+}
+
+/* Change link hover appearance in articles and table of contents */
+d-article.d-article-with-toc a:hover {
+  border-bottom    : 1px solid #37ACA1;
+  text-decoration  : none;
 }
 </style>
 <style type="text/css">
@@ -2405,25 +2470,6 @@ code {
   font-size        : 0.9em;
 }
 
-/* Change the appearance of blog post title*/
-d-title h1 {
-    font-weight    : 900;
-    text-transform : uppercase ;
-    font-size      : 36px ;
-    line-height    : 1.1em ;
-    margin-top     : 20px ;
-}
-
-/* Change the appearance of blog post article titles*/
-d-article h1 {
-    font-weight    : 500;
-}
-
-/* Change the appearance of blog post article titles*/
-d-article h2 {
-    font-weight    : 500;
-}
-
 /* Change front page headers */
 .posts-list h1 {
     font-weight    : 900;   
@@ -2436,24 +2482,7 @@ d-article h2 {
     font-weight    : 500;
 }
 
-/* Change bullets */
-ul > li::marker {
-    font-size      : 1.125em;
-    color          : #37ACA1;
-}
 
-/* Change link appearance */
-d-article a {
-    border-bottom  : 2px solid #1D818C;
-    text-decoration: none;
-}
-
-/* Change authors-affiliation into a wide column - not working? */
-d-byline .authors-affiliations {
-    grid-column-end: span 2;
-    grid-template-columns: 100px 1px ;
-    margin-bottom: 0.5em;
-}
 </style>
 <!--/radix_placeholder_site_in_header-->
 
