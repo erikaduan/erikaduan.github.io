@@ -1,5 +1,5 @@
 ---
-title: "Introduction to R data.table"
+title: "Introduction to data.table"
 description: |
   To data.table, dplyr or even to Pandas?    
 author: Erika Duan
@@ -79,7 +79,7 @@ Imagine you have a dataset describing how students are engaging with online cour
 + Start dates are recorded when the student starts the first course in a new platform.    
 + End dates are also recorded when the student exits a platform.       
 
-**Note:** The code used to create this survey can be accessed from my github repository [here](https://github.com/erikaduan/R-tips/blob/master/03_blog_posts/2020-04-07_data-table-versus-dplyr/2020-04-07_data-table-versus-dplyr.md).    
+**Note:** The code used to create this dataset can be accessed from my github repository [here](https://github.com/erikaduan/R-tips/blob/master/03_blog_posts/2020-04-07_data-table-versus-dplyr/2020-04-07_data-table-versus-dplyr.md).    
 
 ```{r, echo = FALSE}
 #-----create a function to generate random dates-----  
@@ -172,7 +172,9 @@ platform_subset <- platform_subset %>%
   mutate(platform_start_date = platform_start_date)
 
 #-----create provider_end_date-----
-# create random course lengths  
+# create random course lengths 
+
+set.seed(111)
 platform_length <- runif(nrow(platform_subset),
                          min = 9, max = 60) %>%
   floor(.)
@@ -221,7 +223,7 @@ In R, datasets exist as `data.frame` type objects. To apply `data.table` functio
 This function is flexible as it converts a `data.frame` by reference (i.e. without creating a duplicate `data.table` copy) and assigns both `data.table` and `data.frame` classes to the converted object.    
 
 ```{r}
-#-----converting a data frame into a data table-----  
+#-----convert data frame into data.table-----  
 class(student_courses)
 #> [1] "tbl_df"     "tbl"        "data.frame"
 
@@ -314,7 +316,7 @@ dt # check that dt has been modified in place
 The syntax for filtering data is very similar for `dplyr` and `data.table`. 
 
 ```{r}
-#-----filter student_courses using dplyr-----  
+#-----filter student_courses using dplyr-----    
 student_courses %>%
   filter(online_platform == "A") 
 
@@ -399,16 +401,16 @@ The Python  function `timeit()` runs each expression 1,000,000 times by default 
 
 ```{r, echo = FALSE}
 #-----benchmark dplyr and data.table functions-----  
-mb <- microbenchmark(filter(student_courses, online_platform == "A"),
-                     student_courses[online_platform == "A"],
-                     filter(student_courses, online_platform %in% c("A", "C")),
-                     student_courses[online_platform %chin% c("A", "C")],
-                     filter(student_courses, str_detect(online_course, "^R_")),
-                     student_courses[online_course %like% "R_"]) 
+fmb <- microbenchmark(filter(student_courses, online_platform == "A"),
+                      student_courses[online_platform == "A"],
+                      filter(student_courses, online_platform %in% c("A", "C")),
+                      student_courses[online_platform %chin% c("A", "C")],
+                      filter(student_courses, str_detect(online_course, "^R_")),
+                      student_courses[online_course %like% "R_"]) 
 ```
 
 ```{r, echo = FALSE, results = 'markup'}
-knitr::kable(summary(mb), caption = "Units: milliseconds")    
+knitr::kable(summary(fmb), caption = "Units: milliseconds")    
 ```
 
 ```{python, echo = FALSE}
@@ -506,15 +508,15 @@ We can see that the `order()` method from `data.table` sorts data much faster th
 
 ```{r, echo = FALSE}
 #-----benchmark dplyr and data.table functions-----  
-mb <- microbenchmark(arrange(student_courses, student_id),
-                     student_courses[order(student_id)],
-                     arrange(student_courses, student_id, online_platform, desc(platform_start_date)),  
-                     student_courses[order(student_id, online_platform, -platform_start_date)],
-                     times = 10)
+smb <- microbenchmark(arrange(student_courses, student_id),
+                      student_courses[order(student_id)],
+                      arrange(student_courses, student_id, online_platform, desc(platform_start_date)),  
+                      student_courses[order(student_id, online_platform, -platform_start_date)],
+                      times = 10)
 ```
 
 ```{r, echo = FALSE, results = 'markup'}
-knitr::kable(summary(mb), caption = "Units: milliseconds")    
+knitr::kable(summary(smb), caption = "Units: milliseconds")    
 ```
 
 ```{python, echo = FALSE}
@@ -643,15 +645,15 @@ Interestingly, benchmarking shows that `dplyr` performs slightly faster than `da
 
 ```{r, echo = FALSE, results = 'markup'}
 #-----benchmark dplyr and data.table functions-----  
-mb <- microbenchmark(select(student_courses, c(student_id, online_platform, online_course)),   
-                     student_courses[, .(student_id, online_platform, online_course)],
-                     select(student_courses, contains("date", ignore.case = F)), 
-                     student_courses[, grep("date", names(student_courses), value = T), with = F],
-                     times = 100)  
+slmb <- microbenchmark(select(student_courses, c(student_id, online_platform, online_course)),   
+                       student_courses[, .(student_id, online_platform, online_course)],
+                       select(student_courses, contains("date", ignore.case = F)), 
+                       student_courses[, grep("date", names(student_courses), value = T), with = F],
+                       times = 100)  
 ```
 
 ```{r, echo = FALSE, results = 'markup'}
-knitr::kable(summary(mb), caption = "Units: milliseconds")    
+knitr::kable(summary(slmb), caption = "Units: milliseconds")    
 ```
 
 ```{python, echo = FALSE, message = FALSE, results = 'markup'}
@@ -789,20 +791,20 @@ pd_courses.drop(columns = ["platform_dwell_length", "platform_start_year","studi
 
 ```{r, echo = FALSE, results = 'markup'}
 #-----benchmark dplyr and data.table functions-----  
-mb <- microbenchmark(mutate(student_courses, platform_dwell_length = platform_end_date - platform_start_date),
-                     student_courses[, "platform_dwell_length" := platform_end_date - platform_start_date], 
-                     dplyr_case_when = mutate(student_courses, studied_programming = case_when(str_detect(online_course, "^R_") ~ "Studied R",
-                                                                                               str_detect(online_course, "^Python_") ~ "Studied Python",
-                                                                                               TRUE ~ "No")),    
-                     data.table_fcase = student_courses[, studied_programming := fcase(
-                       str_detect(online_course, "^R_"), "Studied R",
-                       str_detect(online_course, "^Python_"), "Studied Python",
-                       default = "No")], 
-                     times = 100)  
+ccmb <- microbenchmark(mutate(student_courses, platform_dwell_length = platform_end_date - platform_start_date),
+                       student_courses[, "platform_dwell_length" := platform_end_date - platform_start_date], 
+                       dplyr_case_when = mutate(student_courses, studied_programming = case_when(str_detect(online_course, "^R_") ~ "Studied R",
+                                                                                                 str_detect(online_course, "^Python_") ~ "Studied Python",
+                                                                                                 TRUE ~ "No")),    
+                       data.table_fcase = student_courses[, studied_programming := fcase(
+                         str_detect(online_course, "^R_"), "Studied R",
+                         str_detect(online_course, "^Python_"), "Studied Python",
+                         default = "No")], 
+                       times = 100)  
 ```
 
 ```{r, echo = FALSE, results = 'markup'}
-knitr::kable(summary(mb), caption = "Units: milliseconds")    
+knitr::kable(summary(ccmb), caption = "Units: milliseconds")    
 ```
 
 ```{python, echo = FALSE, message = FALSE, results = 'markup'}
@@ -880,6 +882,12 @@ student_courses[,
                 .(total_distinct_courses = length(unique(online_course))),
                 by = student_id]   
 
+# uniqueN(x) is a function equivalent to length((unique(x)) available in data.table
+
+student_courses[,
+                .(total_distinct_courses = uniqueN(online_course)),
+                by = student_id]   
+
 #----find the first course studied per student and platform in data.table-----
 student_courses[,
                 .SD[1L],
@@ -917,16 +925,17 @@ When grouping on Pandas DataFrames, remember to reset the data frame index using
 
 ```{r, echo = FALSE, results = 'markup'}
 #-----benchmark dplyr and data.table functions-----  
-mb <- microbenchmark(student_courses %>% group_by(student_id) %>% summarise(total_courses = n()),                                               student_courses[, .(total_courses = .N), by = student_id], 
-                     student_courses %>% group_by(student_id) %>% summarise(total_distinct_courses = n_distinct(online_course)),
-                     student_courses[, .(total_distinct_courses = length(unique(online_course))), by = student_id],  
-                     student_courses %>% group_by(student_id, online_platform) %>% filter(row_number() == 1L),  
-                     student_courses[, .SD[1L], by = .(student_id, online_platform)],   
-                     times = 10)  
+gbmb <- microbenchmark(student_courses %>% group_by(student_id) %>% summarise(total_courses = n()),                                                         student_courses[, .(total_courses = .N), by = student_id],    
+                       student_courses %>% group_by(student_id) %>% summarise(total_distinct_courses = n_distinct(online_course)),
+                       student_courses[, .(total_distinct_courses = length(unique(online_course))), by = student_id],    
+                       student_courses[, .(total_distinct_courses = uniqueN(online_course)), by = student_id],      
+                       student_courses %>% group_by(student_id, online_platform) %>% filter(row_number() == 1L),  
+                       student_courses[, .SD[1L], by = .(student_id, online_platform)],   
+                       times = 10)  
 ```
 
 ```{r, echo = FALSE, results = 'markup'}
-knitr::kable(summary(mb), caption = "Units: milliseconds")    
+knitr::kable(summary(gbmb), caption = "Units: milliseconds")    
 ```
 
 ```{python, echo = FALSE, message = FALSE, results = 'markup'}

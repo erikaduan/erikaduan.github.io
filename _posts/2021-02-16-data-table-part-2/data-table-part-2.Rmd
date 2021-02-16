@@ -1,0 +1,258 @@
+---
+title: "Advanced data.table operations"  
+description: |
+  Things get querysome and querysome.         
+author: Erika Duan
+date: 02-16-2021
+preview: finalplot.png 
+categories: 
+  - data cleaning  
+  - data.table  
+  - dplyr
+  - Pandas
+  - R  
+  - Python  
+output:
+  distill::distill_article: 
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, results = 'hide') 
+knitr::knit_engines$set(python = reticulate::eng_python)  
+options(scipen=999)
+```
+
+
+# Introduction    
+
+This post is a continuation of [my previous comparison](https://erikaduan.github.io/posts/2021-01-30-data-table-part-1/) of R `data.table` versus `dplyr` versus Python `Pandas` operations.    
+
+**Note:** The code used to create this dataset can be accessed from my github repository [here](https://github.com/erikaduan/R-tips/blob/master/03_blog_posts/2020-04-07_data-table-versus-dplyr/2020-04-07_data-table-versus-dplyr.md).    
+
+```{r, message = FALSE, warning = FALSE}
+#-----load required packages-----  
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(here,
+               ids, # generate random ids
+               tidyverse,
+               data.table,
+               lubridate, 
+               lobstr, # trace objects in memory  
+               microbenchmark,
+               reticulate)
+
+#-----set up the Python reticulate engine-----  
+conda_list() # list available conda environments
+use_condaenv("r-reticulate")
+```
+
+```{r, echo = FALSE}
+#-----set plugin to knit Python code chunks-----
+py_run_string("import os as os")
+py_run_string("os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = 'C:/Users/user/Anaconda3/envs/r-reticulate/Library/plugins/platforms'")  
+```
+
+```{r, echo = FALSE}
+#-----create a function to generate random dates-----  
+create_start_dates <- function(start_date, end_date, n) {
+  if(!is.character(start_date) | !is.character(end_date)) {
+    stop("Error: start_date and end_date should be written in the format YYYY-mm-dd")
+  }
+  
+  start_date <- as.Date(start_date, format = "%Y-%m-%d")
+  end_date <- as.Date(end_date, format = "%Y-%m-%d")  
+  
+  if(end_date < start_date) {
+    stop("Error: start_date should be earlier than end_date")
+  }
+  
+  set.seed(111)
+  new_date <- sample(seq(start_date, end_date, by = "day"),
+                     n,
+                     replace = T)
+  return(new_date)
+}  
+```
+
+We will be using the same dataset describing how students are engaging with online courses:     
+
++ Each student has a unique ID.  
++ There are 5 different online platforms (labelled platforms A, B, C, D and E).   
++ Students have the option of taking different courses within the same platform or switching to a different platform.     
++ Start dates are recorded when the student starts the first course in a new platform.     
++ End dates are also recorded when the student exits a platform.     
+
+```{r, echo = FALSE}
+#-----create a test dataset of 500000 course enrollments-----
+# create 80000 unique student_ids and sample with replacement 500000 times  
+
+set.seed(111)
+students <- random_id(n = 150000, bytes = 4,
+                      use_openssl = F) # so set.seed() works  
+
+student_id <- sample(students, 500000,
+                     replace = T) %>%
+  sort()
+
+#-----simulate 5 platforms with different market shares----- 
+online_platform <- sample(LETTERS[1:5], 500000,
+                          replace = T,
+                          prob = c(0.35, 0.05, 0.1, 0.3, 0.2)) 
+
+#-----create 20 unique course_names-----
+courses <- c("R_beginner",
+             "R_intermediate",
+             "R_advanced",
+             "Python_beginner",
+             "Python_intermediate",
+             "Python_advanced",
+             "machine_learning",
+             "linear_algebra",
+             "statistics",
+             "UX_design",
+             "website_design",
+             "data_mining",
+             "travel_writing",
+             "bread_baking",
+             "pottery",
+             "poetry_writing",
+             "contemporary_dance",
+             "carpentry",
+             "metal_welding",
+             "fitness_training")  
+
+online_course <- sample(courses, 500000,
+                        replace = T)  
+
+student_courses <- tibble(index = seq(1, 500000, 1), # create an index to join by
+                          student_id,
+                          online_platform,
+                          online_course)
+
+#-----create platform_start_date-----  
+platform_subset <- student_courses %>%
+  select(index, 
+         student_id,
+         online_platform) %>% 
+  mutate(unique_group = str_c(student_id, online_platform, sep = "-")) %>%
+  group_by(student_id) %>%
+  mutate(previous_unique_group = lag(unique_group, 1)) %>%
+  ungroup()
+
+# filter to keep rows representing the first time a student commences on a new platform      
+
+platform_subset <- platform_subset %>%
+  filter(is.na(previous_unique_group) | previous_unique_group != unique_group)
+
+platform_start_date <- create_start_dates(start_date = "2016-01-01", end_date = "2019-01-01",  
+                                          n = nrow(platform_subset))
+
+platform_subset <- platform_subset %>%
+  mutate(platform_start_date = platform_start_date)
+
+#-----create provider_end_date-----
+# create random course lengths 
+
+set.seed(111)
+platform_length <- runif(nrow(platform_subset),
+                         min = 9, max = 60) %>%
+  floor(.)
+
+platform_subset <- platform_subset %>%
+  mutate(platform_end_date = platform_start_date + platform_length)
+
+#-----left join online_course to provider_subset by index-----
+platform_subset <- platform_subset %>%
+  select(index,
+         platform_start_date,
+         platform_end_date)     
+
+student_courses <- left_join(student_courses,
+                             platform_subset,
+                             by = "index")
+
+student_courses <- student_courses %>%
+  fill(c(platform_start_date, platform_end_date), 
+       .direction = "up")  
+
+student_courses <- student_courses %>%
+  select(-index)   
+
+#TODO create course start date and course end date 
+# course start date is a random number between platform start and end date for subsequent courses on same platform
+```
+
+```{r, echo = FALSE}
+#-----remove all objects except student_courses-----  
+rm(list = setdiff(ls(), "student_courses"))
+gc()
+```
+
+```{r, results = 'markup'}
+#-----convert data frame to data.table-----  
+setDT(student_courses)
+
+#-----examine the first few rows of data-----  
+student_courses %>%
+  head(6) 
+```
+
+
+# Operation sequence   
+
+
+## Using `dplyr` versus `data.table`    
+
+Imagine you would like to subset all fitness training courses from platform C and E and create a column to denote that these were discounted courses. In `dplyr`, you can write this as sequence of steps by separating each operation type using the `%>%` pipe.   
+
+```{r, results = 'markup'}
+#-----filter and append a column using dplyr-----    
+query_1 <- student_courses %>%
+  filter(online_course == "fitness_training",
+         online_platform %in% c("C", "E")) %>%
+  mutate(percentage_discount = if_else(online_platform == "C", 5, 10))
+
+#-----preview the first 5 rows-----      
+query_1 %>% 
+  head(5) 
+```
+
+In `data.table`, placing the filtering and column transformation steps in separate or the same step produces different results.   
+
+```{r, results = 'markup'}
+#-----filter and append a column using data.table-----  
+# remember to keep data filtering and column transformation steps separate  
+dt_query_1 <- student_courses[online_course == "fitness_training" & online_platform %chin% c("C", "E")] %>%
+  .[, percentage_discount := 5]   
+
+dt_query_1[1:5]
+
+# if steps are combined, all rows are retained 
+# the transformation is applied based on the filter criteria   
+dt_query_wrong <- student_courses[online_course == "fitness_training" & online_platform %chin% c("C", "E"), 
+                                 percentage_discount := 5]
+
+dt_query_wrong[1:5]
+```
+
+
+## Using `Pandas`   
+
+In `Pandas`, chaining is currently limited to `.method()` operations, so we need to write separate lines of code to extract our dataset of interest.          
+
+```{python, eval = FALSE}
+import pandas as pd    
+pd_courses = r.student_courses  
+
+#-----filter and append a column using Pandas-----
+pd_query_1 = pd_courses.copy()
+
+pd_query_1 = pd_query_1[pd_query_1["online_course"] == "fitness_training"]
+pd_query_1 = pd_query_1[pd_query_1["online_platform"].isin(["C", "E"])]
+
+pd_query_1.head(5)
+```
+
+# Other resources      
+

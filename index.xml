@@ -7,9 +7,24 @@
     <description>A blog featuring R, Python and general data science tips.   
 </description>
     <generator>Distill</generator>
-    <lastBuildDate>Sat, 30 Jan 2021 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 16 Feb 2021 00:00:00 +0000</lastBuildDate>
     <item>
-      <title>Introduction to R data.table</title>
+      <title>Advanced data.table operations</title>
+      <dc:creator>Erika Duan</dc:creator>
+      <link>https://erikaduan.github.io/posts/2021-02-16-data-table-part-2</link>
+      <description>Things get querysome and querysome.</description>
+      <category>data cleaning</category>
+      <category>data.table</category>
+      <category>dplyr</category>
+      <category>Pandas</category>
+      <category>R</category>
+      <category>Python</category>
+      <guid>https://erikaduan.github.io/posts/2021-02-16-data-table-part-2</guid>
+      <pubDate>Tue, 16 Feb 2021 00:00:00 +0000</pubDate>
+      <media:content url="https://erikaduan.github.io/posts/2021-02-16-data-table-part-2/finalplot.png" medium="image" type="image/png" width="2216" height="1419"/>
+    </item>
+    <item>
+      <title>Introduction to data.table</title>
       <dc:creator>Erika Duan</dc:creator>
       <link>https://erikaduan.github.io/posts/2021-01-30-data-table-part-1</link>
       <description>To data.table, dplyr or even to Pandas?</description>
@@ -21,7 +36,7 @@
       <category>Python</category>
       <guid>https://erikaduan.github.io/posts/2021-01-30-data-table-part-1</guid>
       <pubDate>Sat, 30 Jan 2021 00:00:00 +0000</pubDate>
-      <media:content url="https://erikaduan.github.io/posts/2021-01-30-data-table-part-1/finalplot.png" medium="image" type="image/png" width="1125" height="726"/>
+      <media:content url="https://erikaduan.github.io/posts/2021-01-30-data-table-part-1/finalplot.png" medium="image" type="image/png" width="2205" height="1418"/>
     </item>
     <item>
       <title>Volcano plots with ggplot2</title>
