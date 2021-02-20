@@ -1491,7 +1491,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <h3>Contents</h3>
 <ul>
 <li><a href="#introduction">Introduction</a></li>
-<li><a href="#operation-sequence">Operation sequence</a>
+<li><a href="#basic-operation-sequence">Basic operation sequence</a>
 <ul>
 <li><a href="#using-dplyr-versus-data.table">Using <code>dplyr</code> versus <code>data.table</code></a></li>
 <li><a href="#using-pandas">Using <code>Pandas</code></a></li>
@@ -1511,8 +1511,6 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
                <span class="va">ids</span>, <span class="co"># generate random ids</span>
                <span class="va">tidyverse</span>,
                <span class="va">data.table</span>,
-               <span class="va">lubridate</span>, 
-               <span class="va">lobstr</span>, <span class="co"># trace objects in memory  </span>
                <span class="va">microbenchmark</span>,
                <span class="va">reticulate</span><span class="op">)</span>
 
@@ -1548,119 +1546,127 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 </div>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre class="sourceCode r"><code class="sourceCode r"><span class="co">#-----convert data frame to data.table-----  </span>
-<span class="fu">setDT</span><span class="op">(</span><span class="va">student_courses</span><span class="op">)</span>
-
-<span class="co">#-----examine the first few rows of data-----  </span>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co">#-----examine the first few rows of data-----  </span>
 <span class="va">student_courses</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fl">6</span><span class="op">)</span> 
+  <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fl">6</span><span class="op">)</span>   
 </code></pre>
 </div>
-<pre><code>   student_id online_platform    online_course platform_start_date
-1:   00007f23               E fitness_training          2017-05-21
-2:   00007f23               A        UX_design          2018-09-05
-3:   00007f23               E   website_design          2016-06-23
-4:   00007f23               C     bread_baking          2018-03-03
-5:   00007f23               A    metal_welding          2017-11-29
-6:   00007f23               D    metal_welding          2016-03-09
-   platform_end_date
-1:        2017-06-29
-2:        2018-10-21
-3:        2016-07-20
-4:        2018-04-07
-5:        2017-12-27
-6:        2016-04-08</code></pre>
+<pre><code># A tibble: 6 x 5
+  student_id online_platform online_course platform_start_~
+  &lt;chr&gt;      &lt;chr&gt;           &lt;chr&gt;         &lt;date&gt;          
+1 00007f23   E               fitness_trai~ 2017-05-21      
+2 00007f23   A               UX_design     2018-09-05      
+3 00007f23   E               website_desi~ 2016-06-23      
+4 00007f23   C               bread_baking  2018-03-03      
+5 00007f23   A               metal_welding 2017-11-29      
+6 00007f23   D               metal_welding 2016-03-09      
+# ... with 1 more variable: platform_end_date &lt;date&gt;</code></pre>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co">#-----convert data frame to data.table-----  </span>
+<span class="fu">setDT</span><span class="op">(</span><span class="va">student_courses</span><span class="op">)</span>
+</code></pre>
 </div>
-<h1 id="operation-sequence">Operation sequence</h1>
+</div>
+<h1 id="basic-operation-sequence">Basic operation sequence</h1>
 <h2 id="using-dplyr-versus-data.table">Using <code>dplyr</code> versus <code>data.table</code></h2>
-<p>Imagine you would like to subset all fitness training courses from platform C and E and create a column to denote that these were discounted courses. In <code>dplyr</code>, you can write this as sequence of steps by separating each operation type using the <code>%&gt;%</code> pipe.</p>
+<p>Imagine you would like to subset all fitness training courses from platform C and E and create a column to denote that these were discounted courses. In <code>dplyr</code>, you can write this as sequence of steps and use the <code>%&gt;%</code> pipe as a shorthand to separate each separate operation.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co">#-----filter and append a column using dplyr-----    </span>
-<span class="va">query_1</span> <span class="op">&lt;-</span> <span class="va">student_courses</span> <span class="op">%&gt;%</span>
+<span class="va">dply_query_1</span> <span class="op">&lt;-</span> <span class="va">student_courses</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">online_course</span> <span class="op">==</span> <span class="st">&quot;fitness_training&quot;</span>,
          <span class="va">online_platform</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;C&quot;</span>, <span class="st">&quot;E&quot;</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">mutate</span><span class="op">(</span>percentage_discount <span class="op">=</span> <span class="fu">if_else</span><span class="op">(</span><span class="va">online_platform</span> <span class="op">==</span> <span class="st">&quot;C&quot;</span>, <span class="fl">5</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span>
+  <span class="fu">mutate</span><span class="op">(</span>percentage_discount <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>
 
-<span class="co">#-----preview the first 5 rows-----      </span>
-<span class="va">query_1</span> <span class="op">%&gt;%</span> 
-  <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span> 
+<span class="co">#-----preview the first 4 rows-----      </span>
+<span class="va">dply_query_1</span> <span class="op">%&gt;%</span> 
+  <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="fu">contains</span><span class="op">(</span><span class="st">&quot;platform_&quot;</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span> 
+  <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span> 
 </code></pre>
 </div>
-<pre><code>   student_id online_platform    online_course platform_start_date
-1:   00007f23               E fitness_training          2017-05-21
-2:   0007ca33               E fitness_training          2018-09-14
-3:   000899ab               E fitness_training          2016-04-04
-4:   0011ed00               C fitness_training          2018-07-11
-5:   002c3541               E fitness_training          2016-05-13
-   platform_end_date percentage_discount
-1:        2017-06-29                  10
-2:        2018-11-03                  10
-3:        2016-04-26                  10
-4:        2018-09-03                   5
-5:        2016-05-22                  10</code></pre>
+<pre><code>   student_id online_platform    online_course percentage_discount
+1:   00007f23               E fitness_training                   5
+2:   0007ca33               E fitness_training                   5
+3:   000899ab               E fitness_training                   5
+4:   0011ed00               C fitness_training                   5</code></pre>
 </div>
-<p>In <code>data.table</code>, placing the filtering and column transformation steps in separate or the same step produces different results.</p>
+<p>In <code>data.table</code>, placing the filter and column transformation operations in separate or a single step produces different outputs. <a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co">#-----filter and append a column using data.table-----  </span>
-<span class="co"># remember to keep data filtering and column transformation steps separate  </span>
-<span class="va">dt_query_1</span> <span class="op">&lt;-</span> <span class="va">student_courses</span><span class="op">[</span><span class="va">online_course</span> <span class="op">==</span> <span class="st">&quot;fitness_training&quot;</span> <span class="op">&amp;</span> <span class="va">online_platform</span> <span class="op">%chin%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;C&quot;</span>, <span class="st">&quot;E&quot;</span><span class="op">)</span><span class="op">]</span> <span class="op">%&gt;%</span>
+<span class="co"># keep filter and column transformation steps separate  </span>
+<span class="va">dt_query_1</span> <span class="op">&lt;-</span> <span class="va">student_courses</span><span class="op">[</span><span class="op">(</span><span class="va">online_course</span> <span class="op">==</span> <span class="st">&quot;fitness_training&quot;</span><span class="op">)</span> 
+                              <span class="op">&amp;</span> <span class="op">(</span><span class="va">online_platform</span> <span class="op">%chin%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;C&quot;</span>, <span class="st">&quot;E&quot;</span><span class="op">)</span><span class="op">)</span><span class="op">]</span> <span class="op">%&gt;%</span>
   <span class="va">.</span><span class="op">[</span>, <span class="va">percentage_discount</span> <span class="op">:=</span> <span class="fl">5</span><span class="op">]</span>   
 
-<span class="va">dt_query_1</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span>
-</code></pre>
-</div>
-<pre><code>   student_id online_platform    online_course platform_start_date
-1:   00007f23               E fitness_training          2017-05-21
-2:   0007ca33               E fitness_training          2018-09-14
-3:   000899ab               E fitness_training          2016-04-04
-4:   0011ed00               C fitness_training          2018-07-11
-5:   002c3541               E fitness_training          2016-05-13
-   platform_end_date percentage_discount
-1:        2017-06-29                   5
-2:        2018-11-03                   5
-3:        2016-04-26                   5
-4:        2018-09-03                   5
-5:        2016-05-22                   5</code></pre>
-<div class="sourceCode">
-<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># if steps are combined, all rows are retained </span>
-<span class="co"># the transformation is applied based on the filter criteria   </span>
-<span class="va">dt_query_wrong</span> <span class="op">&lt;-</span> <span class="va">student_courses</span><span class="op">[</span><span class="va">online_course</span> <span class="op">==</span> <span class="st">&quot;fitness_training&quot;</span> <span class="op">&amp;</span> <span class="va">online_platform</span> <span class="op">%chin%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;C&quot;</span>, <span class="st">&quot;E&quot;</span><span class="op">)</span>, 
-                                 <span class="va">percentage_discount</span> <span class="op">:=</span> <span class="fl">5</span><span class="op">]</span>
+<span class="co">#-----preview the first 4 rows-----  </span>
+<span class="co"># subset columns which begin with &quot;platform_&quot;</span>
+<span class="va">date_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">grep</a></span><span class="op">(</span><span class="st">&quot;^platform_&quot;</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">student_courses</span><span class="op">)</span>, value <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>
 
-<span class="va">dt_query_wrong</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span>
+<span class="va">dt_query_1</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, <span class="op">!</span><span class="va">..date_cols</span><span class="op">]</span>
 </code></pre>
 </div>
-<pre><code>   student_id online_platform    online_course platform_start_date
-1:   00007f23               E fitness_training          2017-05-21
-2:   00007f23               A        UX_design          2018-09-05
-3:   00007f23               E   website_design          2016-06-23
-4:   00007f23               C     bread_baking          2018-03-03
-5:   00007f23               A    metal_welding          2017-11-29
-   platform_end_date percentage_discount
-1:        2017-06-29                   5
-2:        2018-10-21                  NA
-3:        2016-07-20                  NA
-4:        2018-04-07                  NA
-5:        2017-12-27                  NA</code></pre>
+<pre><code>   student_id online_platform    online_course percentage_discount
+1:   00007f23               E fitness_training                   5
+2:   0007ca33               E fitness_training                   5
+3:   000899ab               E fitness_training                   5
+4:   0011ed00               C fitness_training                   5</code></pre>
+</div>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co">#-----the wrong way to filter and append a column using data.table-----  </span>
+<span class="co"># all rows are retained and only rows which meet the selection criteria are transformed </span>
+<span class="co"># student_courses is also modified in reference </span>
+<span class="va">dt_query_1_wrong</span> <span class="op">&lt;-</span> <span class="va">student_courses</span><span class="op">[</span><span class="op">(</span><span class="va">online_course</span> <span class="op">==</span> <span class="st">&quot;fitness_training&quot;</span><span class="op">)</span> 
+                                    <span class="op">&amp;</span> <span class="op">(</span><span class="va">online_platform</span> <span class="op">%chin%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;C&quot;</span>, <span class="st">&quot;E&quot;</span><span class="op">)</span><span class="op">)</span>, 
+                                    <span class="va">percentage_discount</span> <span class="op">:=</span> <span class="fl">5</span><span class="op">]</span>
+
+<span class="co">#-----preview the first 4 rows-----  </span>
+<span class="va">dt_query_1_wrong</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span>, <span class="op">!</span><span class="va">..date_cols</span><span class="op">]</span>  
+</code></pre>
+</div>
+</div>
+<div class="layout-chunk" data-layout="l-body">
+
 </div>
 <h2 id="using-pandas">Using <code>Pandas</code></h2>
 <p>In <code>Pandas</code>, chaining is currently limited to <code>.method()</code> operations, so we need to write separate lines of code to extract our dataset of interest.</p>
 <div class="layout-chunk" data-layout="l-body">
-<div class="sourceCode" id="cb5"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd    </span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>pd_courses <span class="op">=</span> r.student_courses  </span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">#-----filter and append a column using Pandas-----</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>pd_query_1 <span class="op">=</span> pd_courses.copy()</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>pd_query_1 <span class="op">=</span> pd_query_1[pd_query_1[<span class="st">&quot;online_course&quot;</span>] <span class="op">==</span> <span class="st">&quot;fitness_training&quot;</span>]</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>pd_query_1 <span class="op">=</span> pd_query_1[pd_query_1[<span class="st">&quot;online_platform&quot;</span>].isin([<span class="st">&quot;C&quot;</span>, <span class="st">&quot;E&quot;</span>])]</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>pd_query_1.head(<span class="dv">5</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd    </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>pd_courses <span class="op">=</span> r.student_courses  </span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#-----filter and append a column using Pandas-----</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>pd_query_1 <span class="op">=</span> (pd_courses.loc[(pd_courses[<span class="st">&quot;online_course&quot;</span>] <span class="op">==</span> <span class="st">&quot;fitness_training&quot;</span>) <span class="op">&amp;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                             (pd_courses[<span class="st">&quot;online_platform&quot;</span>].isin([<span class="st">&quot;C&quot;</span>, <span class="st">&quot;E&quot;</span>]))]</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>              .copy())</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>pd_query_1[<span class="st">&quot;percentage_discount&quot;</span>] <span class="op">=</span> <span class="dv">5</span></span></code></pre></div>
+</div>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode" id="cb5"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#-----preview the first 4 rows-----  </span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># subset columns which begin with &quot;platform_&quot;  </span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>date_cols <span class="op">=</span> pd_query_1.columns[pd_query_1.columns.<span class="bu">str</span>.contains(<span class="st">&quot;platform_&quot;</span>)]</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>(pd_query_1.drop(columns <span class="op">=</span> date_cols)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a> .head(<span class="dv">4</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a> .reset_index(drop <span class="op">=</span> <span class="va">True</span>))</span></code></pre></div>
+<pre><code>  student_id online_platform     online_course  percentage_discount
+0   00007f23               E  fitness_training                    5
+1   0007ca33               E  fitness_training                    5
+2   000899ab               E  fitness_training                    5
+3   0011ed00               C  fitness_training                    5</code></pre>
 </div>
 <h1 id="other-resources">Other resources</h1>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
+<ul>
+<li>The data analysis and visualisation in Python for ecologists Software Carpentry workshop on <a href="https://datacarpentry.org/python-ecology-lesson/03-index-slice-subset/index.html">indexing, slicing and subsetting DataFrames in Python</a>.<br />
+</li>
+</ul>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
+<section class="footnotes" role="doc-endnotes">
+<hr />
+<ol>
+<li id="fn1" role="doc-endnote"><p>Placing the two operations in separate steps is equivalent to the <code>dplyr</code> approach above.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
 </div>

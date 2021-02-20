@@ -37,8 +37,6 @@ pacman::p_load(here,
                ids, # generate random ids
                tidyverse,
                data.table,
-               lubridate, 
-               lobstr, # trace objects in memory  
                microbenchmark,
                reticulate)
 
@@ -57,7 +55,7 @@ py_run_string("os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = 'C:/Users/user/Anacon
 #-----create a function to generate random dates-----  
 create_start_dates <- function(start_date, end_date, n) {
   if(!is.character(start_date) | !is.character(end_date)) {
-    stop("Error: start_date and end_date should be written in the format YYYY-mm-dd")
+    stop("Error: start_date and end_date should be written as a string in the format of YYYY-mm-dd")
   }
   
   start_date <- as.Date(start_date, format = "%Y-%m-%d")
@@ -190,50 +188,66 @@ gc()
 ```
 
 ```{r, results = 'markup'}
-#-----convert data frame to data.table-----  
-setDT(student_courses)
-
 #-----examine the first few rows of data-----  
 student_courses %>%
-  head(6) 
+  head(6)   
+
+#-----convert data frame to data.table-----  
+setDT(student_courses)
 ```
 
 
-# Operation sequence   
+# Basic operation sequence   
 
 
 ## Using `dplyr` versus `data.table`    
 
-Imagine you would like to subset all fitness training courses from platform C and E and create a column to denote that these were discounted courses. In `dplyr`, you can write this as sequence of steps by separating each operation type using the `%>%` pipe.   
+Imagine you would like to subset all fitness training courses from platform C and E and create a column to denote that these were discounted courses. In `dplyr`, you can write this as sequence of steps and use the `%>%` pipe as a shorthand to separate each separate operation.       
 
 ```{r, results = 'markup'}
 #-----filter and append a column using dplyr-----    
-query_1 <- student_courses %>%
+dply_query_1 <- student_courses %>%
   filter(online_course == "fitness_training",
          online_platform %in% c("C", "E")) %>%
-  mutate(percentage_discount = if_else(online_platform == "C", 5, 10))
+  mutate(percentage_discount = 5)
 
-#-----preview the first 5 rows-----      
-query_1 %>% 
-  head(5) 
+#-----preview the first 4 rows-----      
+dply_query_1 %>% 
+  select(-contains("platform_")) %>% 
+  head(4) 
 ```
 
-In `data.table`, placing the filtering and column transformation steps in separate or the same step produces different results.   
+In `data.table`, placing the filter and column transformation operations in separate or a single step produces different outputs. ^[Placing the two operations in separate steps is equivalent to the `dplyr` approach above.]    
 
 ```{r, results = 'markup'}
 #-----filter and append a column using data.table-----  
-# remember to keep data filtering and column transformation steps separate  
-dt_query_1 <- student_courses[online_course == "fitness_training" & online_platform %chin% c("C", "E")] %>%
+# keep filter and column transformation steps separate  
+dt_query_1 <- student_courses[(online_course == "fitness_training") 
+                              & (online_platform %chin% c("C", "E"))] %>%
   .[, percentage_discount := 5]   
 
-dt_query_1[1:5]
+#-----preview the first 4 rows-----  
+# subset columns which begin with "platform_"
+date_cols <- grep("^platform_", colnames(student_courses), value = T)
 
-# if steps are combined, all rows are retained 
-# the transformation is applied based on the filter criteria   
-dt_query_wrong <- student_courses[online_course == "fitness_training" & online_platform %chin% c("C", "E"), 
-                                 percentage_discount := 5]
+dt_query_1[1:4, !..date_cols]
+```
 
-dt_query_wrong[1:5]
+```{r}
+#-----the wrong way to filter and append a column using data.table-----  
+# all rows are retained and only rows which meet the selection criteria are transformed 
+# student_courses is also modified in reference 
+dt_query_1_wrong <- student_courses[(online_course == "fitness_training") 
+                                    & (online_platform %chin% c("C", "E")), 
+                                    percentage_discount := 5]
+
+#-----preview the first 4 rows-----  
+dt_query_1_wrong[1:4, !..date_cols]  
+```
+
+```{r, echo = FALSE}
+#-----remove percentage_discount for downstream analyses-----  
+student_courses[, percentage_discount := NULL]
 ```
 
 
@@ -241,18 +255,28 @@ dt_query_wrong[1:5]
 
 In `Pandas`, chaining is currently limited to `.method()` operations, so we need to write separate lines of code to extract our dataset of interest.          
 
-```{python, eval = FALSE}
+```{python}
 import pandas as pd    
 pd_courses = r.student_courses  
 
 #-----filter and append a column using Pandas-----
-pd_query_1 = pd_courses.copy()
-
-pd_query_1 = pd_query_1[pd_query_1["online_course"] == "fitness_training"]
-pd_query_1 = pd_query_1[pd_query_1["online_platform"].isin(["C", "E"])]
-
-pd_query_1.head(5)
+pd_query_1 = (pd_courses.loc[(pd_courses["online_course"] == "fitness_training") &
+                             (pd_courses["online_platform"].isin(["C", "E"]))]
+              .copy())
+pd_query_1["percentage_discount"] = 5
 ```
+
+```{python, results = 'markup'}
+#-----preview the first 4 rows-----  
+# subset columns which begin with "platform_"  
+date_cols = pd_query_1.columns[pd_query_1.columns.str.contains("platform_")]
+
+(pd_query_1.drop(columns = date_cols)
+ .head(4)
+ .reset_index(drop = True))
+```
+
 
 # Other resources      
 
++ The data analysis and visualisation in Python for ecologists Software Carpentry workshop on [indexing, slicing and subsetting DataFrames in Python](https://datacarpentry.org/python-ecology-lesson/03-index-slice-subset/index.html).   

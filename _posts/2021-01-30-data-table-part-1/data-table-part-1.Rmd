@@ -52,7 +52,6 @@ pacman::p_load(here,
                ids, # generate random ids
                tidyverse,
                data.table,
-               lubridate, 
                lobstr, # trace objects in memory  
                microbenchmark,
                reticulate)
@@ -393,23 +392,27 @@ pd_courses[student & date_start & date_end]
 
 ## Benchmark data filtering   
 
-You can use the R package `microbenchmark` and Python package `timeit` to measure code performance.      
+You can use the R package `microbenchmark` and Python package `timeit` to measure code performance. ^[For accurate benchmarking in R, you need to separately run, save and print `microbenchmark()` outputs rather than directly knitting results.]       
 
 The R function `microbenchmark()` runs each expression 100 times by default with the argument `times = 100L`. It outputs summary statistics for how long it takes to evaluate a single expression.  
 
 The Python  function `timeit()` runs each expression 1,000,000 times by default and outputs in seconds the time taken to evaluate everything. We will change the latter number to 100 times with the argument `number = 100` to match our R `microbenchmark()` input.         
 
-```{r, echo = FALSE}
-#-----benchmark dplyr and data.table functions-----  
-fmb <- microbenchmark(filter(student_courses, online_platform == "A"),
-                      student_courses[online_platform == "A"],
-                      filter(student_courses, online_platform %in% c("A", "C")),
-                      student_courses[online_platform %chin% c("A", "C")],
-                      filter(student_courses, str_detect(online_course, "^R_")),
-                      student_courses[online_course %like% "R_"]) 
-```
-
 ```{r, echo = FALSE, results = 'markup'}
+#-----benchmark dplyr and data.table functions-----  
+if (!file.exists(here("data", "data-table-benchmarks", "fmb.rds"))) {
+  
+  fmb <- microbenchmark(filter(student_courses, online_platform == "A"),
+                        student_courses[online_platform == "A"],
+                        filter(student_courses, online_platform %in% c("A", "C")),
+                        student_courses[online_platform %chin% c("A", "C")],
+                        filter(student_courses, str_detect(online_course, "^R_")),
+                        student_courses[online_course %like% "R_"]) 
+  
+  saveRDS(fmb, here("data", "data-table-benchmarks", "fmb.rds"))
+}
+
+fmb <- readRDS(here("data", "data-table-benchmarks", "fmb.rds"))
 knitr::kable(summary(fmb), caption = "Units: milliseconds")    
 ```
 
@@ -506,17 +509,21 @@ pd_courses.sort_values(["student_id", "online_platform", "platform_start_date"],
 
 We can see that the `order()` method from `data.table` sorts data much faster than its equivalent `dplyr` function.        
 
-```{r, echo = FALSE}
-#-----benchmark dplyr and data.table functions-----  
-smb <- microbenchmark(arrange(student_courses, student_id),
-                      student_courses[order(student_id)],
-                      arrange(student_courses, student_id, online_platform, desc(platform_start_date)),  
-                      student_courses[order(student_id, online_platform, -platform_start_date)],
-                      times = 10)
-```
-
 ```{r, echo = FALSE, results = 'markup'}
-knitr::kable(summary(smb), caption = "Units: milliseconds")    
+#-----benchmark dplyr and data.table functions-----  
+if (!file.exists(here("data", "data-table-benchmarks", "smb.rds"))) {
+  
+  smb <- microbenchmark(arrange(student_courses, student_id),
+                        student_courses[order(student_id)],
+                        arrange(student_courses, student_id, online_platform, desc(platform_start_date)),  
+                        student_courses[order(student_id, online_platform, -platform_start_date)],
+                        times = 10)
+  
+  saveRDS(smb, here("data", "data-table-benchmarks", "smb.rds"))
+}
+
+smb <- readRDS(here("data", "data-table-benchmarks", "smb.rds"))
+knitr::kable(summary(smb), caption = "Units: milliseconds")
 ```
 
 ```{python, echo = FALSE}
@@ -645,14 +652,17 @@ Interestingly, benchmarking shows that `dplyr` performs slightly faster than `da
 
 ```{r, echo = FALSE, results = 'markup'}
 #-----benchmark dplyr and data.table functions-----  
-slmb <- microbenchmark(select(student_courses, c(student_id, online_platform, online_course)),   
-                       student_courses[, .(student_id, online_platform, online_course)],
-                       select(student_courses, contains("date", ignore.case = F)), 
-                       student_courses[, grep("date", names(student_courses), value = T), with = F],
-                       times = 100)  
-```
+if (!file.exists(here("data", "data-table-benchmarks", "slmb.rds"))) {
+  
+  slmb <- microbenchmark(select(student_courses, c(student_id, online_platform, online_course)),   
+                         student_courses[, .(student_id, online_platform, online_course)],
+                         select(student_courses, contains("date", ignore.case = F)), 
+                         student_courses[, grep("date", names(student_courses), value = T), with = F],
+                         times = 100)  
+  saveRDS(slmb, here("data", "data-table-benchmarks", "slmb.rds")) 
+} 
 
-```{r, echo = FALSE, results = 'markup'}
+slmb <- readRDS(here("data", "data-table-benchmarks", "slmb.rds"))   
 knitr::kable(summary(slmb), caption = "Units: milliseconds")    
 ```
 
@@ -791,20 +801,26 @@ pd_courses.drop(columns = ["platform_dwell_length", "platform_start_year","studi
 
 ```{r, echo = FALSE, results = 'markup'}
 #-----benchmark dplyr and data.table functions-----  
-ccmb <- microbenchmark(mutate(student_courses, platform_dwell_length = platform_end_date - platform_start_date),
-                       student_courses[, "platform_dwell_length" := platform_end_date - platform_start_date], 
-                       dplyr_case_when = mutate(student_courses, studied_programming = case_when(str_detect(online_course, "^R_") ~ "Studied R",
-                                                                                                 str_detect(online_course, "^Python_") ~ "Studied Python",
-                                                                                                 TRUE ~ "No")),    
-                       data.table_fcase = student_courses[, studied_programming := fcase(
-                         str_detect(online_course, "^R_"), "Studied R",
-                         str_detect(online_course, "^Python_"), "Studied Python",
-                         default = "No")], 
-                       times = 100)  
-```
+if (!file.exists(here("data", "data-table-benchmarks", "ccmb.rds"))) {
+  
+  ccmb <- microbenchmark(mutate(student_courses,
+                                platform_dwell_length = platform_end_date - platform_start_date),
+                         student_courses[, "platform_dwell_length" := platform_end_date - platform_start_date], 
+                         dplyr_case_when = mutate(student_courses,
+                                                  studied_programming = case_when(str_detect(online_course, "^R_") ~ "Studied R",
+                                                                                  str_detect(online_course, "^Python_") ~ "Studied Python",
+                                                                                  TRUE ~ "No")),    
+                         data.table_fcase = student_courses[, studied_programming := fcase(
+                           str_detect(online_course, "^R_"), "Studied R",
+                           str_detect(online_course, "^Python_"), "Studied Python",
+                           default = "No")], 
+                         times = 100)  
+  
+  saveRDS(ccmb, here("data", "data-table-benchmarks", "ccmb.rds"))
+}
 
-```{r, echo = FALSE, results = 'markup'}
-knitr::kable(summary(ccmb), caption = "Units: milliseconds")    
+ccmb <- readRDS(here("data", "data-table-benchmarks", "ccmb.rds"))
+knitr::kable(summary(ccmb), caption = "Units: milliseconds")   
 ```
 
 ```{python, echo = FALSE, message = FALSE, results = 'markup'}
@@ -921,21 +937,27 @@ When grouping on Pandas DataFrames, remember to reset the data frame index using
 ```
 
 
-## Benchmark simple group by operations      
+## Benchmark simple group by operations    
+
+The most obvious observation is that groupings are significantly faster in `data.table` than `dplyr`. What also surprised me is that using the `data.table` `uniqueN(x)` function is much slower than using `length(unique(x))`.    
 
 ```{r, echo = FALSE, results = 'markup'}
 #-----benchmark dplyr and data.table functions-----  
-gbmb <- microbenchmark(student_courses %>% group_by(student_id) %>% summarise(total_courses = n()),                                                         student_courses[, .(total_courses = .N), by = student_id],    
-                       student_courses %>% group_by(student_id) %>% summarise(total_distinct_courses = n_distinct(online_course)),
-                       student_courses[, .(total_distinct_courses = length(unique(online_course))), by = student_id],    
-                       student_courses[, .(total_distinct_courses = uniqueN(online_course)), by = student_id],      
-                       student_courses %>% group_by(student_id, online_platform) %>% filter(row_number() == 1L),  
-                       student_courses[, .SD[1L], by = .(student_id, online_platform)],   
-                       times = 10)  
-```
+if (!file.exists(here("data", "data-table-benchmarks", "gbmb.rds"))) {
+  
+  gbmb <- microbenchmark(student_courses %>% group_by(student_id) %>% summarise(total_courses = n()),                                                         student_courses[, .(total_courses = .N), by = student_id],    
+                         student_courses %>% group_by(student_id) %>% summarise(total_distinct_courses = n_distinct(online_course)),
+                         student_courses[, .(total_distinct_courses = length(unique(online_course))), by = student_id],    
+                         student_courses[, .(total_distinct_courses = uniqueN(online_course)), by = student_id],      
+                         student_courses %>% group_by(student_id, online_platform) %>% filter(row_number() == 1L),  
+                         student_courses[, .SD[1L], by = .(student_id, online_platform)],   
+                         times = 10)  
+  
+  saveRDS(gbmb, here("data", "data-table-benchmarks", "gbmb.rds"))
+}
 
-```{r, echo = FALSE, results = 'markup'}
-knitr::kable(summary(gbmb), caption = "Units: milliseconds")    
+gbmb <- readRDS(here("data", "data-table-benchmarks", "gbmb.rds"))
+knitr::kable(summary(gbmb), caption = "Units: milliseconds") 
 ```
 
 ```{python, echo = FALSE, message = FALSE, results = 'markup'}
