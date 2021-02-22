@@ -202,7 +202,7 @@ setDT(student_courses)
 
 ## Using `dplyr` versus `data.table`    
 
-Imagine you would like to subset all fitness training courses from platform C and E and create a column to denote that these were discounted courses. In `dplyr`, you can write this as sequence of steps and use the `%>%` pipe as a shorthand to separate each separate operation.       
+Imagine you would like to subset all fitness training courses from platform C and E and create a column to denote that these were discounted courses. In `dplyr`, you can write this as a single sequence of steps and use the `%>%` pipe to separate each individual operation.        
 
 ```{r, results = 'markup'}
 #-----filter and append a column using dplyr-----    
@@ -277,6 +277,123 @@ date_cols = pd_query_1.columns[pd_query_1.columns.str.contains("platform_")]
 ```
 
 
+# Group by and summarise data    
+
+A common operation is to group by variable(s) to retrieve summary data from each grouping(s).   
+
+
+## Using `dplyr` versus `data.table`   
+
+Imagine that we are interested in the total number of days that each student spent on any online platform. We might obtain this by grouping on individual student IDs and calculating the total of days spent on any platform.      
+
+```{r}
+#-----calculate platform dwell length using dplyr-----  
+student_courses <- student_courses %>%
+  mutate(platform_dwell_length = platform_end_date - platform_start_date,
+         platform_dwell_length = as.integer(platform_dwell_length))
+
+#-----calculate platform dwell length using data.table-----
+student_courses[, platform_dwell_length := platform_end_date - platform_start_date] %>%
+  .[, platform_dwell_length := as.integer(platform_dwell_length)]  
+```
+
+**Note:** In `dplyr`, we need to close our sequence of operations with the function `ungroup()`, which removes object metadata on row groupings.   
+
+```{r}
+#-----group by student_id and summarise platform dwell length using dplyr-----
+dply_query_2 <- student_courses %>%
+  group_by(student_id) %>%
+  summarise(total_dwell = sum(platform_dwell_length),
+            min_dwell = min(platform_dwell_length),
+            median_dwell = median(platform_dwell_length),  
+            max_dwell = max(platform_dwell_length)) %>%
+  ungroup()   
+
+#-----preview the first 4 rows-----   
+dply_query_2 %>%
+  head(4)
+```
+
+In `data.table`, we can choose which variable(s) to group by using either `by` or `keyby` in the `by` placeholder of `DT[i, j, by]`. The additional effect of using `keyby` is that `keyby` also orders the results and creates a secondary key for faster subsetting.       
+
+```{r}
+#-----group by student_id and summarise total platform dwell length using data.table-----
+dt_query_2 <- student_courses[,
+                              .(total_dwell = sum(platform_dwell_length),
+                                min_dwell = min(platform_dwell_length),
+                                median_dwell = median(platform_dwell_length),
+                                max_dwell = max(platform_dwell_length)),
+                              by = student_id]
+
+#-----preview the first 4 rows-----  
+dt_query_2[1:4]  
+```
+
+The problem with this approach is that some students switch between courses on the same platform so the platform dwell length can be duplicated if we simply group by students IDs. To identify when this scenario occurs, we need to:  
+
++ Concatenate the online platform and platform start date to create a new column.  
++ Identify students where `length(unique(new_col)) > n()`.    
+
+```{r}
+#-----create platform_key using dplyr----- 
+student_courses <- student_courses %>%
+  mutate(platform_key = str_c(online_platform, platform_start_date, sep = "-"))
+
+#-----create platform_key using data.table-----  
+student_courses[,
+                platform_key := do.call(paste0, c(.SD, sep = "-")),
+                .SDcols = c("online_platform", "platform_start_date")]
+```
+
+**Note:** The base R function `do.call()` constructs and executes a function call from a name or a function and a list of arguments to be passed to it.  
+
+```{r}
+#-----identify students with duplicate records in dplyr-----
+dply_query_3 <- student_courses %>%
+  group_by(student_id) %>%
+  summarise(unique_platform_signups = n_distinct(platform_key),
+            total_course_signups = n()) 
+
+#-----return student_ids as vector and preview the first 3 elements-----
+dply_query_3 %>%
+  filter(total_course_signups > unique_platform_signups) %>%
+  pull(student_id) %>%
+  .[1:3]
+
+#-----examine duplicate records example-----
+student_courses %>%
+  select(-c(platform_key)) %>%
+  filter(student_id == "00040980")
+```
+
+```{r}
+#-----identify students with duplicate records in data.table-----  
+dt_query_3 <- student_courses[,
+                              .(unique_platform_signups = length(unique(platform_key)),
+                                total_course_signups = .N),
+                              by = student_id] 
+
+#-----return student_ids as vector and preview the first 3 elements-----
+dt_query_3[total_course_signups > unique_platform_signups, 
+           student_id] %>%
+  .[1:3]
+
+#-----examine duplicate records example-----  
+student_courses[student_id == "00040980",
+                !"platform_key"]  
+```
+
+
+## Using `Pandas`      
+
+
+## Group by and `lead` or `lag` operations   
+
+
 # Other resources      
 
 + The data analysis and visualisation in Python for ecologists Software Carpentry workshop on [indexing, slicing and subsetting DataFrames in Python](https://datacarpentry.org/python-ecology-lesson/03-index-slice-subset/index.html).   
+
++ A great side-by-side comparison of `data.table` versus `dplyr` functions from a [blog post by Atrebas](https://atrebas.github.io/post/2019-03-03-datatable-dplyr/).            
+
++ A list of advanced `data.table` operations and tricks from a [blog post by Andrew Brooks](http://brooksandrew.github.io/simpleblog/articles/advanced-data-table/).   

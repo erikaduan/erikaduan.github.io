@@ -727,15 +727,19 @@ student_courses <- student_courses %>%
 
 Data frame outputs are slightly different in `data.table`:     
 
-+ One or multiple transformations are modified in place using the operator `:=`.      
-+ Use subassignment to only extract the columns transformed inside `j` of `DT[i, j, by]`.      
++ One or multiple transformations are modified in place using the operator `:=`, providing that newly created columns are not concurrently referenced.        
++ Use subassignment to only extract the columns transformed inside `j` of `DT[i, j, by]`.  
+
+**Note:** You can create multiple columns that are modified in place using the `:=` operator. This can be written as either `df[, c("add_1", "add_2") := .(fun(x) x + 1, fun(x) x + 2)]` or `df[, `:=` (add_1 = fun(x) x + 1, add_2 = fun(x) x + 2)]`.       
 
 ```{r}
 #-----create column(s) using data.table-----  
 student_courses[,
-                c("platform_dwell_length",
-                  "platform_start_year") := .(platform_end_date - platform_start_date,  
-                                              as.numeric(str_extract(platform_start_date, "^.{4}(?!//-)")))]    
+                `:=` (platform_dwell_length = platform_end_date - platform_start_date,
+                      platform_start_year = str_extract(platform_start_date, "^.{4}(?!//-)"))] 
+
+student_courses[,
+                platform_start_year := as.numeric(platform_start_year)]  
 
 #-----create a new column by evaluating multiple conditions using data.table-----
 student_courses[,
