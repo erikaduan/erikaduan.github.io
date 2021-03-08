@@ -4,6 +4,7 @@ description: |
   A blog featuring R, Python and general data science tips.   
 output_dir: "."
 base_url: https://erikaduan.github.io/   
+google_analytics: "G-ZHXSZCWTHE"  
 theme: theme.css
 navbar:
   right:
