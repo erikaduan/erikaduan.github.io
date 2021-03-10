@@ -2954,17 +2954,17 @@ code {
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">pd_courses[pd_courses[“online_platform”] == “A”]</td>
-<td style="text-align: right;">0.000063</td>
+<td style="text-align: right;">0.000070</td>
 <td style="text-align: right;">100</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">pd_courses[pd_courses[“online_platform”].isin([“A”, “C”])]</td>
-<td style="text-align: right;">0.000060</td>
+<td style="text-align: right;">0.000070</td>
 <td style="text-align: right;">100</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">pd_courses[pd_courses[“online_course”].str.startswith(“R_”)]</td>
-<td style="text-align: right;">0.000056</td>
+<td style="text-align: right;">0.000066</td>
 <td style="text-align: right;">100</td>
 </tr>
 </tbody>
@@ -3106,7 +3106,7 @@ code {
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">pd_courses.sort_values(“student_id”)</td>
-<td style="text-align: right;">0.000070</td>
+<td style="text-align: right;">0.000073</td>
 <td style="text-align: right;">100</td>
 </tr>
 <tr class="even">
@@ -3116,7 +3116,7 @@ code {
 </tr>
 <tr class="odd">
 <td style="text-align: left;">ascending = [True, True, False])</td>
-<td style="text-align: right;">0.000071</td>
+<td style="text-align: right;">0.000072</td>
 <td style="text-align: right;">100</td>
 </tr>
 </tbody>
@@ -3296,12 +3296,12 @@ code {
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">pd_courses[[“student_id”, “online_platform”, “online_course”]]</td>
-<td style="text-align: right;">0.000124</td>
+<td style="text-align: right;">0.000136</td>
 <td style="text-align: right;">100</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">pd_courses.filter(regex = “date”)</td>
-<td style="text-align: right;">0.000129</td>
+<td style="text-align: right;">0.000085</td>
 <td style="text-align: right;">100</td>
 </tr>
 </tbody>
@@ -3343,7 +3343,7 @@ code {
 </li>
 <li>Use subassignment to only extract the columns transformed inside <code>j</code> of <code>DT[i, j, by]</code>.</li>
 </ul>
-<p><strong>Note:</strong> You can create multiple columns that are modified in place using the <code>:=</code> operator. This can be written as either <code>df[, c(&quot;add_1&quot;, &quot;add_2&quot;) := .(fun(x) x + 1, fun(x) x + 2)]</code> or <code>df[,</code>:=<code>(add_1 = fun(x) x + 1, add_2 = fun(x) x + 2)]</code>.</p>
+<p><strong>Note:</strong> You can modify multiple columns in place using the <code>:=</code> operator as long as each column is created from pre-existing variables.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co">#-----create column(s) using data.table-----  </span>
@@ -3501,12 +3501,12 @@ code {
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">(pd_courses[“platform_end_date”] - pd_courses[“platform_start_date”]).dt.days</td>
-<td style="text-align: right;">0.000070</td>
+<td style="text-align: right;">0.000147</td>
 <td style="text-align: right;">100</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">pd_courses[“online_course”].apply(clean_course_names)</td>
-<td style="text-align: right;">0.000115</td>
+<td style="text-align: right;">0.000143</td>
 <td style="text-align: right;">100</td>
 </tr>
 </tbody>
@@ -3704,17 +3704,17 @@ code {
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">pd_courses.groupby([“student_id”])[“online_course”].agg(“count”)</td>
-<td style="text-align: right;">0.000068</td>
+<td style="text-align: right;">0.000072</td>
 <td style="text-align: right;">100</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">pd_courses.groupby([“student_id”])[“online_course”].nunique()</td>
-<td style="text-align: right;">0.000067</td>
+<td style="text-align: right;">0.000070</td>
 <td style="text-align: right;">100</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">pd_courses.groupby([“student_id”, “online_platform”])[“online_course”].agg(“first”)</td>
-<td style="text-align: right;">0.000065</td>
+<td style="text-align: right;">0.000072</td>
 <td style="text-align: right;">100</td>
 </tr>
 </tbody>

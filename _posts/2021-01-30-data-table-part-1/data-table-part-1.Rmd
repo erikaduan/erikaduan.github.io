@@ -739,7 +739,7 @@ Data frame outputs are slightly different in `data.table`:
 + One or multiple transformations are modified in place using the operator `:=`, providing that newly created columns are not concurrently referenced.        
 + Use subassignment to only extract the columns transformed inside `j` of `DT[i, j, by]`.  
 
-**Note:** You can create multiple columns that are modified in place using the `:=` operator. This can be written as either `df[, c("add_1", "add_2") := .(fun(x) x + 1, fun(x) x + 2)]` or `df[, `:=` (add_1 = fun(x) x + 1, add_2 = fun(x) x + 2)]`.       
+**Note:** You can modify multiple columns in place using the `:=` operator as long as each column is created from pre-existing variables.      
 
 ```{r}
 #-----create column(s) using data.table-----  
