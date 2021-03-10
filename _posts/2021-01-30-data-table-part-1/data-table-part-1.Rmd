@@ -53,6 +53,7 @@ pacman::p_load(here,
                tidyverse,
                data.table,
                lobstr, # trace objects in memory  
+               DT, # create interactive tables  
                microbenchmark,
                reticulate)
 
@@ -208,10 +209,18 @@ rm(list = setdiff(ls(), "student_courses"))
 gc()
 ```
 
-```{r, results = 'markup'}
+We can interactively examine the first 20 rows of the dataset using the R package `DT`.      
+
+```{r, echo = FALSE, results = 'markup'}
 #-----examine the first few rows of data-----  
 student_courses %>%
-  head(6) 
+  head(20) %>%
+  datatable(rownames = F,
+            options = list(pageLength = 6, dom = 'tip',
+                           initComplete = JS(
+                             "function(settings, json) {",
+                             "$(this.api().table().header()).css({'background-color': '#37ACA1', 'color': '#fff'});",
+                             "}")))
 ```
 
 

@@ -12,6 +12,7 @@
 /* This must remain at the top of this file.                 */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP');
 @import url('https://fonts.googleapis.com/css2?family=Roboto');
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata');
 
 html {
   /*-- Main font sizes --*/
@@ -30,7 +31,7 @@ html {
   --heading-font:    'Roboto';
   --mono-font:       'Roboto Slab';
   --body-font:       'ariel';  
-  --navbar-font:     'Roboto Slab';  /* websites + blogs only */
+  --navbar-font:     'Noto+Sans+JP';  /* websites + blogs only */
 }
 
 /*-- ARTICLE METADATA --*/
@@ -79,8 +80,9 @@ d-appendix {
 
 /* Change front page header */
 .posts-list h1 {
+    font-family    : 'Roboto';
     font-weight    : 900!important;   
-    font-size      : 42px;
+    font-size      : 46px;
     text-transform : uppercase;
     line-height    : 1.1em;
     margin-top     : 20px;
@@ -93,6 +95,8 @@ d-appendix {
 
 /* Change categories sidebar title appearance */
 .posts-sidebar h3 {
+    font-family    : 'Roboto';
+    font-size      : 20px;
     font-weight    : 900;
     color          : #2C8980;
 }

@@ -2122,6 +2122,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   /* This must remain at the top of this file.                 */
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP');
   @import url('https://fonts.googleapis.com/css2?family=Roboto');
+  @import url('https://fonts.googleapis.com/css2?family=Inconsolata');
 
   html {
     /*-- Main font sizes --*/
@@ -2140,7 +2141,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
     --heading-font:    'Roboto';
     --mono-font:       'Roboto Slab';
     --body-font:       'ariel';  
-    --navbar-font:     'Roboto Slab';  /* websites + blogs only */
+    --navbar-font:     'Noto+Sans+JP';  /* websites + blogs only */
   }
 
   /*-- ARTICLE METADATA --*/
@@ -2189,8 +2190,9 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 
   /* Change front page header */
   .posts-list h1 {
+      font-family    : 'Roboto';
       font-weight    : 900!important;   
-      font-size      : 42px;
+      font-size      : 46px;
       text-transform : uppercase;
       line-height    : 1.1em;
       margin-top     : 20px;
@@ -2203,6 +2205,8 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 
   /* Change categories sidebar title appearance */
   .posts-sidebar h3 {
+      font-family    : 'Roboto';
+      font-size      : 20px;
       font-weight    : 900;
       color          : #2C8980;
   }
@@ -2523,6 +2527,8 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <p>I now work (and greatly enjoy working) in the public sector as a data scientist.</p>
 <h2 id="education">Education</h2>
 <ul>
+<li><strong>Ongoing:</strong> Graduate Certificate of Actuarial Statistics - Australian National University<br />
+</li>
 <li><strong>2009-2014:</strong> PhD - University of Melbourne<br />
 </li>
 <li><strong>2008:</strong> Bachelor of Science (Honours) - University of Melbourne<br />
@@ -2531,24 +2537,20 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 </ul>
 <h2 id="interests">Interests</h2>
 <ul>
-<li>Machine learning algorithmic weaknesses (when human learning is advisable)<br />
-</li>
 <li>Machine learning explanability<br />
 </li>
 <li>Machine learning ethical frameworks<br />
 </li>
 <li>Open government data initiatives<br />
 </li>
-<li>Improving data science career pathway accessibility<br />
-</li>
-<li>STEM outreach initiatives</li>
+<li>Improving data science career pathway accessibility</li>
 </ul>
 <h2 id="public-projects">Public projects</h2>
 <ul>
 <li><p><a href="https://github.com/erikaduan/Introduction-to-Python"><strong>Introduction to Python workshop materials</strong></a><br />
 A repository of beginner-friendly Python tutorials compiled from the Research Platform Services Python workshops (UniMelb, 2019) and the DIPA Introduction to Python workshop (Data61, 2020). Each tutorial exists as a self-contained Jupyter notebook and some tutorials make use of public data sources.</p></li>
 <li><p><a href="https://github.com/erikaduan/Introductory-maths-in-R-and-Python"><strong>Introductory mathematics in R and Python</strong></a><br />
-A respository of introductory mathematics notes for beginners who are keen to understand how machine learning algorithms work but find the mathematical notations and concepts confusing (don’t worry - they really are just confusing).</p></li>
+A repository of introductory mathematics notes for beginners who are keen to understand how machine learning algorithms work but find the mathematical notations and concepts confusing (don’t worry - they really are just confusing).</p></li>
 </ul>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->

@@ -22,6 +22,7 @@ I now work (and greatly enjoy working) in the public sector as a data scientist.
 
 ## Education       
 
++ **Ongoing:** Graduate Certificate of Actuarial Statistics - Australian National University  
 + **2009-2014:** PhD - University of Melbourne    
 + **2008:** Bachelor of Science (Honours) - University of Melbourne     
 + **2005-2007:** Bachelor of Biomedical Science - University of Melbourne     
@@ -29,12 +30,10 @@ I now work (and greatly enjoy working) in the public sector as a data scientist.
 
 ## Interests     
 
-+ Machine learning algorithmic weaknesses (when human learning is advisable)       
 + Machine learning explanability      
 + Machine learning ethical frameworks     
 + Open government data initiatives        
 + Improving data science career pathway accessibility      
-+ STEM outreach initiatives     
 
 
 ## Public projects    
@@ -43,5 +42,5 @@ I now work (and greatly enjoy working) in the public sector as a data scientist.
 A repository of beginner-friendly Python tutorials compiled from the Research Platform Services Python workshops (UniMelb, 2019) and the DIPA Introduction to Python workshop (Data61, 2020). Each tutorial exists as a self-contained Jupyter notebook and some tutorials make use of public data sources.              
 
 + [**Introductory mathematics in R and Python**](https://github.com/erikaduan/Introductory-maths-in-R-and-Python)     
-A respository of introductory mathematics notes for beginners who are keen to understand how machine learning algorithms work but find the mathematical notations and concepts confusing (don't worry - they really are just confusing).        
+A repository of introductory mathematics notes for beginners who are keen to understand how machine learning algorithms work but find the mathematical notations and concepts confusing (don't worry - they really are just confusing).        
 
