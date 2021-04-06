@@ -15,8 +15,9 @@ output:
     toc: true
 ---
 
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = TRUE, results = 'hide')
+```{r setup, include=FALSE}
+# Set up global environment ----------------------------------------------------
+knitr::opts_chunk$set(echo=TRUE, results='hide')
 ```
 
 
@@ -28,20 +29,20 @@ In the last two years, a number of small and handy functions have been added to 
 
 Let's get started then.    
 
-```{r, message = FALSE, warning = FALSE}  
-#----load required packages----  
+```{r, message=FALSE, warning=FALSE}  
+# Load required packages -------------------------------------------------------  
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(here,  
                tidyverse, 
-               janitor, # for cleaning names  
-               scales, # for scale transformations  
-               ggrepel) # for optimal label separation  
+               janitor, # Cleaning column names  
+               scales, # Transform axis scales   
+               ggrepel) # Optimise plot label separation  
 ```
 
 
 # Import a test dataset  
 
-We start with a dataset with four columns:    
+This is a dataset with four columns:    
 
 + **Entrez ID** - stores the unique gene ID.     
 + **Gene symbol** - stores the gene name associated with an unique Entrez ID.           
@@ -53,8 +54,8 @@ Every row represents a unique gene expression fold change, which fulfills tidy d
 **Note:** The data used originates from [Fu et al. Nat Cell Biol. 2015](https://pubmed.ncbi.nlm.nih.gov/25730472/) and a copy of the original dataset can be found [here](https://zenodo.org/record/2529117#.X-_obzTis2w).            
 
 ```{r}
-#----import and clean dataset---- 
-diseased_vs_healthy <- read.delim(here("data", "limma-voom_luminalpregnant-luminallactate.txt"),
+# Import and clean dataset ----------------------------------------------------- 
+diseased_vs_healthy <- read.delim(here("data", "luminal-pregnant-vs-lactate.txt"),
                                   header = TRUE,
                                   sep = "\t")  
 
@@ -68,10 +69,9 @@ diseased_vs_healthy <- diseased_vs_healthy %>%
          adj_p_val)  
 ```
 
-```{r, echo = FALSE, results = 'markup'} 
-#----view the first few rows of the dataset----  
+```{r, echo=FALSE, results='markup'} 
+# View the first 5 rows of the dataset -----------------------------------------  
 set.seed(123) 
-
 diseased_vs_healthy %>%
   sample_n(5) %>%
   knitr::kable()  
@@ -85,18 +85,18 @@ A basic version of a volcano plot depicts:
 + Along its x-axis: `log2(fold_change)`            
 + Along its y-axis: `-log10(adj_p_val)`              
 
-**Note:** The y-axis depicts -log10(adj_p_val), which allows the points on the plot to project upwards as the fold change greatly increases or decreases. This is more intuitive to visualise, as we are interested in the data points at the edges of the 'volcano spray'.        
+**Note:** The y-axis depicts -log10(adj_p_val), which allows the points on the plot to project upwards as the fold change greatly increases or decreases. This is more intuitive to visualise, the data points at the edges of the 'volcano spray' are the most interesting ones.        
 
 The versatility of `ggplot2` also means that you don't need to store data transformations as separate variables for plotting. You can apply transformations directly inside `ggplot(data, aes(x, y))` or alternatively by using `scale_x_continuous(trans = "...")` or `coord_trans(x, y)`.           
 
-```{r, results = 'markup'}
-#----create a simple volcano plot----
+```{r, results='markup'}
+# Create a simple volcano plot -------------------------------------------------
 vol_plot <- diseased_vs_healthy %>%
   ggplot(aes(x = log2(fold_change),
              y = -log10(adj_p_val))) + 
   geom_point() 
 
-vol_plot # a simple volcano plot is created
+vol_plot # Visualise simple volcano plot  
 ```
 
 **Note:** For single layer plots, use `%>%` pipes with `ggplot2` functions for convenience and readability.   
@@ -104,10 +104,10 @@ vol_plot # a simple volcano plot is created
 
 # Add horizontal and vertical plot lines     
 
-The functions `geom_hline()` and `geom_vline()` can be used to add extra horizontal and vertical lines on your plot respectively. In our example, I am interested in constructing boundaries for genes which have `adj_p_val <= 0.05` and `fold_change <= 0.5` or `fold_change >= 2`.      
+The functions `geom_hline()` and `geom_vline()` can be used to add extra horizontal and vertical lines on your plot respectively. In this example, I am interested in constructing boundaries for genes which have `adj_p_val <= 0.05` and `fold_change <= 0.5` or `fold_change >= 2`.      
 
-```{r, results = 'markup'}
-#----plot extra quandrants----
+```{r, results='markup'}
+# Plot extra quadrants ---------------------------------------------------------
 vol_plot + 
   geom_hline(yintercept = -log10(0.05),
              linetype = "dashed") + 
@@ -118,10 +118,10 @@ vol_plot +
 
 # Modify the x-axis and y-axis       
 
-Volcano plots should have a symmetrical x-axis. One way we can do this is by manually setting the limits of the x-axis using `xlim(min, max)`.     
+Volcano plots should have a symmetrical x-axis. One way you can do this is by manually setting the limits of the x-axis using `xlim(min, max)`.     
 
 ```{r}
-#----identify the best values for xlim----
+# Identify xlim() values -------------------------------------------------------
 diseased_vs_healthy %>%
   pull(fold_change) %>%
   min() %>%
@@ -139,34 +139,35 @@ diseased_vs_healthy %>%
 max(abs(-10), abs(8))
 #> [1] 10  
 
-#----add xlim----  
+# Change xlim() ----------------------------------------------------------------  
+# Manually specify x-axis limits   
 vol_plot + 
   geom_hline(yintercept = -log10(0.05),
              linetype = "dashed") + 
   geom_vline(xintercept = c(log2(0.5), log2(2)),
              linetype = "dashed") + 
-  xlim(-10, 10) # manually specify x-axis limits 
+  xlim(-10, 10) 
 ```
 
-We can also change the limits of the x-axis inside `scale_x_continuous`. This method also gives us the flexibility to finetune the spacing and labelling of axis tick marks.     
+You can also change the limits of the x-axis inside `scale_x_continuous`. This method also gives you the flexibility to fine-tune the spacing and labelling of axis tick marks.    
 
-```{r, results = 'markup'}
-#----modify scale_x_continuous----
+```{r, results='markup'}
+# Modify scale_x_continuous() --------------------------------------------------
 vol_plot + 
   geom_hline(yintercept = -log10(0.05),
              linetype = "dashed") + 
   geom_vline(xintercept = c(log2(0.5), log2(2)),
              linetype = "dashed") +
-  scale_x_continuous(breaks = c(seq(-10, 10, 2)), # modify x-axis tick intervals    
+  scale_x_continuous(breaks = c(seq(-10, 10, 2)), # Modify x-axis tick intervals    
                      limits = c(-10, 10)) 
 ```
 
-**Note:** The value specified inside the argument `scale_continuous_x(limits = ...)` supercedes the range of values specified inside the argument `scale_continuous_x(breaks = ...)`.          
+**Note:** The value specified inside the argument `scale_continuous_x(limits = ...)` supersedes the range of values specified inside the argument `scale_continuous_x(breaks = ...)`.          
 
 
 # Add colour, size and transparency   
 
-To visualise different groups of genes using different colours, point sizes, shapes or transparencies, we need to categorise genes into different groups and store these categories as a new parameter i.e. new column of data.        
+To visualise different groups of genes using different colours, point sizes, shapes or transparencies, you need to categorise genes into different groups and store these categories as a new parameter i.e. new column of data.        
 
 I am interested in labelling genes into the following groups:    
 
@@ -175,42 +176,36 @@ I am interested in labelling genes into the following groups:
 + All other genes labelled as 'ns' i.e. non-significant.    
 
 ```{r}
-#----create a new column which distinguishes individual rows by type---- 
+# Create new categorical column ------------------------------------------------ 
 diseased_vs_healthy <- diseased_vs_healthy %>%
   mutate(gene_type = case_when(fold_change >= 2 & adj_p_val <= 0.05 ~ "up",
                                fold_change <= 0.5 & adj_p_val <= 0.05 ~ "down",
                                TRUE ~ "ns"))   
 
-#----obtain a summary of gene_type numbers----           
+# Obtain gene_type counts ------------------------------------------------------           
 diseased_vs_healthy %>%
   count(gene_type)
-
-# the function count() is equivalent to     
-
-# diseased_vs_healthy %>%
-#   group_by(gene_type) %>%
-#   summarize(count = n()) 
 ```
 
-```{r, echo = FALSE, results = 'markup'}
-#----view the count() table----  
+```{r, echo=FALSE, results='markup'}
+# View counts ------------------------------------------------------------------  
 diseased_vs_healthy %>%
   count(gene_type) %>%
   knitr::kable()
 ```
 
-In `ggplot2`, we have the option to visualise different groups by point colour, size, shape and transparency by modifying parameter like `scale_color_manual()` etc. A tidy way of doing this is to store manual specifications as vectors.   
+In `ggplot2`, you also have the option to visualise different groups by point colour, size, shape and transparency by modifying parameter like `scale_color_manual()` etc. A tidy way of doing this is to separately store your manual specifications as vectors.   
 
 ```{r}
-#----double check gene_type categories----    
+# Check gene_type categories ---------------------------------------------------    
 diseased_vs_healthy %>%
   distinct(gene_type) %>%
   pull()  
 #> [1] "down" "up"   "ns"    
 ```
 
-```{r, results = 'markup'}
-#----add colour, size and alpha (transparency) specs to volcano plot---- 
+```{r, results='markup'}
+# Add colour, size and alpha (transparency) to volcano plot -------------------- 
 cols <- c("up" = "#ffad73", "down" = "#26b3ff", "ns" = "grey") 
 sizes <- c("up" = 2, "down" = 2, "ns" = 1) 
 alphas <- c("up" = 1, "down" = 1, "ns" = 0.5)
@@ -221,52 +216,52 @@ diseased_vs_healthy %>%
              fill = gene_type,    
              size = gene_type,
              alpha = gene_type)) + 
-  geom_point(shape = 21, # specify shape and colour as fixed local parameters    
+  geom_point(shape = 21, # Specify shape and colour as fixed local parameters    
              colour = "black") + 
   geom_hline(yintercept = -log10(0.05),
              linetype = "dashed") + 
   geom_vline(xintercept = c(log2(0.5), log2(2)),
              linetype = "dashed") +
-  scale_fill_manual(values = cols) + # modify colour
-  scale_size_manual(values = sizes) + # modify point size
-  scale_alpha_manual(values = alphas) + # modify point transparency
-  scale_x_continuous(breaks = c(seq(-10, 10, 2)), # modify x-axis tick intervals    
+  scale_fill_manual(values = cols) + # Modify point colour
+  scale_size_manual(values = sizes) + # Modify point size
+  scale_alpha_manual(values = alphas) + # Modify point transparency
+  scale_x_continuous(breaks = c(seq(-10, 10, 2)),       
                      limits = c(-10, 10))  
 ```
 
 
 # Layer subplots    
 
-We can also overlay subplots on top of our main plot. This is useful when we want to highlight a subset of our data using different colours, shapes and etc. When overlaying plots, we should not use `%>%` pipes but use global `ggplot(`data = "..."`)` and local `geom_point(data = ...)` arguments instead.              
+You can also overlay subplots on top of your main plot. This is useful when you want to highlight a subset of your data using different colours, shapes and etc. When overlaying plots, you should not use `%>%` pipes but use global `ggplot(`data = "..."`)` and local `geom_point(data = ...)` arguments instead.              
 
-```{r, results = 'markup'}
-#----add a subplot to the main volcano plot----  
+```{r, results='markup'}
+# Add subplot layer to the main volcano plot -----------------------------------  
 ils <- str_subset(diseased_vs_healthy$symbol, "^[I|i]l[0-9]+$")  
 
 il_genes <- diseased_vs_healthy %>%
   filter(symbol %in% ils) 
 
-ggplot(data = diseased_vs_healthy, # original data  
+ggplot(data = diseased_vs_healthy, # Original data  
        aes(x = log2(fold_change), y = -log10(adj_p_val))) + 
   geom_point(colour = "grey", alpha = 0.5) +
-  geom_point(data = il_genes, # data subset    
+  geom_point(data = il_genes, # New layer containing data subset il_genes       
              size = 2,
              shape = 21,
              fill = "firebrick",
              colour = "black")     
 ```
 
-**Note:** Unless local aesthetics are specified, secondary `geom_point()` functions will still inherit glocal ggplot aesthetics.    
+**Note:** Unless local aesthetics are specified, secondary `geom_point()` functions will inherit global ggplot aesthetics.     
 
 
 # Label points of interest    
 
-We can also label a subset of data using `geom_text()`, `geom_label()`, `geom_text_repel()` or `geom_label_repel` and by specifying which column to display as text using the local argument `geom_text(aes(label = ...))`.       
+You can also label a subset of data using `geom_text()`, `geom_label()`, `geom_text_repel()` or `geom_label_repel` and by specifying which column to display as text using the local argument `geom_text(aes(label = ...))`.       
 
-**Note:** adjusting the parameters for optimal text separation using `geom_text_repel` can be a bit fiddly. I generally start by modifying force and then deciding which region of the plot I want to nudge my text or labels towards. [See here](https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html) for more tips on adjusting `geom_text_repel` parameters.   
+**Note:** adjusting the parameters for optimal text separation using `geom_text_repel` can be a bit fiddly. I generally start by modifying force and then deciding which region of the plot I want to nudge my text or labels towards. You can read [this vignette](https://cran.r-project.org/web/packages/ggrepel/vignettes/ggrepel.html) for more tips on adjusting `geom_text_repel` parameters.   
 
-```{r, results = 'markup'}
-#-----create subplots of interest---- 
+```{r, results='markup'}
+# Layer more subplots ----------------------------------------------------------
 sig_il_genes <- diseased_vs_healthy %>%
   filter(symbol %in% c("Il15", "Il34", "Il24"))
 
@@ -276,7 +271,6 @@ up_il_genes <- diseased_vs_healthy %>%
 down_il_genes <- diseased_vs_healthy %>%
   filter(symbol %in% c("Il15", "Il34"))
 
-#----visual layered and labelled volcano plot---- 
 ggplot(data = diseased_vs_healthy,
        aes(x = log2(fold_change),
            y = -log10(adj_p_val))) + 
@@ -298,7 +292,7 @@ ggplot(data = diseased_vs_healthy,
              linetype = "dashed") + 
   geom_vline(xintercept = c(log2(0.5), log2(2)),
              linetype = "dashed") +
-  geom_label_repel(data = sig_il_genes, # add labels last as the top layer to plot   
+  geom_label_repel(data = sig_il_genes, # Add labels last to appear as the top layer  
                    aes(label = symbol),
                    force = 2,
                    nudge_y = 1) +
@@ -310,16 +304,14 @@ ggplot(data = diseased_vs_healthy,
 
 # Modify legend label positions  
 
-If we want to change the order of discrete figure legend labels, you need to modify the factor levels of your dataset grouping. This can be done using the `forcats` package, which allows us to easily modify factor levels.           
+If you need to change the order of categorical figure legend values, you will need to `factor()` and re-level your categorical variable. This can be done using the `forcats` package, which allows you to easily modify factor levels.           
 
-```{r, results = 'markup'}
-#----modify factor gene_type levels----  
+```{r, results='markup'}
+# Modify legend labels by re-ordering gene_type levels -------------------------  
 diseased_vs_healthy <- diseased_vs_healthy %>%
   mutate(gene_type = fct_relevel(gene_type, "up", "down")) 
 
-# apply fct_relevel so the first two levels are "up" and "down"  
-
-#----recreate volcano plot----  
+# Recreate volcano plot --------------------------------------------------------  
 ggplot(data = diseased_vs_healthy,
        aes(x = log2(fold_change),
            y = -log10(adj_p_val))) + 
@@ -341,7 +333,7 @@ ggplot(data = diseased_vs_healthy,
              linetype = "dashed") + 
   geom_vline(xintercept = c(log2(0.5), log2(2)),
              linetype = "dashed") +
-  geom_label_repel(data = sig_il_genes, # add labels last as the top layer to plot   
+  geom_label_repel(data = sig_il_genes,     
                    aes(label = symbol),
                    force = 2,
                    nudge_y = 1) +
@@ -350,19 +342,17 @@ ggplot(data = diseased_vs_healthy,
                      limits = c(-10, 10))   
 ```
 
-**Note:** If we wanted to change the text displayed in the figure legend, we would need to modify the factor levels (i.e. variable categories) themselves.  
-
 
 # Modify plot labels and theme         
 
-The last finishing touches include modifying plot labels and plot theme.       
+The last finishing touches include modifying plot labels and the plot theme.       
 
-The function `labs()` is a handy way of specifying all your plot labels within a single function. You can also assign labels as `NULL` to prevent them from being displayed.   
+The function `labs()` is a handy way of organising all plot labels inside a single function. You can assign labels as `NULL` to prevent them from being displayed.   
 
 A plot can be further improved by changing its `theme()` and/or by modifying individual `theme()` parameters.       
 
 ```{r}
-#----add plot labels and modify plot theme----
+# Add plot labels and modify plot theme ----------------------------------------
 final_plot <- ggplot(data = diseased_vs_healthy,
        aes(x = log2(fold_change),
            y = -log10(adj_p_val))) + 
@@ -384,7 +374,7 @@ final_plot <- ggplot(data = diseased_vs_healthy,
              linetype = "dashed") + 
   geom_vline(xintercept = c(log2(0.5), log2(2)),
              linetype = "dashed") +
-  geom_label_repel(data = sig_il_genes, # add labels last as the top layer to plot   
+  geom_label_repel(data = sig_il_genes,   
                    aes(label = symbol),
                    force = 2,
                    nudge_y = 1) +
@@ -395,8 +385,8 @@ final_plot <- ggplot(data = diseased_vs_healthy,
        x = "log2(fold change)",
        y = "-log10(adjusted P-value)",
        colour = "Expression \nchange") +
-  theme_bw() + # creates a white background
-  theme(panel.border = element_rect(colour = "black", fill = NA, size= 0.5), # creates a plot border 
+  theme_bw() + # Select theme with a white background  
+  theme(panel.border = element_rect(colour = "black", fill = NA, size= 0.5),    
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank()) 
 
@@ -408,10 +398,10 @@ final_plot
 
 # Annotate text   
 
-We can add descriptive labels to our plot by using the function `annotate()` to display text.           
+You can add more descriptions to a plot by using the function `annotate()` to display text.   
 
 ```{r}
-#----annotate text inside plot----
+# Annotate text inside plot ----------------------------------------------------
 final_plot + 
   annotate("text", x = 7, y = 10,
            label = "3 interleukins of interest", color = "firebrick")

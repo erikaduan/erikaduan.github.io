@@ -9,158 +9,173 @@ categories:
   - data cleaning  
   - data.table  
   - dplyr
-  - Pandas
   - R  
-  - Python  
 output:
   distill::distill_article: 
     toc: true
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, results = 'hide') 
-knitr::knit_engines$set(python = reticulate::eng_python)  
+# Set up global environment ----------------------------------------------------  
+knitr::opts_chunk$set(echo=TRUE, results='hide') 
 options(scipen=999)
 ```
 
 
 # Introduction    
 
-This post is a continuation of [my previous comparison](https://erikaduan.github.io/posts/2021-01-30-data-table-part-1/) of R `data.table` versus `dplyr` versus Python `Pandas` operations.    
+This post is a continuation of [my previous comparison](https://erikaduan.github.io/posts/2021-01-30-data-table-part-1/) of R `data.table` versus `dplyr` functions.    
 
 **Note:** The code used to create this dataset can be accessed from my github repository [here](https://github.com/erikaduan/R-tips/blob/master/03_blog_posts/2020-04-07_data-table-versus-dplyr/2020-04-07_data-table-versus-dplyr.md).    
 
-```{r, message = FALSE, warning = FALSE}
-#-----load required packages-----  
+```{r, message=FALSE, warning=FALSE}
+# Load required packages -------------------------------------------------------  
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(here,
-               ids, # generate random ids
+               ids, # Generate random IDs
                tidyverse,
                data.table,
-               microbenchmark,
-               reticulate)
-
-#-----set up the Python reticulate engine-----  
-conda_list() # list available conda environments
-use_condaenv("r-reticulate")
+               microbenchmark)
 ```
 
-```{r, echo = FALSE}
-#-----set plugin to knit Python code chunks-----
-py_run_string("import os as os")
-py_run_string("os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = 'C:/Users/user/Anaconda3/envs/r-reticulate/Library/plugins/platforms'")  
-```
-
-```{r, echo = FALSE}
-#-----create a function to generate random dates-----  
+```{r, echo=FALSE}
+# Create a function to generate random dates -----------------------------------
 create_start_dates <- function(start_date, end_date, n) {
+  # Assert requirement for character inputs 
   if(!is.character(start_date) | !is.character(end_date)) {
-    stop("Error: start_date and end_date should be written as a string in the format of YYYY-mm-dd")
+    stop("Error: start_date and end_date should be written in the format YYYY-mm-dd")
   }
   
+  # Convert character inputs into dates
   start_date <- as.Date(start_date, format = "%Y-%m-%d")
   end_date <- as.Date(end_date, format = "%Y-%m-%d")  
   
+  # Assert that end_date >= start_date  
   if(end_date < start_date) {
     stop("Error: start_date should be earlier than end_date")
   }
   
+  # Generate date vector of random dates between start_date and end_date
   set.seed(111)
-  new_date <- sample(seq(start_date, end_date, by = "day"),
-                     n,
-                     replace = T)
-  return(new_date)
+  sample(seq(start_date, end_date, by = "day"),
+         n,
+         replace = T)
 }  
 ```
 
-We will be using the same dataset describing how students are engaging with online courses:     
+```{r, echo=FALSE}
+# Create a function to populate course_end_dates -------------------------------
+add_course_end_date <- function(df, include_n, row) {
+  df %>% 
+    group_by(join_key) %>% 
+    mutate(course_end_date = if_else(n_courses >= include_n & row_number() == row,
+                                     course_start_date + course_length,
+                                     course_end_date)) %>%
+    ungroup()
+}
+```
 
-+ Each student has a unique ID.  
-+ There are 5 different online platforms (labelled platforms A, B, C, D and E).   
-+ Students have the option of taking different courses within the same platform or switching to a different platform.     
-+ Start dates are recorded when the student starts the first course in a new platform.     
-+ End dates are also recorded when the student exits a platform.     
+```{r, echo=FALSE}
+# Create a function to populate course_start_dates -----------------------------
+add_course_start_date <- function(df, include_n, row) {
+  df %>% 
+    group_by(join_key) %>% 
+    mutate(course_start_date = if_else(n_courses >= include_n & row_number() == row,
+                                       lag(course_end_date),
+                                       course_start_date)) %>%
+    ungroup()
+}
+```
 
-```{r, echo = FALSE}
-#-----create a test dataset of 500000 course enrollments-----
-# create 80000 unique student_ids and sample with replacement 500000 times  
-
+```{r, echo=FALSE}
+# Create 500000 student enrollments --------------------------------------------
+# Create 150000 unique student IDs  
 set.seed(111)
-students <- random_id(n = 150000, bytes = 4,
-                      use_openssl = F) # so set.seed() works  
+students <- random_id(n = 150000,
+                      bytes = 4,
+                      use_openssl = F) # So set.seed() works  
 
-student_id <- sample(students, 500000,
-                     replace = T) %>%
+# Sample student IDs with replacement 500000 times 
+id <- sample(students, 500000,
+             replace = T) %>%
   sort()
 
-#-----simulate 5 platforms with different market shares----- 
-online_platform <- sample(LETTERS[1:5], 500000,
-                          replace = T,
-                          prob = c(0.35, 0.05, 0.1, 0.3, 0.2)) 
+# Simulate 5 platforms with different market shares  
+platform <- sample(LETTERS[1:5], 500000,
+                   replace = T,
+                   prob = c(0.35, 0.05, 0.1, 0.3, 0.2)) 
 
-#-----create 20 unique course_names-----
-courses <- c("R_beginner",
-             "R_intermediate",
-             "R_advanced",
-             "Python_beginner",
-             "Python_intermediate",
-             "Python_advanced",
-             "machine_learning",
-             "linear_algebra",
-             "statistics",
-             "UX_design",
-             "website_design",
-             "data_mining",
-             "travel_writing",
-             "bread_baking",
-             "pottery",
-             "poetry_writing",
-             "contemporary_dance",
-             "carpentry",
-             "metal_welding",
-             "fitness_training")  
+# Create 20 courses 
+all_courses <- c("R_beginner",
+                 "R_intermediate",
+                 "R_advanced",
+                 "Python_beginner",
+                 "Python_intermediate",
+                 "Python_advanced",
+                 "machine_learning",
+                 "linear_algebra",
+                 "statistics",
+                 "UX_design",
+                 "website_design",
+                 "data_mining",
+                 "travel_writing",
+                 "bread_baking",
+                 "pottery",
+                 "poetry_writing",
+                 "contemporary_dance",
+                 "carpentry",
+                 "metal_welding",
+                 "fitness_training")  
 
-online_course <- sample(courses, 500000,
-                        replace = T)  
+course <- sample(all_courses, 500000,
+                 replace = T)  
 
-student_courses <- tibble(index = seq(1, 500000, 1), # create an index to join by
-                          student_id,
-                          online_platform,
-                          online_course)
+# Create student_courses ------------------------------------------------------- 
+student_courses <- tibble(index = seq(1, 500000, 1), # index required for downstream joins
+                          id,
+                          platform,
+                          course)
+```
 
-#-----create platform_start_date-----  
+```{r, echo=FALSE}
+# Create platform_start_date and platform_end_date entries----------------------
+# Create join_key   
 platform_subset <- student_courses %>%
   select(index, 
-         student_id,
-         online_platform) %>% 
-  mutate(unique_group = str_c(student_id, online_platform, sep = "-")) %>%
-  group_by(student_id) %>%
-  mutate(previous_unique_group = lag(unique_group, 1)) %>%
-  ungroup()
+         id,
+         platform) %>% 
+  mutate(join_key = str_c(id, platform, sep = "-")) 
 
-# filter to keep rows representing the first time a student commences on a new platform      
+# Create lag_join_key  
+platform_subset <- platform_subset %>%
+  group_by(id) %>%
+  mutate(lag_join_key = lag(join_key, 1)) %>%
+  ungroup()  
+
+# Filter rows representing the first course a student takes on a new platform      
+platform_subset <- platform_subset %>%
+  filter(is.na(lag_join_key) | lag_join_key != join_key)
+
+# Create platform start_dates vector   
+start_dates <- create_start_dates(start_date = "2016-01-01",
+                                  end_date = "2019-01-01",  
+                                  n = nrow(platform_subset))
 
 platform_subset <- platform_subset %>%
-  filter(is.na(previous_unique_group) | previous_unique_group != unique_group)
+  mutate(platform_start_date = start_dates)
 
-platform_start_date <- create_start_dates(start_date = "2016-01-01", end_date = "2019-01-01",  
-                                          n = nrow(platform_subset))
-
-platform_subset <- platform_subset %>%
-  mutate(platform_start_date = platform_start_date)
-
-#-----create provider_end_date-----
-# create random course lengths 
-
+# Create platform_end_date as platform_start_date + random platform_length 
 set.seed(111)
 platform_length <- runif(nrow(platform_subset),
-                         min = 9, max = 60) %>%
-  floor(.)
+                         min = 9, max = 90) %>%
+  floor(.) 
+
+# Round platform_length to a whole number i.e. whole day for date calculations   
 
 platform_subset <- platform_subset %>%
-  mutate(platform_end_date = platform_start_date + platform_length)
+  mutate(platform_end_date = platform_start_date + platform_length)  
 
-#-----left join online_course to provider_subset by index-----
+# Left join student_course and provider_subset by index-------------------------
 platform_subset <- platform_subset %>%
   select(index,
          platform_start_date,
@@ -172,170 +187,272 @@ student_courses <- left_join(student_courses,
 
 student_courses <- student_courses %>%
   fill(c(platform_start_date, platform_end_date), 
-       .direction = "up")  
+       .direction = "up") # NA inherits the value above    
 
 student_courses <- student_courses %>%
   select(-index)   
-
-#TODO create course start date and course end date 
-# course start date is a random number between platform start and end date for subsequent courses on same platform
 ```
 
-```{r, echo = FALSE}
-#-----remove all objects except student_courses-----  
+```{r, echo=FALSE}
+# Create course_start_date and course_end_date entries ------------------------- 
+# Sort by id, platform start_date and platform   
+student_courses <- student_courses %>%
+  arrange(id, 
+          platform_start_date,
+          platform)
+
+# Split student_courses into one_course and multiple_courses 
+# Create join_key 
+student_courses <- student_courses %>%
+  mutate(platform_length = platform_end_date - platform_start_date,
+         join_key = str_c(id, platform_start_date, platform, sep = "-"))
+
+# Create lag_join_key 
+student_courses <- student_courses %>%
+  group_by(id) %>% 
+  mutate(lag_join_key = lag(join_key)) %>%
+  ungroup()
+
+# Multiple courses exists when multiple rows share the same join_key     
+multiple_courses_id <- student_courses %>%
+  count(join_key) %>%
+  filter(n > 1) %>%
+  pull(join_key)
+
+multiple_courses <- student_courses %>%
+  filter(join_key %in% multiple_courses_id)
+
+single_course <- student_courses %>%
+  filter(!join_key %in% multiple_courses_id)
+
+# Create course date logic for single_course------------------------------------  
+single_course <- single_course %>%
+  mutate(course_start_date = platform_start_date,
+         course_end_date = platform_end_date) 
+
+# Create course date logic for multiple_courses---------------------------------
+# Check maximum number of courses undertaken on the same platform
+multiple_courses %>%
+  count(join_key) %>% 
+  ungroup() %>%
+  pull(n) %>%
+  max()  
+#> [1] 7
+
+# Populate first course_start_date and last course_end_date for all cases    
+set.seed(111)
+multiple_courses <- multiple_courses %>%
+  group_by(join_key) %>%
+  mutate(n_courses = n(),
+         course_start_date = if_else(row_number() == 1, platform_start_date,
+                                     NA_real_),
+         course_end_date = if_else(row_number() == n(), platform_end_date,
+                                   NA_real_),
+         course_length = runif(n = n(), min = 1, max = platform_length / n_courses) %>% ceiling()) %>%
+  ungroup()
+
+# Populate first course_end_date for all cases  
+multiple_courses <- multiple_courses %>% 
+  group_by(join_key) %>% 
+  mutate(course_end_date = if_else(!is.na(course_start_date),
+                                   course_start_date + course_length,
+                                   course_end_date)) %>%
+  ungroup()
+
+# Populate second course_start_date when n_courses >= 2
+multiple_courses <- add_course_start_date(multiple_courses, include_n = 2, row = 2)
+
+# Populate second course_end_date when n_courses >= 3  
+multiple_courses <- add_course_end_date(multiple_courses, include_n = 3, row = 2)
+
+# Populate third course_start_date when n_courses >= 3  
+multiple_courses <- add_course_start_date(multiple_courses, include_n = 3, row = 3)
+
+# Populate third course_end_date when n_courses >= 4  
+multiple_courses <- add_course_end_date(multiple_courses, include_n = 4, row = 3)
+
+# Populate fourth course_start_date when n_courses >= 4  
+multiple_courses <- add_course_start_date(multiple_courses, include_n = 4, row = 4)
+
+# Populate fourth course_end_date when n_courses >= 5  
+multiple_courses <- add_course_end_date(multiple_courses, include_n = 5, row = 4)
+
+# Populate fifth course_start_date when n_courses >= 5  
+multiple_courses <- add_course_start_date(multiple_courses, include_n = 5, row = 5)
+
+# Populate fifth course_end_date when n_courses >= 6  
+multiple_courses <- add_course_end_date(multiple_courses, include_n = 6, row = 5)
+
+# Populate sixth course_start_date when n_courses >= 6  
+multiple_courses <- add_course_start_date(multiple_courses, include_n = 6, row = 6)
+
+# Populate sixth course_end_date when n_courses >= 7  
+multiple_courses <- add_course_end_date(multiple_courses, include_n = 7, row = 6)
+
+# Populate seventh course_start_date when n_courses >= 7  
+multiple_courses <- add_course_start_date(multiple_courses, include_n = 7, row = 7)
+
+# Bind all rows and re-order student_courses -----------------------------------    
+student_courses <- bind_rows(single_course,
+                             multiple_courses)
+
+student_courses <- student_courses %>%
+  select(-c(platform_length,
+            course_length,
+            n_courses,
+            join_key,
+            lag_join_key))  
+
+student_courses <- student_courses %>%
+  arrange(id,
+          platform_start_date,
+          platform)
+```
+
+```{r, echo=FALSE}
+# Remove all objects except student_courses-------------------------------------  
 rm(list = setdiff(ls(), "student_courses"))
 gc()
 ```
 
-```{r, results = 'markup'}
-#-----examine the first few rows of data-----  
-student_courses %>%
-  head(6)   
+We can interactively examine the first 20 rows of the dataset using the R package `DT`.      
 
-#-----convert data frame to data.table-----  
+```{r, echo=FALSE, results='markup'}
+# Examine the first 12 rows of data--------------------------------------------  
+student_courses %>%
+  head(12) %>%
+  datatable(rownames = F,
+            options = list(pageLength = 6, dom = 'tip',
+                           initComplete = JS(
+                             "function(settings, json) {",
+                             "$(this.api().table().header()).css({'background-color': '#37ACA1', 'color': '#fff'});",
+                             "}")))
+```
+ 
+```{r} 
+# Convert data frame to data.table ---------------------------------------------  
 setDT(student_courses)
+
+class(student_courses) 
+#> [1] "data.table" "data.frame"  
 ```
 
 
-# Basic operation sequence   
+# Code sequence outputs      
 
 
 ## Using `dplyr` versus `data.table`    
 
-Imagine you would like to subset all fitness training courses from platform C and E and create a column to denote that these were discounted courses. In `dplyr`, you can write this as a single sequence of steps and use the `%>%` pipe to separate each individual operation.        
+Imagine you would like to subset all fitness training courses from platform C and E and create a column to denote that these were discounted courses.   
 
-```{r, results = 'markup'}
-#-----filter and append a column using dplyr-----    
+In `dplyr`, you can write this as a single query using the `%>%` pipe to separate each individual function.        
+
+```{r, results='markup'}
+# Filter and create a new column using dplyr %>% pipes -------------------------    
 dply_query_1 <- student_courses %>%
-  filter(online_course == "fitness_training",
-         online_platform %in% c("C", "E")) %>%
+  filter(course == "fitness_training",
+         platform %in% c("C", "E")) %>%
   mutate(percentage_discount = 5)
 
-#-----preview the first 4 rows-----      
+# Print the first 4 rows -------------------------------------------------------      
 dply_query_1 %>% 
-  select(-contains("platform_")) %>% 
-  head(4) 
+  select(-contains("_date")) %>% 
+  head(4) %>%
+  knitr::kable()  
 ```
 
-In `data.table`, placing the filter and column transformation operations in separate or a single step produces different outputs. ^[Placing the two operations in separate steps is equivalent to the `dplyr` approach above.]    
+In `data.table`, performing filtering and column transformations in separate steps or a single step produces different outputs. ^[Performing the two functions in separate steps is equivalent to the `dplyr` approach above.]    
 
-```{r, results = 'markup'}
-#-----filter and append a column using data.table-----  
-# keep filter and column transformation steps separate  
-dt_query_1 <- student_courses[(online_course == "fitness_training") 
-                              & (online_platform %chin% c("C", "E"))] %>%
+```{r, results='markup'}
+# Filter and create a new column using data.table in separate steps ------------  
+dt_query_1 <- student_courses[(course == "fitness_training") 
+                              & (platform %chin% c("C", "E"))] %>%
   .[, percentage_discount := 5]   
 
-#-----preview the first 4 rows-----  
-# subset columns which begin with "platform_"
-date_cols <- grep("^platform_", colnames(student_courses), value = T)
+# Print the first 4 rows -------------------------------------------------------  
+# Subset columns which contain "_date"
+date_cols <- grep("_date$", colnames(student_courses), value = T)
 
-dt_query_1[1:4, !..date_cols]
+dt_query_1[1:4, !..date_cols] %>%
+  knitr::kable()
 ```
+
+In `data.table, performing filtering and column transformations in a single step will retain all rows and apply a transformation to rows where the filtering condition is `TRUE`.    
 
 ```{r}
-#-----the wrong way to filter and append a column using data.table-----  
-# all rows are retained and only rows which meet the selection criteria are transformed 
-# student_courses is also modified in reference 
-dt_query_1_wrong <- student_courses[(online_course == "fitness_training") 
-                                    & (online_platform %chin% c("C", "E")), 
+# Filter and create a new column using data.table in a single step -------------  
+dt_query_1_wrong <- student_courses[(course == "fitness_training") 
+                                    & (platform %chin% c("C", "E")), 
                                     percentage_discount := 5]
 
-#-----preview the first 4 rows-----  
-dt_query_1_wrong[1:4, !..date_cols]  
-```
-
-```{r, echo = FALSE}
-#-----remove percentage_discount for downstream analyses-----  
-student_courses[, percentage_discount := NULL]
+# Print the first 4 rows -------------------------------------------------------  
+dt_query_1_wrong[1:4, !..date_cols] %>%
+  knitr::kable()  
 ```
 
 
-## Using `Pandas`   
+## Benchmark code sequences  
 
-In `Pandas`, chaining is currently limited to `.method()` operations, so we need to write separate lines of code to extract our dataset of interest.          
+```{r}
 
-```{python}
-import pandas as pd    
-pd_courses = r.student_courses  
-
-#-----filter and append a column using Pandas-----
-pd_query_1 = (pd_courses.loc[(pd_courses["online_course"] == "fitness_training") &
-                             (pd_courses["online_platform"].isin(["C", "E"]))]
-              .copy())
-pd_query_1["percentage_discount"] = 5
 ```
 
-```{python, results = 'markup'}
-#-----preview the first 4 rows-----  
-# subset columns which begin with "platform_"  
-date_cols = pd_query_1.columns[pd_query_1.columns.str.contains("platform_")]
-
-(pd_query_1.drop(columns = date_cols)
- .head(4)
- .reset_index(drop = True))
+```{r, echo=FALSE}
+# Remove percentage_discount for downstream analyses ---------------------------  
+student_courses[, percentage_discount := NULL]  
 ```
 
 
-# Group by and summarise data    
+# Functions for summarising data    
 
-A common operation is to group by variable(s) to retrieve summary data from each grouping(s).   
+A common operation is to group by and summarise across variable(s) to retrieve aggregate data. Very different outputs can be obtained by modifying `data.table` groupings in subtle ways.    
 
 
 ## Using `dplyr` versus `data.table`   
 
-Imagine that we are interested in the total number of days that each student spent on any online platform. We might obtain this by grouping on individual student IDs and calculating the total of days spent on any platform.      
+Imagine that we are interested in the total number of days each student has spent on any online platform. We might try to obtain this output by grouping on individual student IDs and calculating the total of days spent on any platform.     
 
 ```{r}
-#-----calculate platform dwell length using dplyr-----  
+# Calculate total platform_length per student using dplyr ----------------------  
 student_courses <- student_courses %>%
-  mutate(platform_dwell_length = platform_end_date - platform_start_date,
-         platform_dwell_length = as.integer(platform_dwell_length))
+  mutate(platform_length = platform_end_date - platform_start_date,
+         platform_length = as.integer(platform_length))  
 
-#-----calculate platform dwell length using data.table-----
-student_courses[, platform_dwell_length := platform_end_date - platform_start_date] %>%
-  .[, platform_dwell_length := as.integer(platform_dwell_length)]  
-```
-
-**Note:** In `dplyr`, we need to close our sequence of operations with the function `ungroup()`, which removes object metadata on row groupings.   
-
-```{r}
-#-----group by student_id and summarise platform dwell length using dplyr-----
 dply_query_2 <- student_courses %>%
-  group_by(student_id) %>%
-  summarise(total_dwell = sum(platform_dwell_length),
-            min_dwell = min(platform_dwell_length),
-            median_dwell = median(platform_dwell_length),  
-            max_dwell = max(platform_dwell_length)) %>%
-  ungroup()   
+  group_by(id) %>%
+  summarise(total_days = sum(platform_length),
+            min_days = min(platform_length),
+            median_days = median(platform_length),  
+            max_days = max(platform_length)) %>%
+  ungroup() 
 
-#-----preview the first 4 rows-----   
+# Print the first 4 rows -------------------------------------------------------
 dply_query_2 %>%
-  head(4)
+  knitr::kable()  
 ```
+
+**Note:** In `dplyr`, we need to close our sequence of code with the function `ungroup()`, which removes object metadata to denote row groupings.   
 
 In `data.table`, we can choose which variable(s) to group by using either `by` or `keyby` in the `by` placeholder of `DT[i, j, by]`. The additional effect of using `keyby` is that `keyby` also orders the results and creates a secondary key for faster subsetting.       
 
 ```{r}
-#-----group by student_id and summarise total platform dwell length using data.table-----
+# Calculate total platform_length per student using data.table ----------------- 
 dt_query_2 <- student_courses[,
-                              .(total_dwell = sum(platform_dwell_length),
-                                min_dwell = min(platform_dwell_length),
-                                median_dwell = median(platform_dwell_length),
-                                max_dwell = max(platform_dwell_length)),
-                              by = student_id]
+                              .(total_days = sum(platform_length),
+                                min_days = min(platform_length),
+                                median_days = median(platform_length),
+                                max_days = max(platform_length)),
+                              keyby = id]
 
-#-----preview the first 4 rows-----  
-dt_query_2[1:4]  
+# Print the first 4 rows -------------------------------------------------------  
+dt_query_2 %>%
+  knitr::kable()
 ```
 
-The problem with this approach is that some students switch between courses on the same platform so the platform dwell length can be duplicated if we simply group by students IDs. To identify when this scenario occurs, we need to:  
-
-+ Concatenate the online platform and platform start date to create a new column.  
-+ Identify students where `length(unique(new_col)) > n()`.    
+The problem with this approach is that some students switch between courses on the same platform so the platform dwell length can be duplicated if we simply group by students IDs. We can identify how often this occurs by concatenating `id`, `platform` and `platform_start_date` and removing duplicate rows.   
 
 ```{r}
-#-----create platform_key using dplyr----- 
+# Identify duplicate rows using dplyr ------------------------------------------ 
 student_courses <- student_courses %>%
   mutate(platform_key = str_c(online_platform, platform_start_date, sep = "-"))
 
@@ -383,8 +500,7 @@ student_courses[student_id == "00040980",
                 !"platform_key"]  
 ```
 
-
-## Using `Pandas`      
+ 
 
 
 ## Group by and `lead` or `lag` operations   
@@ -392,8 +508,6 @@ student_courses[student_id == "00040980",
 
 # Other resources      
 
-+ The data analysis and visualisation in Python for ecologists Software Carpentry workshop on [indexing, slicing and subsetting DataFrames in Python](https://datacarpentry.org/python-ecology-lesson/03-index-slice-subset/index.html).   
++ A great side-by-side comparison of `data.table` versus `dplyr` functions from a [blog post by Atrebas](https://atrebas.github.io/post/2019-03-03-datatable-dplyr/).             
 
-+ A great side-by-side comparison of `data.table` versus `dplyr` functions from a [blog post by Atrebas](https://atrebas.github.io/post/2019-03-03-datatable-dplyr/).            
-
-+ A list of advanced `data.table` operations and tricks from a [blog post by Andrew Brooks](http://brooksandrew.github.io/simpleblog/articles/advanced-data-table/).   
++ A list of advanced `data.table` operations and tricks from a [blog post by Andrew Brooks](http://brooksandrew.github.io/simpleblog/articles/advanced-data-table/).    

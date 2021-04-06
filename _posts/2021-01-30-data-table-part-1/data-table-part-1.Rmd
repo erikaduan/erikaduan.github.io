@@ -1,7 +1,7 @@
 ---
 title: "Introduction to data.table"
 description: |
-  To data.table, dplyr or even to Pandas?    
+  To data.table or dplyr? That is the question.     
 author: Erika Duan
 date: 01-30-2021
 preview: finalplot.png 
@@ -9,30 +9,26 @@ categories:
   - data cleaning  
   - data.table  
   - dplyr
-  - Pandas
   - R  
-  - Python  
 output:
   distill::distill_article: 
     toc: true
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, results = 'hide') 
-knitr::knit_engines$set(python = reticulate::eng_python)  
+# Set up global environment ----------------------------------------------------
+knitr::opts_chunk$set(echo=TRUE, results='hide') 
 options(scipen=999)
 ```
 
 
 # Introduction   
 
-An inevitability of programming is that languages come and go. I am reminded of this when colleagues tell me about the first languages that they learnt or used in their academic research.  
+Programming languages are still human constructs. They hold sway when they are utilised *en mass*, like Python for machine learning, and user factions may emerge if very different ways of doing the same thing concurrently exist.      
 
-It's taken me a while to realise that programming languages are still human constructs - they hold sway when they are utilised en mass (i.e. Python for machine learning) and user factions may emerge if two very different ways of doing the same thing concurrently exist.      
+In R, this can manifest in the form of `data.table` versus `dplyr` debates. ^[I am extremely thankful for encountering these Twitter debates, as they helped draw more attention to `data.table` usage.]     
 
-In R, the latter can manifest in the form of `data.table` versus `dplyr` debates. ^[I am extremely thankful for these Twitter debates, as they first drew my attention to `data.table`.]    
-
-```{r, echo = FALSE, results = 'markup', fig.align = 'center', out.width = '60%'} 
+```{r, echo=FALSE, results='markup', fig.align='center', out.width='60%'} 
 knitr::include_graphics("../../images/2021-01-30_twitter-post-data-table.jpg")
 ```
 
@@ -40,32 +36,21 @@ Both R packages contain a comprehensive stack of functions for data wrangling. T
 
 Whilst I prefer to use `dplyr` on small datasets where `data.table` efficiency gains are negligible, I recommend using `data.table` when:      
 
-+ You are using very large datasets (datasets over 1 million rows) **and**   
++ You are using very large datasets (datasets over 0.5 million rows) **and**   
 + You need to use **group by** operations for data cleaning or feature engineering.         
 
 Let's explore this for ourselves.            
 
-```{r, message = FALSE, warning = FALSE}
-#-----load required packages-----  
+```{r, message=FALSE, warning=FALSE}
+# Load required packages -------------------------------------------------------  
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(here,
-               ids, # generate random ids
+               lobstr, # Trace objects in memory 
+               ids, # Generate random ids
+               DT, # Create interactive tables  
                tidyverse,
                data.table,
-               lobstr, # trace objects in memory  
-               DT, # create interactive tables  
-               microbenchmark,
-               reticulate)
-
-#-----set up the Python reticulate engine-----  
-conda_list() # list available conda environments
-use_condaenv("r-reticulate")
-```
-
-```{r, echo = FALSE}
-#-----set plugin to knit Python code chunks-----
-py_run_string("import os as os")
-py_run_string("os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = 'C:/Users/user/Anaconda3/envs/r-reticulate/Library/plugins/platforms'")    
+               microbenchmark)
 ```
 
 
@@ -73,116 +58,154 @@ py_run_string("os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = 'C:/Users/user/Anacon
 
 Imagine you have a dataset describing how students are engaging with online courses:     
 
-+ Each student has a unique ID.  
-+ There are 5 different online platforms (labelled platforms A, B, C, D and E).  
++ Each student has a unique ID.   
++ There are 5 different online platforms, labelled **A**, **B**, **C**, **D** and **E**.   
 + Students have the option of taking different courses within the same platform or switching to a different platform.   
-+ Start dates are recorded when the student starts the first course in a new platform.    
-+ End dates are also recorded when the student exits a platform.       
++ Platform start dates are recorded when the student starts the first course on a new platform.     
++ Platform end dates are recorded when the student exits a platform.    
++ Course start dates are recorded when the student starts a course.    
++ Course end dates are recorded when the student exits a course.    
 
 **Note:** The code used to create this dataset can be accessed from my github repository [here](https://github.com/erikaduan/R-tips/blob/master/03_blog_posts/2020-04-07_data-table-versus-dplyr/2020-04-07_data-table-versus-dplyr.md).    
 
-```{r, echo = FALSE}
-#-----create a function to generate random dates-----  
+```{r, echo=FALSE}
+# Create a function to generate random dates -----------------------------------
 create_start_dates <- function(start_date, end_date, n) {
+  # Assert requirement for character inputs 
   if(!is.character(start_date) | !is.character(end_date)) {
     stop("Error: start_date and end_date should be written in the format YYYY-mm-dd")
   }
   
+  # Convert character inputs into dates
   start_date <- as.Date(start_date, format = "%Y-%m-%d")
   end_date <- as.Date(end_date, format = "%Y-%m-%d")  
   
+  # Assert that end_date >= start_date  
   if(end_date < start_date) {
     stop("Error: start_date should be earlier than end_date")
   }
   
+  # Generate date vector of random dates between start_date and end_date
   set.seed(111)
-  new_date <- sample(seq(start_date, end_date, by = "day"),
-                     n,
-                     replace = T)
-  return(new_date)
+  sample(seq(start_date, end_date, by = "day"),
+         n,
+         replace = T)
 }  
 ```
 
-```{r, echo = FALSE}
-#-----create a test dataset of 500000 course enrollments-----
-# create 80000 unique student_ids and sample with replacement 500000 times  
+```{r, echo=FALSE}
+# Create a function to populate course_end_dates -------------------------------
+add_course_end_date <- function(df, include_n, row) {
+  df %>% 
+    group_by(join_key) %>% 
+    mutate(course_end_date = if_else(n_courses >= include_n & row_number() == row,
+                                     course_start_date + course_length,
+                                     course_end_date)) %>%
+    ungroup()
+}
+```
 
+```{r, echo=FALSE}
+# Create a function to populate course_start_dates -----------------------------
+add_course_start_date <- function(df, include_n, row) {
+  df %>% 
+    group_by(join_key) %>% 
+    mutate(course_start_date = if_else(n_courses >= include_n & row_number() == row,
+                                       lag(course_end_date),
+                                       course_start_date)) %>%
+    ungroup()
+}
+```
+
+```{r, echo=FALSE}
+# Create 500000 student enrollments --------------------------------------------
+# Create 150000 unique student IDs  
 set.seed(111)
-students <- random_id(n = 150000, bytes = 4,
-                      use_openssl = F) # so set.seed() works  
+students <- random_id(n = 150000,
+                      bytes = 4,
+                      use_openssl = F) # So set.seed() works  
 
-student_id <- sample(students, 500000,
-                     replace = T) %>%
+# Sample student IDs with replacement 500000 times 
+id <- sample(students, 500000,
+             replace = T) %>%
   sort()
 
-#-----simulate 5 platforms with different market shares----- 
-online_platform <- sample(LETTERS[1:5], 500000,
-                          replace = T,
-                          prob = c(0.35, 0.05, 0.1, 0.3, 0.2)) 
+# Simulate 5 platforms with different market shares  
+platform <- sample(LETTERS[1:5], 500000,
+                   replace = T,
+                   prob = c(0.35, 0.05, 0.1, 0.3, 0.2)) 
 
-#-----create 20 unique course_names-----
-courses <- c("R_beginner",
-             "R_intermediate",
-             "R_advanced",
-             "Python_beginner",
-             "Python_intermediate",
-             "Python_advanced",
-             "machine_learning",
-             "linear_algebra",
-             "statistics",
-             "UX_design",
-             "website_design",
-             "data_mining",
-             "travel_writing",
-             "bread_baking",
-             "pottery",
-             "poetry_writing",
-             "contemporary_dance",
-             "carpentry",
-             "metal_welding",
-             "fitness_training")  
+# Create 20 courses 
+all_courses <- c("R_beginner",
+                 "R_intermediate",
+                 "R_advanced",
+                 "Python_beginner",
+                 "Python_intermediate",
+                 "Python_advanced",
+                 "machine_learning",
+                 "linear_algebra",
+                 "statistics",
+                 "UX_design",
+                 "website_design",
+                 "data_mining",
+                 "travel_writing",
+                 "bread_baking",
+                 "pottery",
+                 "poetry_writing",
+                 "contemporary_dance",
+                 "carpentry",
+                 "metal_welding",
+                 "fitness_training")  
 
-online_course <- sample(courses, 500000,
-                        replace = T)  
+course <- sample(all_courses, 500000,
+                 replace = T)  
 
-student_courses <- tibble(index = seq(1, 500000, 1), # create an index to join by
-                          student_id,
-                          online_platform,
-                          online_course)
+# Create student_courses ------------------------------------------------------- 
+student_courses <- tibble(index = seq(1, 500000, 1), # index required for downstream joins
+                          id,
+                          platform,
+                          course)
+```
 
-#-----create platform_start_date-----  
+```{r, echo=FALSE}
+# Create platform_start_date and platform_end_date entries----------------------
+# Create join_key   
 platform_subset <- student_courses %>%
   select(index, 
-         student_id,
-         online_platform) %>% 
-  mutate(unique_group = str_c(student_id, online_platform, sep = "-")) %>%
-  group_by(student_id) %>%
-  mutate(previous_unique_group = lag(unique_group, 1)) %>%
-  ungroup()
+         id,
+         platform) %>% 
+  mutate(join_key = str_c(id, platform, sep = "-")) 
 
-# filter to keep rows representing the first time a student commences on a new platform      
+# Create lag_join_key  
+platform_subset <- platform_subset %>%
+  group_by(id) %>%
+  mutate(lag_join_key = lag(join_key, 1)) %>%
+  ungroup()  
+
+# Filter rows representing the first course a student takes on a new platform      
+platform_subset <- platform_subset %>%
+  filter(is.na(lag_join_key) | lag_join_key != join_key)
+
+# Create platform start_dates vector   
+start_dates <- create_start_dates(start_date = "2016-01-01",
+                                  end_date = "2019-01-01",  
+                                  n = nrow(platform_subset))
 
 platform_subset <- platform_subset %>%
-  filter(is.na(previous_unique_group) | previous_unique_group != unique_group)
+  mutate(platform_start_date = start_dates)
 
-platform_start_date <- create_start_dates(start_date = "2016-01-01", end_date = "2019-01-01",  
-                                          n = nrow(platform_subset))
-
-platform_subset <- platform_subset %>%
-  mutate(platform_start_date = platform_start_date)
-
-#-----create provider_end_date-----
-# create random course lengths 
-
+# Create platform_end_date as platform_start_date + random platform_length 
 set.seed(111)
 platform_length <- runif(nrow(platform_subset),
-                         min = 9, max = 60) %>%
-  floor(.)
+                         min = 9, max = 90) %>%
+  floor(.) 
+
+# Round platform_length to a whole number i.e. whole day for date calculations   
 
 platform_subset <- platform_subset %>%
-  mutate(platform_end_date = platform_start_date + platform_length)
+  mutate(platform_end_date = platform_start_date + platform_length)  
 
-#-----left join online_course to provider_subset by index-----
+# Left join student_course and provider_subset by index-------------------------
 platform_subset <- platform_subset %>%
   select(index,
          platform_start_date,
@@ -194,27 +217,140 @@ student_courses <- left_join(student_courses,
 
 student_courses <- student_courses %>%
   fill(c(platform_start_date, platform_end_date), 
-       .direction = "up")  
+       .direction = "up") # NA inherits the value above    
 
 student_courses <- student_courses %>%
   select(-index)   
-
-#TODO create course start date and course end date 
-# course start date is a random number between platform start and end date for subsequent courses on same platform
 ```
 
-```{r, echo = FALSE}
-#-----remove all objects except student_courses-----  
+```{r, echo=FALSE}
+# Create course_start_date and course_end_date entries ------------------------- 
+# Sort by id, platform start_date and platform   
+student_courses <- student_courses %>%
+  arrange(id, 
+          platform_start_date,
+          platform)
+
+# Split student_courses into one_course and multiple_courses 
+# Create join_key 
+student_courses <- student_courses %>%
+  mutate(platform_length = platform_end_date - platform_start_date,
+         join_key = str_c(id, platform_start_date, platform, sep = "-"))
+
+# Create lag_join_key 
+student_courses <- student_courses %>%
+  group_by(id) %>% 
+  mutate(lag_join_key = lag(join_key)) %>%
+  ungroup()
+
+# Multiple courses exists when multiple rows share the same join_key     
+multiple_courses_id <- student_courses %>%
+  count(join_key) %>%
+  filter(n > 1) %>%
+  pull(join_key)
+
+multiple_courses <- student_courses %>%
+  filter(join_key %in% multiple_courses_id)
+
+single_course <- student_courses %>%
+  filter(!join_key %in% multiple_courses_id)
+
+# Create course date logic for single_course------------------------------------  
+single_course <- single_course %>%
+  mutate(course_start_date = platform_start_date,
+         course_end_date = platform_end_date) 
+
+# Create course date logic for multiple_courses---------------------------------
+# Check maximum number of courses undertaken on the same platform
+multiple_courses %>%
+  count(join_key) %>% 
+  ungroup() %>%
+  pull(n) %>%
+  max()  
+#> [1] 7
+
+# Populate first course_start_date and last course_end_date for all cases    
+set.seed(111)
+multiple_courses <- multiple_courses %>%
+  group_by(join_key) %>%
+  mutate(n_courses = n(),
+         course_start_date = if_else(row_number() == 1, platform_start_date,
+                                     NA_real_),
+         course_end_date = if_else(row_number() == n(), platform_end_date,
+                                   NA_real_),
+         course_length = runif(n = n(), min = 1, max = platform_length / n_courses) %>% ceiling()) %>%
+  ungroup()
+
+# Populate first course_end_date for all cases  
+multiple_courses <- multiple_courses %>% 
+  group_by(join_key) %>% 
+  mutate(course_end_date = if_else(!is.na(course_start_date),
+                                   course_start_date + course_length,
+                                   course_end_date)) %>%
+  ungroup()
+
+# Populate second course_start_date when n_courses >= 2
+multiple_courses <- add_course_start_date(multiple_courses, include_n = 2, row = 2)
+
+# Populate second course_end_date when n_courses >= 3  
+multiple_courses <- add_course_end_date(multiple_courses, include_n = 3, row = 2)
+
+# Populate third course_start_date when n_courses >= 3  
+multiple_courses <- add_course_start_date(multiple_courses, include_n = 3, row = 3)
+
+# Populate third course_end_date when n_courses >= 4  
+multiple_courses <- add_course_end_date(multiple_courses, include_n = 4, row = 3)
+
+# Populate fourth course_start_date when n_courses >= 4  
+multiple_courses <- add_course_start_date(multiple_courses, include_n = 4, row = 4)
+
+# Populate fourth course_end_date when n_courses >= 5  
+multiple_courses <- add_course_end_date(multiple_courses, include_n = 5, row = 4)
+
+# Populate fifth course_start_date when n_courses >= 5  
+multiple_courses <- add_course_start_date(multiple_courses, include_n = 5, row = 5)
+
+# Populate fifth course_end_date when n_courses >= 6  
+multiple_courses <- add_course_end_date(multiple_courses, include_n = 6, row = 5)
+
+# Populate sixth course_start_date when n_courses >= 6  
+multiple_courses <- add_course_start_date(multiple_courses, include_n = 6, row = 6)
+
+# Populate sixth course_end_date when n_courses >= 7  
+multiple_courses <- add_course_end_date(multiple_courses, include_n = 7, row = 6)
+
+# Populate seventh course_start_date when n_courses >= 7  
+multiple_courses <- add_course_start_date(multiple_courses, include_n = 7, row = 7)
+
+# Bind all rows and re-order student_courses -----------------------------------    
+student_courses <- bind_rows(single_course,
+                             multiple_courses)
+
+student_courses <- student_courses %>%
+  select(-c(platform_length,
+            course_length,
+            n_courses,
+            join_key,
+            lag_join_key))  
+
+student_courses <- student_courses %>%
+  arrange(id,
+          platform_start_date,
+          platform)
+```
+
+```{r, echo=FALSE}
+# Remove all objects except student_courses-------------------------------------  
 rm(list = setdiff(ls(), "student_courses"))
 gc()
 ```
 
 We can interactively examine the first 20 rows of the dataset using the R package `DT`.      
 
-```{r, echo = FALSE, results = 'markup'}
-#-----examine the first few rows of data-----  
+```{r, echo=FALSE, results='markup'}
+# Examine the first 12 rows of data--------------------------------------------  
 student_courses %>%
-  head(20) %>%
+  head(12) %>%
   datatable(rownames = F,
             options = list(pageLength = 6, dom = 'tip',
                            initComplete = JS(
@@ -231,14 +367,15 @@ In R, datasets exist as `data.frame` type objects. To apply `data.table` functio
 This function is flexible as it converts a `data.frame` by reference (i.e. without creating a duplicate `data.table` copy) and assigns both `data.table` and `data.frame` classes to the converted object.    
 
 ```{r}
-#-----convert data frame into data.table-----  
+# Convert data frame into data.table -------------------------------------------  
 class(student_courses)
 #> [1] "tbl_df"     "tbl"        "data.frame"
 
 mem_used()
 #> 222,639,352 B
 
-tracemem(student_courses) # track object assignment in memory  
+# Track object assignment in memory  
+tracemem(student_courses)   
 #> [1] "<0000022B07B7AB70>"   
 
 setDT(student_courses) # data.table is assigned to a new location in memory   
@@ -246,8 +383,10 @@ setDT(student_courses) # data.table is assigned to a new location in memory
 
 untracemem(student_courses)   
 
-mem_used() # note that computer memory has not doubled following setDT()    
+mem_used()     
 #> 242,674,176 B  
+
+# Note that computer memory has not doubled following setDT()  
 
 class(student_courses)
 #> [1] "data.table" "data.frame"    
@@ -262,7 +401,7 @@ A `data.table` query is structured in the form `DT[i, j, by]` where:
 + Data column selection or creation is performed in the `j` placeholder.       
 + Grouping data by variable(s) is performed in the `by` placeholder.        
 
-```{r, echo = FALSE, results = 'markup', fig.align = 'center', out.width = '80%'} 
+```{r, echo=FALSE, results='markup', fig.align='center', out.width='80%'} 
 knitr::include_graphics("../../images/2021-01-30_DT-query-structure.jpg")
 ```
 
@@ -277,18 +416,18 @@ There are a few reasons why `data.table` operations are fast:
 + You can use the operator `:=` to add, delete or modify columns in place, which is a faster alternative to R's default copy-on-modify behaviour.     
 
 ```{r}
-#-----create data.frame and data.table objects----- 
+# Create data.frame and data.table objects ------------------------------------- 
 df <- data.frame(id = seq(1:5),
                  letter = letters[1:5])
 
 dt <- as.data.table(df)  
 
-#-----update a data.frame column using copy-on-modify----- 
+# Update data.frame column using copy-on-modify -------------------------------- 
 df_2 <- df %>%
   mutate(letter = toupper(letter)) 
 
-# the new data frame is a shallow copy of the original data frame 
-# only modified columns are newly created in memory     
+# The new data frame is a shallow copy of the original data frame as
+# only modified columns are newly created in memory.       
 
 ref(df, df_2)
 #> o [1:0x22b03b6c998] <df[,2]> 
@@ -299,7 +438,7 @@ ref(df, df_2)
 #> +-id = [2:0x22b7f3f6350] 
 #> \-letter = [5:0x22b05f9b890] <chr> 
 
-#-----update a data.table column by reference-----
+# Update data.table column by reference ----------------------------------------
 obj_addr(dt)
 #> [1] "0x22b016ed030"
 
@@ -309,8 +448,8 @@ obj_addr(dt)
 #> [1] "0x22b016ed030"  
 ```
 
-```{r, results = 'markup'}
-dt # check that dt has been modified in place    
+```{r, results='markup'}
+dt # Check that dt has been modified in place      
 ```
 
 **Note:** You do not need to assign datasets to names when modifying by reference using the `:=` operator.         
@@ -324,144 +463,73 @@ dt # check that dt has been modified in place
 The syntax for filtering data is very similar for `dplyr` and `data.table`. 
 
 ```{r}
-#-----filter student_courses using dplyr-----    
+# Filter student_courses using dplyr -------------------------------------------    
+# Filter by platform A 
 student_courses %>%
-  filter(online_platform == "A") 
+  filter(platform == "A")  
 
+# Filter by all platforms excepting A  
 student_courses %>%
-  filter(online_platform != "A") 
+  filter(platform != "A") 
 
+# Filter by platforms A and C    
 student_courses %>%
-  filter(online_platform %in% c("A", "C")) 
+  filter(platform %in% c("A", "C")) 
 
+# Using a comma is a substitute for the condition 'and' 
 student_courses %>%
-  filter(student_id == "00007f23", # a comma represents the condition and/&
+  filter(id == "00007f23", 
         between(platform_start_date, "2017-01-01", "2017-12-31"))
 
+# Filter by a variable using regex   
 student_courses %>%
-  filter(str_detect(online_course, "^R_")) 
+  filter(str_detect(course, "^R_")) 
 ```
 
 A difference is that `data.table` also contains a list of helper functions with optimised performance for filtering on specific data types like characters or integers.       
 
 ```{r}
-#-----filter student_courses using data.table-----  
-student_courses[online_platform == "A"] 
+# Filter student_courses using data.table --------------------------------------  
+# Filter by platform A 
+student_courses[platform == "A"] 
 
-student_courses[online_platform != "A"] 
+# Filter by all platforms excepting A   
+student_courses[platform != "A"] 
 
-student_courses[online_platform %chin% c("A", "C")] 
+# Operator %chin% is equivalent to but much faster than %in%  
+student_courses[platform %chin% c("A", "C")] 
 
-student_courses[student_id == "00007f23" & platform_start_date %between% c("2017-01-01", "2017-12-31")]  
+# Operator %between% allows you to search for values in a closed inclusive interval 
+student_courses[id == "00007f23" & platform_start_date %between% c("2017-01-01", "2017-12-31")]  
 
-student_courses[online_course %like% "R_"]
-
-# %chin% is equivalent to but much faster than %in%  
-# %like% allows you to search for a pattern in a character vector 
-# %between% allows you to search for values in a closed interval  
-```
-
-
-## Using `Pandas`    
-
-And because R versus Python language wars are unnecessary, let's filter the same dataset using the Python `Pandas` package and benchmark the results. 
-
-**Note:** Objects generated in R only exist within the R environment. To share data between R <> Python environments, we need to convert R `data.frames` into Pandas `DataFrames` by calling them into the Python environment.    
-
-```{python, message = FALSE}
-#-----convert R data.frame object into the Python environment-----  
-import pandas as pd  
-
-pd_courses = r.student_courses # call R data.frame into Python environment  
-
-# convert pd_courses date columns using pd.to_datetime  
-
-pd_courses["platform_start_date"] = pd.to_datetime(pd_courses["platform_start_date"])  
-pd_courses["platform_end_date"] = pd.to_datetime(pd_courses["platform_end_date"]) 
-```
-
-```{python}
-#-----filter pd_courses using Pandas----- 
-pd_courses[pd_courses["online_platform"] == "A"]  
-pd_courses[pd_courses["online_platform"] != "A"]   
-pd_courses[pd_courses["online_platform"].isin(["A", "C"])]   
-pd_courses[pd_courses["online_course"].str.startswith("R_")]    
-# str.startswith() does not accept regex input i.e. "^R_" does not work 
-```
-
-```{python}
-#-----create separate conditions to filter complex multiple conditions-----  
-student = pd_courses["student_id"] == "00007f23" 
-date_start = pd_courses["platform_start_date"] >= "2017-01-01"
-date_end = pd_courses["platform_start_date"] <= "2017-12-31"
-
-pd_courses[student & date_start & date_end] 
+# Operator %like% allows you to search for a pattern in a character vector 
+student_courses[course %like% "R_"]  
 ```
 
 
 ## Benchmark data filtering   
 
-You can use the R package `microbenchmark` and Python package `timeit` to measure code performance. ^[For accurate benchmarking in R, you need to separately run, save and print `microbenchmark()` outputs rather than directly knitting results.]       
+You can use the R package `microbenchmark` to measure code performance. ^[For accurate benchmarking, you need to separately run, save and print `microbenchmark()` outputs rather than directly knitting results.]        
 
-The R function `microbenchmark()` runs each expression 100 times by default with the argument `times = 100L`. It outputs summary statistics for how long it takes to evaluate a single expression.  
+The function `microbenchmark()` runs each expression 100 times by default with the argument `times = 100L`. It outputs summary statistics on how long it takes to evaluate a single expression.   
 
-The Python  function `timeit()` runs each expression 1,000,000 times by default and outputs in seconds the time taken to evaluate everything. We will change the latter number to 100 times with the argument `number = 100` to match our R `microbenchmark()` input.         
-
-```{r, echo = FALSE, results = 'markup'}
-#-----benchmark dplyr and data.table functions-----  
+```{r, echo=FALSE, results='markup'}
+# Benchmark dplyr and data.table functions -------------------------------------  
 if (!file.exists(here("data", "data-table-benchmarks", "fmb.rds"))) {
   
-  fmb <- microbenchmark(filter(student_courses, online_platform == "A"),
-                        student_courses[online_platform == "A"],
-                        filter(student_courses, online_platform %in% c("A", "C")),
-                        student_courses[online_platform %chin% c("A", "C")],
-                        filter(student_courses, str_detect(online_course, "^R_")),
-                        student_courses[online_course %like% "R_"]) 
+  fmb <- microbenchmark(filter(student_courses, platform == "A"),
+                        student_courses[platform == "A"],
+                        filter(student_courses, platform %in% c("A", "C")),
+                        student_courses[platform %chin% c("A", "C")],
+                        filter(student_courses, str_detect(course, "^R_")),
+                        student_courses[course %like% "R_"]) 
   
   saveRDS(fmb, here("data", "data-table-benchmarks", "fmb.rds"))
 }
 
+# Print summary table ----------------------------------------------------------
 fmb <- readRDS(here("data", "data-table-benchmarks", "fmb.rds"))
 knitr::kable(summary(fmb), caption = "Units: milliseconds")    
-```
-
-```{python, echo = FALSE}
-#-----print timeit outputs-----   
-import timeit
-
-filter_a = '''
-def filter_a():
-  pd_courses[pd_courses["online_platform"] == "A"]
-'''
-
-filter_ac = '''
-def filter_ac():
-  pd_courses[pd_courses["online_platform"].isin(["A", "C"])]
-'''
-
-filter_str_r = '''
-def filter_str_r():
-  pd_courses[pd_courses["online_course"].str.startswith("R_")] 
-'''
-
-# total timeit output needs to be converted from seconds into milliseconds      
-# total timeit output needs to be divided by the number of iterations 
-
-output_a = 10 * timeit.timeit(filter_a, number = 100)
-output_ac = 10 * timeit.timeit(filter_ac, number = 100)
-output_r = 10 * timeit.timeit(filter_str_r, number = 100)
-```
-
-```{r, echo = FALSE, results = 'markup'}
-pandas_mb <- data.frame("expr" = c('pd_courses[pd_courses["online_platform"] == "A"]',
-                                   'pd_courses[pd_courses["online_platform"].isin(["A", "C"])]',
-                                   'pd_courses[pd_courses["online_course"].str.startswith("R_")]'),
-                        "mean" = c(py$output_a, 
-                                   py$output_ac,
-                                   py$output_r),
-                        "neval" = rep(100, 3))  
-
-knitr::kable(pandas_mb, caption = "Units: milliseconds")     
 ```
 
 
@@ -470,96 +538,59 @@ knitr::kable(pandas_mb, caption = "Units: milliseconds")
 
 ## Using `dplyr` versus `data.table`    
 
-Sorting a dataframe can be computationally expensive when you need to order your dataset by multiple variables. This is why I only sort my dataframe once, at the start of the data cleaning workflow after basic data cleaning operations have been performed.         
+Sorting a data frame can be computationally expensive when multiple variables need to be ranked. This is why I recommending sorting your dataset once, right after basic data cleaning operations have been performed.         
 
 ```{r}
-#-----sort data using dplyr-----    
+# Sort student_courses using dplyr ---------------------------------------------   
 student_courses %>%
-  arrange(student_id) 
+  arrange(course_start_date) 
 
 student_courses %>%
-  arrange(student_id,
-          online_platform,
+  arrange(platform,
+          id, 
           desc(platform_start_date)) 
 
-# a descending start date shows the most recent dates first  
+# Sorting by a descending date ranks the most recent date as first  
 ```
 
-In `data.table`, data sorting is also performed inside `i` of `DT[i, j, by]`. Using the operator `-` in front of a variable allows sorting by descending order.     
+In `data.table`, sorting is also performed inside `i` of `DT[i, j, by]`. Using the operator `-` in front of a variable allows sorting by descending order.     
 
 ```{r}
-#-----sort student_courses using data.table----- 
-student_courses[order(student_id)]  
+# Sort student_courses using data.table ---------------------------------------- 
+student_courses[order(course_start_date)]  
 
-student_courses[order(student_id,
-                      online_platform,
+student_courses[order(platform,
+                      id,
                       -platform_start_date)]  
 
-# you can also order columns in place using setorder()  
-
+# You can also order columns in place using setorder()
 setorder(student_courses,
-         student_id, online_platform, -platform_start_date)  
-```
-
-
-## Using `Pandas`   
-
-```{python}
-#-----sort student_courses using Pandas----- 
-pd_courses.sort_values("student_id")
-pd_courses.sort_values(["student_id", "online_platform", "platform_start_date"],
-                       ascending = [True, True, False])  
-                       
-# for ascending, True sorts in ascending order and False sorts in descending order 
+         id,
+         platform_start_date,
+         course_start_date)  
 ```
 
 
 ## Benchmark data sorting   
 
-We can see that the `order()` method from `data.table` sorts data much faster than its equivalent `dplyr` function.        
+You can see that `order()` from `data.table` sorts data much faster than its equivalent `dplyr` function.    
 
-```{r, echo = FALSE, results = 'markup'}
-#-----benchmark dplyr and data.table functions-----  
+```{r, echo=FALSE, results='markup'}
+# Benchmark dplyr and data.table functions -------------------------------------  
 if (!file.exists(here("data", "data-table-benchmarks", "smb.rds"))) {
   
-  smb <- microbenchmark(arrange(student_courses, student_id),
-                        student_courses[order(student_id)],
-                        arrange(student_courses, student_id, online_platform, desc(platform_start_date)),  
-                        student_courses[order(student_id, online_platform, -platform_start_date)],
-                        times = 10)
+  smb <- microbenchmark(arrange(student_courses, course_start_date),
+                        student_courses[order(course_start_date)],
+                        arrange(student_courses, platform, id, desc(platform_start_date)),  
+                        student_courses[order(platform, id, -platform_start_date)],
+                        times = 25)
   
   saveRDS(smb, here("data", "data-table-benchmarks", "smb.rds"))
 }
 
+# Print summary table ----------------------------------------------------------
 smb <- readRDS(here("data", "data-table-benchmarks", "smb.rds"))
 knitr::kable(summary(smb), caption = "Units: milliseconds")
-```
-
-```{python, echo = FALSE}
-#-----print timeit outputs-----   
-sort_1_cols = '''
-def sort_1_cols():
-  pd_courses.sort_values("student_id")
-'''
-
-sort_3_cols = '''
-def sort_3_cols():
-  pd_courses.sort_values(["student_id", "online_platform", "platform_start_date"],
-                         ascending = [True, True, False])
-'''
-
-output_sort_1_cols = 10 * timeit.timeit(sort_1_cols, number = 100)
-output_sort_3_cols = 10 * timeit.timeit(sort_3_cols, number = 100)
-```
-
-```{r, echo = FALSE, results = 'markup'}
-pandas_mb <- data.frame("expr" = c('pd_courses.sort_values("student_id")',
-                                   'pd_courses.sort_values(["student_id", "online_platform", "platform_start_date"],\nascending = [True, True, False])'),
-                        "mean" = c(py$output_sort_1_cols, 
-                                   py$output_sort_3_cols),
-                        "neval" = rep(100, 2))  
-
-knitr::kable(pandas_mb, caption = "Units: milliseconds")     
 ```
 
 
@@ -568,28 +599,29 @@ knitr::kable(pandas_mb, caption = "Units: milliseconds")
 
 ## Using `dplyr` versus `data.table`  
 
-In `dplyr`, performing operations on a tibble will always return another data frame, unless you explicitly use `pull()` to extract a column as a vector.  
+In `dplyr`, performing operations on a tibble will always return another data frame, unless you explicitly use `pull()` to extract a column as a vector.   
 
 ```{r}
-#-----select column(s) using dplyr-----   
+# Select column(s) using dplyr -------------------------------------------------   
 student_courses %>%
-  select(student_id)
+  select(id)
 
 student_courses %>%
-  select(c(student_id, online_platform, online_course))
+  select(c(id, platform, course))
 
+# Select columns(s) using regex  
 student_courses %>%
   select(contains("date", ignore.case = F))
 
-#-----output a data.frame with select()-----
+# Output data.frame with select() ----------------------------------------------
 student_courses %>%
-  select(student_id) %>%
+  select(id) %>%
   class()
 #> [1] "data.table" "data.frame"  
 
-#-----output a vector with pull()-----
+# Output vector with pull() ----------------------------------------------------
 student_courses %>%
-  pull(student_id) %>%
+  pull(id) %>%
   class()
 #> [1] "character"
 ```
@@ -597,15 +629,16 @@ student_courses %>%
 In `data.table`, column selection is performed inside `j` of `DT[i, j, by]` and returns a `data.table` if you wrap column names inside a list.   
 
 ```{r}  
-#-----select column(s) using data.table-----  
+# Select column(s) using data.table --------------------------------------------  
 student_courses[,
-                .(student_id)]
+                .(id)]
 
 student_courses[,
-                .(student_id,
-                  online_platform,
-                  online_course)]
+                .(id,
+                  platform,
+                  course)]
 
+# Select column(s) using regex  
 grep("date", names(student_courses), value = T)
 #> [1] "platform_start_date" "platform_end_date" 
 
@@ -613,92 +646,38 @@ student_courses[,
                 grep("date", names(student_courses), value = T), 
                 with = F]
 
-#-----output a data frame by wrapping column names inside a list-----  
-class(student_courses[, .(student_id)])
+# Output data frame by wrapping column names inside a list ---------------------  
+class(student_courses[, .(id)])
 #> [1] "data.table" "data.frame"   
 
-#-----output a vector-----
-class(student_courses[, student_id])  
+# Output vector with [[x]] -----------------------------------------------------
+class(student_courses[, id])  
 #> [1] "character"
 
-class(student_courses[["student_id"]])  
+class(student_courses[["id"]])  
 #> [1] "character"
 ```   
 
 
-## Using `Pandas`    
-
-Selecting a single column will return a Pandas Series or DataFrame, depending on whether you wrap the column selection inside single versus double square brackets respectively.   
-
-**Note:** The syntax for selecting columns using regex may be confusing to R users, as it is done by applying the `.filter(regex = "pattern")` method to the Pandas DataFrame.     
-
-```{python}
-#-----select column(s) using using Pandas-----   
-pd_courses[["student_id"]]
-pd_courses[["student_id", "online_platform", "online_course"]]
-pd_courses.filter(regex = "date")
-```
-
-```{python}
-#-----output a Pandas DataFrame-----
-type(pd_courses[["student_id"]])
-#> <class 'pandas.core.frame.DataFrame'>
-```
-
-```{python}
-#-----output a Pandas Series or list-----
-type(pd_courses["student_id"])
-#> <class 'pandas.core.series.Series'> 
-
-type(list(pd_courses["student_id"]))
-#> <class 'list'>   
-```
-
-
 ## Benchmark column selection     
 
-Interestingly, benchmarking shows that `dplyr` performs slightly faster than `data.table` for column selections.  
+Interestingly, the benchmark below shows that `dplyr` is slightly faster than `data.table` for column selections.   
 
-```{r, echo = FALSE, results = 'markup'}
-#-----benchmark dplyr and data.table functions-----  
+```{r, echo=FALSE, results='markup'}
+#Benchmark dplyr and data.table functions --------------------------------------  
 if (!file.exists(here("data", "data-table-benchmarks", "slmb.rds"))) {
   
-  slmb <- microbenchmark(select(student_courses, c(student_id, online_platform, online_course)),   
-                         student_courses[, .(student_id, online_platform, online_course)],
+  slmb <- microbenchmark(select(student_courses, c(id, platform, course)),   
+                         student_courses[, .(id, platform, course)],
                          select(student_courses, contains("date", ignore.case = F)), 
                          student_courses[, grep("date", names(student_courses), value = T), with = F],
                          times = 100)  
   saveRDS(slmb, here("data", "data-table-benchmarks", "slmb.rds")) 
 } 
 
+# Print summary table ----------------------------------------------------------
 slmb <- readRDS(here("data", "data-table-benchmarks", "slmb.rds"))   
 knitr::kable(summary(slmb), caption = "Units: milliseconds")    
-```
-
-```{python, echo = FALSE, message = FALSE, results = 'markup'}
-#-----print timeit outputs-----   
-select_3_cols = '''
-def select_3_cols():
-  pd_courses[["student_id", "online_platform", "online_course"]]  
-'''
-
-select_dates = '''
-def select_dates():
-  pd_courses.filter(regex = "date")   
-'''
-
-output_select_3_cols = 10 * timeit.timeit(select_3_cols, number = 100)
-output_select_dates = 10 * timeit.timeit(select_dates, number = 100)
-```
-
-```{r, echo = FALSE, results = 'markup'}
-pandas_mb <- data.frame("expr" = c('pd_courses[["student_id", "online_platform", "online_course"]]',
-                                   'pd_courses.filter(regex = "date")'),
-                        "mean" = c(py$output_select_3_cols, 
-                                   py$output_select_dates),
-                        "neval" = rep(100, 2))    
-
-knitr::kable(pandas_mb, caption = "Units: milliseconds")     
 ```
 
 
@@ -707,27 +686,29 @@ knitr::kable(pandas_mb, caption = "Units: milliseconds")
 
 ## Using `dplyr` versus `data.table`  
 
-In `dplyr` version >= 1.0.0, we can use `mutate()` in combination with `across()` to create new columns or apply transformations across one or multiple columns. A shallow `data.frame` copy is created whenever a column is modified, which we then assign a name to.    
+In `dplyr` version >= 1.0.0, you can use `mutate()` in combination with `across()` to create new columns or apply transformations across one or multiple columns.   
+
+A shallow `data.frame` copy is created whenever a column is modified, which you then assign a name to.   
 
 ```{r}
-#-----create column(s) using dplyr-----  
-# create new columns 
+# Create column(s) using dplyr -------------------------------------------------  
+# Create new columns from existing variables   
 student_courses <- student_courses %>%
   mutate(platform_dwell_length = platform_end_date - platform_start_date,
          platform_start_year = as.numeric(str_extract(platform_start_date, "^.{4}(?!//-)")))
 
-#-----create a new column by evaluating multiple conditions using dplyr-----  
-str_subset(unique(student_courses$online_course), "^R_")
+# Create column(s) with multiple conditions using dplyr ------------------------  
+str_subset(unique(student_courses$course), "^R_")
 #> [1] "R_beginner"     "R_advanced"     "R_intermediate"
-str_subset(unique(student_courses$online_course), "^Python_")
+str_subset(unique(student_courses$course), "^Python_")
 #> [1] "Python_intermediate" "Python_advanced"     "Python_beginner"    
 
 student_courses <- student_courses %>%
-  mutate(studied_programming = case_when(str_detect(online_course, "^R_") ~ "Studied R",
-                                         str_detect(online_course, "^Python_") ~ "Studied Python",
+  mutate(studied_programming = case_when(str_detect(course, "^R_") ~ "Studied R",
+                                         str_detect(course, "^Python_") ~ "Studied Python",
                                          TRUE ~ "No"))    
 
-#-----remove newly created columns using dplyr-----  
+# Remove newly created columns using dplyr -------------------------------------  
 student_courses <- student_courses %>%
   select(-c(platform_dwell_length,
             platform_start_year, 
@@ -736,13 +717,12 @@ student_courses <- student_courses %>%
 
 Data frame outputs are slightly different in `data.table`:     
 
-+ One or multiple transformations are modified in place using the operator `:=`, providing that newly created columns are not concurrently referenced.        
-+ Use subassignment to only extract the columns transformed inside `j` of `DT[i, j, by]`.  
-
-**Note:** You can modify multiple columns in place using the `:=` operator as long as each column is created from pre-existing variables.      
++ Column transformations are always modified in place using the operator `:=`.    
++ Multiple columns can be concurrently modified, as long as the newly created columns do not depend on each other.    
++ Use subassignment to only extract the columns transformed inside `j` of `DT[i, j, by]`.    
 
 ```{r}
-#-----create column(s) using data.table-----  
+# Create column(s) using data.table --------------------------------------------  
 student_courses[,
                 `:=` (platform_dwell_length = platform_end_date - platform_start_date,
                       platform_start_year = str_extract(platform_start_date, "^.{4}(?!//-)"))] 
@@ -750,15 +730,15 @@ student_courses[,
 student_courses[,
                 platform_start_year := as.numeric(platform_start_year)]  
 
-#-----create a new column by evaluating multiple conditions using data.table-----
+# Create column(s) with multiple conditions using data.table -------------------
 student_courses[,
                 studied_programming := fcase(
-                  str_detect(online_course, "^R_"), "Studied R",
-                  str_detect(online_course, "^Python_"), "Studied Python",
-                  default = "No"
-                )]
+                  str_detect(course, "^R_"), "Studied R",
+                  str_detect(course, "^Python_"), "Studied Python",
+                  default = "No")]  
 
-#-----remove newly created columns using data.table-----
+# Remove newly created columns using data.table --------------------------------
+# Column(s) can be removed by assignment as NULL variable(s)  
 student_courses[,
                 c("platform_dwell_length",
                   "platform_start_year",
@@ -766,110 +746,42 @@ student_courses[,
 ```
 
 ```{r}
-#-----only columns transformed inside j will be kept-----  
-# use subassignment if you want to only subset the transformed columns     
+# Only columns transformed inside j are kept ----------------------------------- 
+# Use subassignment only if you want to subset the transformed columns     
 platform_records <- student_courses[,
-                                    .(id = toupper(student_id),
-                                      platform = tolower(online_platform))]  
+                                    .(id = toupper(id),
+                                      platform = tolower(platform))]  
 
 ncol(platform_records)
 #> [1] 2  
 ```
 
 
-## Using `Pandas`    
-
-In `Pandas`, we can create new columns by directing applying operations onto columns or using `apply()` or `applymap()` with functions to transform single columns or element-wise across the entire data frame respectively.    
-
-```{python}
-#-----create column(s) using Pandas-----
-# create new columns  
-pd_courses["platform_dwell_length"] = (pd_courses["platform_end_date"] - pd_courses["platform_start_date"]).dt.days  
-pd_courses["platform_start_year"] = pd_courses["platform_start_date"].dt.year   
-```
-
-```{python}
-#-----create a new column by evaluating multiple conditions using Pandas-----   
-def clean_course_lan(value):
-    if value.startswith("R_"):
-        return "Studied R"   
-    elif value.startswith("Python_"):
-        return "Studied Python"
-    else:
-        return "No"   
-      
-pd_courses["studied_programming"] = pd_courses["online_course"].apply(clean_course_lan)   
-
-# .apply(axis = 0) is the default argument i.e. apply function to each column     
-```
-
-```{python}
-#-----remove newly created columns using Pandas----- 
-pd_courses.drop(columns = ["platform_dwell_length", "platform_start_year","studied_programming"],
-                inplace = True)
-```
-
-
 ## Benchmark column creation            
 
-```{r, echo = FALSE, results = 'markup'}
-#-----benchmark dplyr and data.table functions-----  
+```{r, echo=FALSE, results='markup'}
+# Benchmark dplyr and data.table functions -------------------------------------  
 if (!file.exists(here("data", "data-table-benchmarks", "ccmb.rds"))) {
   
   ccmb <- microbenchmark(mutate(student_courses,
                                 platform_dwell_length = platform_end_date - platform_start_date),
                          student_courses[, "platform_dwell_length" := platform_end_date - platform_start_date], 
                          dplyr_case_when = mutate(student_courses,
-                                                  studied_programming = case_when(str_detect(online_course, "^R_") ~ "Studied R",
-                                                                                  str_detect(online_course, "^Python_") ~ "Studied Python",
+                                                  studied_programming = case_when(str_detect(course, "^R_") ~ "Studied R",
+                                                                                  str_detect(course, "^Python_") ~ "Studied Python",
                                                                                   TRUE ~ "No")),    
                          data.table_fcase = student_courses[, studied_programming := fcase(
-                           str_detect(online_course, "^R_"), "Studied R",
-                           str_detect(online_course, "^Python_"), "Studied Python",
+                           str_detect(course, "^R_"), "Studied R",
+                           str_detect(course, "^Python_"), "Studied Python",
                            default = "No")], 
                          times = 100)  
   
   saveRDS(ccmb, here("data", "data-table-benchmarks", "ccmb.rds"))
 }
 
+# Print summary table ----------------------------------------------------------
 ccmb <- readRDS(here("data", "data-table-benchmarks", "ccmb.rds"))
 knitr::kable(summary(ccmb), caption = "Units: milliseconds")   
-```
-
-```{python, echo = FALSE, message = FALSE, results = 'markup'}
-#-----print timeit outputs-----   
-transform_diff_days = '''
-def transform_diff_days():
-  pd_courses["platform_dwell_length"] = (pd_courses["platform_end_date"] - pd_courses["platform_start_date"]).dt.days     
-'''
-
-setup_apply_lan = '''
-def clean_lan(value):
-  if value.startswith("R_"):
-    return "Studied R"   
-  elif value.startswith("Python_"):
-    return "Studied Python"
-  else:
-    return "No"
-'''
-
-apply_lan = '''
-def transform_programming():
-  pd_courses["studied_programming"] = pd_courses["online_course"].apply(clean_course_names) 
-'''
-
-output_transform_diff_days = 10 * timeit.timeit(transform_diff_days, number = 100)    
-output_apply_lan = 10 * timeit.timeit(apply_lan, setup = setup_apply_lan, number = 100)    
-```
-
-```{r, echo = FALSE, results = 'markup'}
-pandas_mb <- data.frame("expr" = c('(pd_courses["platform_end_date"] - pd_courses["platform_start_date"]).dt.days',
-                                   'pd_courses["online_course"].apply(clean_course_names)'),
-                        "mean" = c(py$output_transform_diff_days, 
-                                   py$output_apply_lan),
-                        "neval" = rep(100, 2))    
-
-knitr::kable(pandas_mb, caption = "Units: milliseconds")     
 ```
 
 
@@ -878,147 +790,85 @@ knitr::kable(pandas_mb, caption = "Units: milliseconds")
 
 ## Using `dplyr` versus `data.table`  
 
-Evaluating summary characteristics for subsets of data is a key area where `data.table` significantly outperforms `dplyr`. A grouping is specified using the `group_by()` function in `dplyr` and inside the `by` placeholder of `DT[i, j, by]` in `data.table`.      
+Evaluating summary characteristics for data groupings is also where `data.table` significantly outperforms `dplyr`. A grouping is specified using the `group_by()` function in `dplyr` and inside the `by` placeholder of `DT[i, j, by]` in `data.table`.      
 
 ```{r}
-#-----find total number of courses per student in dplyr-----    
+# Find total number of courses per student via dplyr ---------------------------    
 student_courses %>%
-  group_by(student_id) %>%
+  group_by(id) %>%
   summarise(total_courses = n()) %>%
   ungroup()
 
-#----find total number of distinct courses per student in dplyr-----   
+# Code above is also equivalent to using count()   
 student_courses %>%
-  group_by(student_id) %>%
-  summarise(total_distinct_courses = n_distinct(online_course)) %>%
+  count(id)
+
+# Find total number of distinct courses per student via dplyr ------------------   
+student_courses %>%
+  group_by(id) %>%
+  summarise(total_distinct_courses = n_distinct(course)) %>%
   ungroup() 
 
-#----find the first course studied per student and platform in dplyr-----
+# Find the first course studied per student and platform via dplyr -------------
 student_courses %>%
-  group_by(student_id, online_platform) %>% # group by two variables    
-  filter(row_number() == 1L) %>% # return only the first row    
-  ungroup()
+  group_by(id, platform) %>% # Group by two variables    
+  filter(row_number() == 1L) %>% # Return the first row from each group    
+  ungroup()   
 ```
 
 ```{r}
-#-----find total number of courses per student in data.table-----    
+# Find total number of courses per student via data.table ----------------------    
 student_courses[,
                 .(total_courses = .N),
-                by = student_id]   
+                by = id]   
 
-#----find total number of distinct courses per student in data.table-----   
+# Find total number of distinct courses per student via data.table -------------   
 student_courses[,
-                .(total_distinct_courses = length(unique(online_course))),
-                by = student_id]   
+                .(total_distinct_courses = length(unique(course))),
+                by = id]   
 
-# uniqueN(x) is a function equivalent to length((unique(x)) available in data.table
-
+# uniqueN(x) is a data.table function equivalent to length((unique(x)) 
 student_courses[,
-                .(total_distinct_courses = uniqueN(online_course)),
-                by = student_id]   
+                .(total_distinct_courses = uniqueN(course)),
+                by = id]   
 
-#----find the first course studied per student and platform in data.table-----
+# Find the first course studied per student and platform via data.table --------
 student_courses[,
                 .SD[1L],
-                by = .(student_id, online_platform)]
-```
-
-
-## Using `Pandas`  
-
-When grouping on Pandas DataFrames, remember to reset the data frame index using `.reset_index()` at the end of your chain of operations.      
-
-```{python}
-#-----find total number of courses per student in data.table-----    
-(pd_courses.groupby(["student_id"])["online_course"]
-           .agg("count")
-           .reset_index())   
-```
-
-```{python}
-#----find total number of distinct courses per student in data.table-----   
-(pd_courses.groupby(["student_id"])["online_course"]
-           .nunique()
-           .reset_index())   
-```
-
-```{python}
-#----find the first course studied per student and platform in data.table-----
-(pd_courses.groupby(["student_id", "online_platform"])["online_course"]
-           .agg("first")
-           .reset_index())  
+                by = .(id, platform)]
 ```
 
 
 ## Benchmark simple group by operations    
 
-The most obvious observation is that groupings are significantly faster in `data.table` than `dplyr`. What also surprised me is that using the `data.table` `uniqueN(x)` function is much slower than using `length(unique(x))`.    
+You can clearly see that groupings are significantly faster in `data.table` than `dplyr`.    
 
-```{r, echo = FALSE, results = 'markup'}
-#-----benchmark dplyr and data.table functions-----  
+**Note:** Not all `data.table` functions outperform their base R or `dplyr` equivalents. The `data.table` `uniqueN(x)` function is much slower than `length(unique(x))`.    
+
+```{r, echo=FALSE, results='markup'}
+# Benchmark dplyr and data.table functions -------------------------------------  
 if (!file.exists(here("data", "data-table-benchmarks", "gbmb.rds"))) {
   
-  gbmb <- microbenchmark(student_courses %>% group_by(student_id) %>% summarise(total_courses = n()),                                                         student_courses[, .(total_courses = .N), by = student_id],    
-                         student_courses %>% group_by(student_id) %>% summarise(total_distinct_courses = n_distinct(online_course)),
-                         student_courses[, .(total_distinct_courses = length(unique(online_course))), by = student_id],    
-                         student_courses[, .(total_distinct_courses = uniqueN(online_course)), by = student_id],      
-                         student_courses %>% group_by(student_id, online_platform) %>% filter(row_number() == 1L),  
-                         student_courses[, .SD[1L], by = .(student_id, online_platform)],   
+  gbmb <- microbenchmark(student_courses %>% group_by(id) %>% summarise(total_courses = n()),                                                         student_courses[, .(total_courses = .N), by = id],    
+                         student_courses %>% group_by(id) %>% summarise(total_distinct_courses = n_distinct(course)),
+                         student_courses[, .(total_distinct_courses = length(unique(course))), by = id],    
+                         student_courses[, .(total_distinct_courses = uniqueN(course)), by = id],      
+                         student_courses %>% group_by(id, platform) %>% filter(row_number() == 1L),  
+                         student_courses[, .SD[1L], by = .(id, platform)],   
                          times = 10)  
   
   saveRDS(gbmb, here("data", "data-table-benchmarks", "gbmb.rds"))
 }
 
+# Print summary table ----------------------------------------------------------
 gbmb <- readRDS(here("data", "data-table-benchmarks", "gbmb.rds"))
 knitr::kable(summary(gbmb), caption = "Units: milliseconds") 
-```
-
-```{python, echo = FALSE, message = FALSE, results = 'markup'}
-#-----print timeit outputs-----   
-groupby_count = '''
-def groupby_count():
-  (pd_courses.groupby(["student_id"])["online_course"]
-           .agg("count")
-           .reset_index())    
-'''
-
-groupby_nunique = '''
-def groupby_nunique():
-  (pd_courses.groupby(["student_id"])["online_course"]
-             .nunique()
-             .reset_index())     
-'''
-
-groupby_two_cols = '''
-def groupby_two_cols():
-  (pd_courses.groupby(["student_id", "online_platform"])["online_course"]
-             .agg("first")
-             .reset_index())  
-'''
-
-output_groupby_count = 10 * timeit.timeit(groupby_count, number = 100)       
-output_groupby_nunique = 10 * timeit.timeit(groupby_nunique, number = 100)    
-output_groupby_two_cols = 10 * timeit.timeit(groupby_two_cols, number = 100)    
-```
-
-```{r, echo = FALSE, results = 'markup'}
-pandas_mb <- data.frame("expr" = c('pd_courses.groupby(["student_id"])["online_course"].agg("count")',
-                                   'pd_courses.groupby(["student_id"])["online_course"].nunique()',
-                                   'pd_courses.groupby(["student_id", "online_platform"])["online_course"].agg("first")'),
-                        "mean" = c(py$output_groupby_count, 
-                                   py$output_groupby_nunique,
-                                   py$output_groupby_two_cols),
-                        "neval" = rep(100, 3))    
-
-knitr::kable(pandas_mb, caption = "Units: milliseconds")     
 ```
 
 
 # Summary   
 
 Most `data.table` operations significantly outperform their `dplyr` equivalents in processing speed. I use `data.table` when grouping on large datasets (i.e. on datasets with greater than ~ 0.5 million rows) and use `dplyr` for day-to-day analyses of smaller datasets.   
-
-An interesting observation is that the `Pandas` package seems to perform faster than both `data.table` and `dplyr`, by even a few orders of magnitude. I will need to confirm whether this observation is real or a quirk related to differences in the execution of R `microbenchmark()` versus Python `timeit()` benchmarking code.        
 
 
 # Other resources    
@@ -1029,4 +879,6 @@ An interesting observation is that the `Pandas` package seems to perform faster 
 
 + A list of advanced `data.table` operations and tricks from a [blog post by Andrew Brooks](http://brooksandrew.github.io/simpleblog/articles/advanced-data-table/).        
 
-+ An explanation of how `data.table` modifies by reference from a [blog post by Tyson Barrett](https://tysonbarrett.com//jekyll/update/2019/07/12/datatable/).       
++ An explanation of how `data.table` modifies by reference from a [blog post by Tyson Barrett](https://tysonbarrett.com//jekyll/update/2019/07/12/datatable/).     
+
++ A benchmark of `dplyr` versus `data.table` functions from a [blog post by Tyson Barrett](https://tysonbarrett.com/jekyll/update/2019/10/06/datatable_memory/)    
