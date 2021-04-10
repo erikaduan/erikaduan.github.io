@@ -243,7 +243,8 @@ student_courses <- student_courses %>%
   mutate(lag_join_key = lag(join_key)) %>%
   ungroup()
 
-# Multiple courses exists when multiple rows share the same join_key     
+# Multiple courses exists when multiple rows share the same join_key  
+
 multiple_courses_id <- student_courses %>%
   count(join_key) %>%
   filter(n > 1) %>%
@@ -269,7 +270,7 @@ multiple_courses %>%
   max()  
 #> [1] 7
 
-# Populate first course_start_date and last course_end_date for all cases    
+# Populate first course_start_date and last course_end_date for all cases ------   
 set.seed(111)
 multiple_courses <- multiple_courses %>%
   group_by(join_key) %>%
@@ -281,7 +282,7 @@ multiple_courses <- multiple_courses %>%
          course_length = runif(n = n(), min = 1, max = platform_length / n_courses) %>% ceiling()) %>%
   ungroup()
 
-# Populate first course_end_date for all cases  
+# Populate first course_end_date for all cases --------------------------------- 
 multiple_courses <- multiple_courses %>% 
   group_by(join_key) %>% 
   mutate(course_end_date = if_else(!is.na(course_start_date),
@@ -289,37 +290,37 @@ multiple_courses <- multiple_courses %>%
                                    course_end_date)) %>%
   ungroup()
 
-# Populate second course_start_date when n_courses >= 2
+# Populate second course_start_date when n_courses >= 2 ------------------------
 multiple_courses <- add_course_start_date(multiple_courses, include_n = 2, row = 2)
 
-# Populate second course_end_date when n_courses >= 3  
+# Populate second course_end_date when n_courses >= 3 --------------------------
 multiple_courses <- add_course_end_date(multiple_courses, include_n = 3, row = 2)
 
-# Populate third course_start_date when n_courses >= 3  
+# Populate third course_start_date when n_courses >= 3 ------------------------- 
 multiple_courses <- add_course_start_date(multiple_courses, include_n = 3, row = 3)
 
-# Populate third course_end_date when n_courses >= 4  
+# Populate third course_end_date when n_courses >= 4 --------------------------- 
 multiple_courses <- add_course_end_date(multiple_courses, include_n = 4, row = 3)
 
-# Populate fourth course_start_date when n_courses >= 4  
+# Populate fourth course_start_date when n_courses >= 4 ------------------------ 
 multiple_courses <- add_course_start_date(multiple_courses, include_n = 4, row = 4)
 
-# Populate fourth course_end_date when n_courses >= 5  
+# Populate fourth course_end_date when n_courses >= 5 -------------------------- 
 multiple_courses <- add_course_end_date(multiple_courses, include_n = 5, row = 4)
 
-# Populate fifth course_start_date when n_courses >= 5  
+# Populate fifth course_start_date when n_courses >= 5 ------------------------- 
 multiple_courses <- add_course_start_date(multiple_courses, include_n = 5, row = 5)
 
-# Populate fifth course_end_date when n_courses >= 6  
+# Populate fifth course_end_date when n_courses >= 6 --------------------------- 
 multiple_courses <- add_course_end_date(multiple_courses, include_n = 6, row = 5)
 
-# Populate sixth course_start_date when n_courses >= 6  
+# Populate sixth course_start_date when n_courses >= 6 ------------------------- 
 multiple_courses <- add_course_start_date(multiple_courses, include_n = 6, row = 6)
 
-# Populate sixth course_end_date when n_courses >= 7  
+# Populate sixth course_end_date when n_courses >= 7 --------------------------- 
 multiple_courses <- add_course_end_date(multiple_courses, include_n = 7, row = 6)
 
-# Populate seventh course_start_date when n_courses >= 7  
+# Populate seventh course_start_date when n_courses >= 7 -----------------------  
 multiple_courses <- add_course_start_date(multiple_courses, include_n = 7, row = 7)
 
 # Bind all rows and re-order student_courses -----------------------------------    
@@ -458,7 +459,7 @@ dt # Check that dt has been modified in place
 # Filter data     
 
 
-## Using `dplyr` versus `data.table`     
+## Using `dplyr`    
 
 The syntax for filtering data is very similar for `dplyr` and `data.table`. 
 
@@ -485,6 +486,9 @@ student_courses %>%
 student_courses %>%
   filter(str_detect(course, "^R_")) 
 ```
+
+
+## Using `data.table`   
 
 A difference is that `data.table` also contains a list of helper functions with optimised performance for filtering on specific data types like characters or integers.       
 
@@ -536,7 +540,7 @@ knitr::kable(summary(fmb), caption = "Units: milliseconds")
 # Sort data    
 
 
-## Using `dplyr` versus `data.table`    
+## Using `dplyr`     
 
 Sorting a data frame can be computationally expensive when multiple variables need to be ranked. This is why I recommending sorting your dataset once, right after basic data cleaning operations have been performed.         
 
@@ -552,6 +556,9 @@ student_courses %>%
 
 # Sorting by a descending date ranks the most recent date as first  
 ```
+
+
+## Using `data.table`   
 
 In `data.table`, sorting is also performed inside `i` of `DT[i, j, by]`. Using the operator `-` in front of a variable allows sorting by descending order.     
 
@@ -597,7 +604,7 @@ knitr::kable(summary(smb), caption = "Units: milliseconds")
 # Select data columns    
 
 
-## Using `dplyr` versus `data.table`  
+## Using `dplyr`    
 
 In `dplyr`, performing operations on a tibble will always return another data frame, unless you explicitly use `pull()` to extract a column as a vector.   
 
@@ -625,6 +632,9 @@ student_courses %>%
   class()
 #> [1] "character"
 ```
+
+
+## Using `data.table`    
 
 In `data.table`, column selection is performed inside `j` of `DT[i, j, by]` and returns a `data.table` if you wrap column names inside a list.   
 
@@ -684,7 +694,7 @@ knitr::kable(summary(slmb), caption = "Units: milliseconds")
 # Column creation      
 
 
-## Using `dplyr` versus `data.table`  
+## Using `dplyr`    
 
 In `dplyr` version >= 1.0.0, you can use `mutate()` in combination with `across()` to create new columns or apply transformations across one or multiple columns.   
 
@@ -714,6 +724,9 @@ student_courses <- student_courses %>%
             platform_start_year, 
             studied_programming))
 ```
+
+
+## Using `data.table`      
 
 Data frame outputs are slightly different in `data.table`:     
 
@@ -788,9 +801,9 @@ knitr::kable(summary(ccmb), caption = "Units: milliseconds")
 # Simple group by operations    
 
 
-## Using `dplyr` versus `data.table`  
+## Using `dplyr`    
 
-Evaluating summary characteristics for data groupings is also where `data.table` significantly outperforms `dplyr`. A grouping is specified using the `group_by()` function in `dplyr` and inside the `by` placeholder of `DT[i, j, by]` in `data.table`.      
+Evaluating summary characteristics for data groupings is also where `data.table` significantly outperforms `dplyr`. A grouping is specified using the `group_by()` function in `dplyr`.         
 
 ```{r}
 # Find total number of courses per student via dplyr ---------------------------    
@@ -815,6 +828,11 @@ student_courses %>%
   filter(row_number() == 1L) %>% # Return the first row from each group    
   ungroup()   
 ```
+
+
+## Using `data.table`    
+
+In `data.table`, a grouping is specified inside the `by` placeholder of `DT[i, j, by]`.          
 
 ```{r}
 # Find total number of courses per student via data.table ----------------------    
@@ -841,9 +859,7 @@ student_courses[,
 
 ## Benchmark simple group by operations    
 
-You can clearly see that groupings are significantly faster in `data.table` than `dplyr`.    
-
-**Note:** Not all `data.table` functions outperform their base R or `dplyr` equivalents. The `data.table` `uniqueN(x)` function is much slower than `length(unique(x))`.    
+Group by operations are significantly faster in `data.table` than `dplyr`.    
 
 ```{r, echo=FALSE, results='markup'}
 # Benchmark dplyr and data.table functions -------------------------------------  
@@ -865,10 +881,12 @@ gbmb <- readRDS(here("data", "data-table-benchmarks", "gbmb.rds"))
 knitr::kable(summary(gbmb), caption = "Units: milliseconds") 
 ```
 
+**Note:** Not all `data.table` functions outperform their base R or `dplyr` equivalents. The `data.table` `uniqueN(x)` function is much slower than `length(unique(x))`.    
+
 
 # Summary   
 
-Most `data.table` operations significantly outperform their `dplyr` equivalents in processing speed. I use `data.table` when grouping on large datasets (i.e. on datasets with greater than ~ 0.5 million rows) and use `dplyr` for day-to-day analyses of smaller datasets.   
+Most `data.table` operations significantly outperform their `dplyr` equivalents in computational speed. I use `data.table` when grouping on large datasets (i.e. on datasets with greater than ~ 0.5 million rows) and use `dplyr` for day-to-day analyses of smaller datasets.    
 
 
 # Other resources    

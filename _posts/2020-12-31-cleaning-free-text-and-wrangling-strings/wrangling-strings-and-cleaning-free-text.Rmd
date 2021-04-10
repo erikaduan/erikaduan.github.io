@@ -213,8 +213,8 @@ str_extract(strange_fruits, "a(pp|gg)le")
 str_extract(strange_fruits, "(a)(p|g)\\2")
 #> [1] "app" "app" "app" "app" NA    "agg"   
 
-# (a) is group 1 and can be called using \\1    
-# (p|g) is group 2 and can be called using \\2     
+# Group 1 contains (a) and can be called using \\1     
+# Group 2 contains (p|g) and can be called using \\2      
 ```
 
 
@@ -289,7 +289,7 @@ recipes <- c("croissant recipes",
 str_extract(recipes, "\\S+(?=\\s*recipes?)")   
 #> [1] "croissant"  "pie"        "cake"       NA           "KFC-"       "soft-serve"   
 
-# use positive look-behind (?<=) on "secret" to identify the secret recipes  
+# Use positive look-behind (?<=) on "secret" to identify the secret recipes    
 
 str_extract(recipes, "(?<=secret\\s{1,10})\\S+.+")   
 #> [1] NA                            NA                            NA                           
@@ -314,21 +314,11 @@ survey %>%
   head(5)   
 
 # Remove html tags -------------------------------------------------------------
-remove_html_tags <- regex("
-                          <  # starts with <
-                          [^>]+  # contains one or more of all characters excepting > 
-                          >  # ends with >
-                          ", comments = T)
-
-remove_more_html <- regex("
-                          \\& # starts with &
-                          \\w+ # contains one or more word characters
-                          \\; # ends with ;
-                          ", comments = T) 
-
+# Remove html tags with <[^>]+>
+# Remove html code with \\&\\w+\\;   
 survey <- survey %>%
-  mutate(comment_field = str_replace_all(comment_field, remove_html_tags, ""),
-         comment_field = str_replace_all(comment_field, remove_more_html, ""))
+  mutate(comment_field = str_replace_all(comment_field, "<[^>]+>", ""),
+         comment_field = str_replace_all(comment_field, "\\&\\w+\\;", ""))
 
 # Examine cleaned comment_field ------------------------------------------------  
 survey %>%

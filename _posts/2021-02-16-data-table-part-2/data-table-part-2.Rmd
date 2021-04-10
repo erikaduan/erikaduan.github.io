@@ -24,7 +24,15 @@ options(scipen=999)
 
 # Introduction    
 
-This post is a continuation of [my previous comparison](https://erikaduan.github.io/posts/2021-01-30-data-table-part-1/) of R `data.table` versus `dplyr` functions.    
+This post is a continuation of [my comparison](https://erikaduan.github.io/posts/2021-01-30-data-table-part-1/) of R `data.table` versus `dplyr` functions. Imagine you have a dataset describing how students are engaging with online courses:
+
++ Each student has a unique ID.   
++ There are 5 different online platforms, labelled A, B, C, D and E.   
++ Students have the option of taking different courses within the same platform or switching to a different platform.   
++ Platform start dates are recorded when the student starts the first course on a new platform.  
++ Platform end dates are recorded when the student exits a platform.   
++ Course start dates are recorded when the student starts a course.    
++ Course end dates are recorded when the student exits a course.    
 
 **Note:** The code used to create this dataset can be accessed from my github repository [here](https://github.com/erikaduan/R-tips/blob/master/03_blog_posts/2020-04-07_data-table-versus-dplyr/2020-04-07_data-table-versus-dplyr.md).    
 
@@ -35,7 +43,8 @@ pacman::p_load(here,
                ids, # Generate random IDs
                tidyverse,
                data.table,
-               microbenchmark)
+               microbenchmark,
+               DT)
 ```
 
 ```{r, echo=FALSE}
@@ -213,7 +222,8 @@ student_courses <- student_courses %>%
   mutate(lag_join_key = lag(join_key)) %>%
   ungroup()
 
-# Multiple courses exists when multiple rows share the same join_key     
+# Multiple courses exists when multiple rows share the same join_key  
+
 multiple_courses_id <- student_courses %>%
   count(join_key) %>%
   filter(n > 1) %>%
@@ -239,7 +249,7 @@ multiple_courses %>%
   max()  
 #> [1] 7
 
-# Populate first course_start_date and last course_end_date for all cases    
+# Populate first course_start_date and last course_end_date for all cases ------    
 set.seed(111)
 multiple_courses <- multiple_courses %>%
   group_by(join_key) %>%
@@ -251,7 +261,7 @@ multiple_courses <- multiple_courses %>%
          course_length = runif(n = n(), min = 1, max = platform_length / n_courses) %>% ceiling()) %>%
   ungroup()
 
-# Populate first course_end_date for all cases  
+# Populate first course_end_date for all cases ---------------------------------  
 multiple_courses <- multiple_courses %>% 
   group_by(join_key) %>% 
   mutate(course_end_date = if_else(!is.na(course_start_date),
@@ -259,37 +269,37 @@ multiple_courses <- multiple_courses %>%
                                    course_end_date)) %>%
   ungroup()
 
-# Populate second course_start_date when n_courses >= 2
+# Populate second course_start_date when n_courses >= 2 ------------------------
 multiple_courses <- add_course_start_date(multiple_courses, include_n = 2, row = 2)
 
-# Populate second course_end_date when n_courses >= 3  
+# Populate second course_end_date when n_courses >= 3 --------------------------
 multiple_courses <- add_course_end_date(multiple_courses, include_n = 3, row = 2)
 
-# Populate third course_start_date when n_courses >= 3  
+# Populate third course_start_date when n_courses >= 3 ------------------------- 
 multiple_courses <- add_course_start_date(multiple_courses, include_n = 3, row = 3)
 
-# Populate third course_end_date when n_courses >= 4  
+# Populate third course_end_date when n_courses >= 4 ---------------------------
 multiple_courses <- add_course_end_date(multiple_courses, include_n = 4, row = 3)
 
-# Populate fourth course_start_date when n_courses >= 4  
+# Populate fourth course_start_date when n_courses >= 4 ------------------------ 
 multiple_courses <- add_course_start_date(multiple_courses, include_n = 4, row = 4)
 
-# Populate fourth course_end_date when n_courses >= 5  
+# Populate fourth course_end_date when n_courses >= 5 -------------------------- 
 multiple_courses <- add_course_end_date(multiple_courses, include_n = 5, row = 4)
 
-# Populate fifth course_start_date when n_courses >= 5  
+# Populate fifth course_start_date when n_courses >= 5 -------------------------
 multiple_courses <- add_course_start_date(multiple_courses, include_n = 5, row = 5)
 
-# Populate fifth course_end_date when n_courses >= 6  
+# Populate fifth course_end_date when n_courses >= 6 --------------------------- 
 multiple_courses <- add_course_end_date(multiple_courses, include_n = 6, row = 5)
 
-# Populate sixth course_start_date when n_courses >= 6  
+# Populate sixth course_start_date when n_courses >= 6 ------------------------- 
 multiple_courses <- add_course_start_date(multiple_courses, include_n = 6, row = 6)
 
-# Populate sixth course_end_date when n_courses >= 7  
+# Populate sixth course_end_date when n_courses >= 7 --------------------------- 
 multiple_courses <- add_course_end_date(multiple_courses, include_n = 7, row = 6)
 
-# Populate seventh course_start_date when n_courses >= 7  
+# Populate seventh course_start_date when n_courses >= 7 ----------------------- 
 multiple_courses <- add_course_start_date(multiple_courses, include_n = 7, row = 7)
 
 # Bind all rows and re-order student_courses -----------------------------------    
@@ -310,15 +320,23 @@ student_courses <- student_courses %>%
 ```
 
 ```{r, echo=FALSE}
-# Remove all objects except student_courses-------------------------------------  
+# Remove all objects except student_courses ------------------------------------  
 rm(list = setdiff(ls(), "student_courses"))
 gc()
 ```
 
-We can interactively examine the first 20 rows of the dataset using the R package `DT`.      
+```{r, echo=FALSE} 
+# Convert data frame to data.table ---------------------------------------------  
+setDT(student_courses)
+
+class(student_courses) 
+#> [1] "data.table" "data.frame"  
+```
+
+The first 12 rows of the dataset can be examined interactively below.        
 
 ```{r, echo=FALSE, results='markup'}
-# Examine the first 12 rows of data--------------------------------------------  
+# Examine the first 12 rows of data --------------------------------------------  
 student_courses %>%
   head(12) %>%
   datatable(rownames = F,
@@ -328,47 +346,40 @@ student_courses %>%
                              "$(this.api().table().header()).css({'background-color': '#37ACA1', 'color': '#fff'});",
                              "}")))
 ```
- 
-```{r} 
-# Convert data frame to data.table ---------------------------------------------  
-setDT(student_courses)
-
-class(student_courses) 
-#> [1] "data.table" "data.frame"  
-```
 
 
-# Code sequence outputs      
+# Code sequence impact         
 
 
-## Using `dplyr` versus `data.table`    
+## Using `dplyr`     
 
-Imagine you would like to subset all fitness training courses from platform C and E and create a column to denote that these were discounted courses.   
+Imagine that you would like to subset on fitness training courses from platform C and E and then create a column to denote that these were discounted courses.   
 
-In `dplyr`, you can write this as a single query using the `%>%` pipe to separate each individual function.        
+In `dplyr`, this can be written as a single query using the `%>%` pipe to separate each individual function.    
 
 ```{r, results='markup'}
 # Filter and create a new column using dplyr %>% pipes -------------------------    
-dply_query_1 <- student_courses %>%
+dplyr_query_1 <- student_courses %>%
   filter(course == "fitness_training",
          platform %in% c("C", "E")) %>%
   mutate(percentage_discount = 5)
-
-# Print the first 4 rows -------------------------------------------------------      
-dply_query_1 %>% 
-  select(-contains("_date")) %>% 
-  head(4) %>%
-  knitr::kable()  
 ```
 
-In `data.table`, performing filtering and column transformations in separate steps or a single step produces different outputs. ^[Performing the two functions in separate steps is equivalent to the `dplyr` approach above.]    
 
-```{r, results='markup'}
+## Using `data.table`    
+
+In `data.table`, performing these two operations in separate steps or a single step produces different outputs. ^[Performing the two functions in separate steps is equivalent to the `dplyr` approach above.]    
+
+```{r}
 # Filter and create a new column using data.table in separate steps ------------  
 dt_query_1 <- student_courses[(course == "fitness_training") 
                               & (platform %chin% c("C", "E"))] %>%
   .[, percentage_discount := 5]   
 
+dt_query_1
+```
+
+```{r, echo=FALSE, results='markup'}
 # Print the first 4 rows -------------------------------------------------------  
 # Subset columns which contain "_date"
 date_cols <- grep("_date$", colnames(student_courses), value = T)
@@ -377,137 +388,267 @@ dt_query_1[1:4, !..date_cols] %>%
   knitr::kable()
 ```
 
-In `data.table, performing filtering and column transformations in a single step will retain all rows and apply a transformation to rows where the filtering condition is `TRUE`.    
+In `data.table`, applying filtering and a column transformation in a single step retains all dataset rows and only applies the transformation to rows where the filtering condition is `TRUE`.    
 
 ```{r}
 # Filter and create a new column using data.table in a single step -------------  
 dt_query_1_wrong <- student_courses[(course == "fitness_training") 
                                     & (platform %chin% c("C", "E")), 
                                     percentage_discount := 5]
+```
 
+```{r, echo=FALSE, results='markup'}
 # Print the first 4 rows -------------------------------------------------------  
 dt_query_1_wrong[1:4, !..date_cols] %>%
   knitr::kable()  
-```
 
-
-## Benchmark code sequences  
-
-```{r}
-
-```
-
-```{r, echo=FALSE}
 # Remove percentage_discount for downstream analyses ---------------------------  
 student_courses[, percentage_discount := NULL]  
 ```
 
 
-# Functions for summarising data    
+## Benchmark data operations   
 
-A common operation is to group by and summarise across variable(s) to retrieve aggregate data. Very different outputs can be obtained by modifying `data.table` groupings in subtle ways.    
+There is only a slight speed advantage in using `data.table` over `dplyr`, as our operations do not involve sorting or group by operations.       
+
+```{r, echo=FALSE, results='markup'}
+# Benchmark dplyr and data.table functions -------------------------------------  
+if (!file.exists(here("data", "data-table-benchmarks-2", "query1.rds"))) {
+  
+  query1 <- microbenchmark(dplyr_query_1_funs = student_courses %>%
+                             filter(course == "fitness_training",
+                                    platform %in% c("C", "E")) %>%
+                             mutate(percentage_discount = 5),
+                           dt_query_1_funs = student_courses[(course == "fitness_training") 
+                                                             & (platform %chin% c("C", "E"))] %>%
+                             .[, percentage_discount := 5],
+                           dt_query_1_wrong_funs = student_courses[(course == "fitness_training") 
+                                                                   & (platform %chin% c("C", "E")), 
+                                                                   percentage_discount := 5]) 
+  
+  saveRDS(query1, here("data", "data-table-benchmarks-2", "query1.rds"))
+}
+
+# Print summary table ----------------------------------------------------------
+query1 <- readRDS(here("data", "data-table-benchmarks-2", "query1.rds"))
+knitr::kable(summary(query1), caption = "Units: milliseconds")   
+```
 
 
-## Using `dplyr` versus `data.table`   
+# Aggregate by group          
 
-Imagine that we are interested in the total number of days each student has spent on any online platform. We might try to obtain this output by grouping on individual student IDs and calculating the total of days spent on any platform.     
+A simple introduction to group by operations is covered [here](https://erikaduan.github.io/posts/2021-01-30-data-table-part-1/#simple-group-by-operations). This post further explores how different outputs can be obtained by modifying `data.table` group by operations in different ways.   
+
+Imagine that you are interested in the total number of days each student has spent on an online platform. Could you obtain this by grouping on `id` and summing the total number of days spent on a platform? 
+
+
+## Using `dplyr`  
 
 ```{r}
 # Calculate total platform_length per student using dplyr ----------------------  
 student_courses <- student_courses %>%
   mutate(platform_length = platform_end_date - platform_start_date,
-         platform_length = as.integer(platform_length))  
+         platform_length = as.integer(platform_length)) 
 
-dply_query_2 <- student_courses %>%
+dplyr_query_2 <- student_courses %>%
   group_by(id) %>%
   summarise(total_days = sum(platform_length),
             min_days = min(platform_length),
             median_days = median(platform_length),  
             max_days = max(platform_length)) %>%
-  ungroup() 
-
-# Print the first 4 rows -------------------------------------------------------
-dply_query_2 %>%
-  knitr::kable()  
+  ungroup()    
 ```
 
-**Note:** In `dplyr`, we need to close our sequence of code with the function `ungroup()`, which removes object metadata to denote row groupings.   
+**Note:** In `dplyr`, group by operations should be closed using `ungroup()` to remove object metadata marking row groupings.   
 
-In `data.table`, we can choose which variable(s) to group by using either `by` or `keyby` in the `by` placeholder of `DT[i, j, by]`. The additional effect of using `keyby` is that `keyby` also orders the results and creates a secondary key for faster subsetting.       
+
+## Using `data.table`   
+
+In `data.table`, you can choose which variable(s) to group by using `by` or `keyby`. The effect of `keyby` is that it also orders the results and creates a secondary key for faster subsequent subsetting.   
 
 ```{r}
 # Calculate total platform_length per student using data.table ----------------- 
-dt_query_2 <- student_courses[,
+dt_query_2 <- student_courses[, 
                               .(total_days = sum(platform_length),
                                 min_days = min(platform_length),
-                                median_days = median(platform_length),
+                                median_days = median(platform_length),  
                                 max_days = max(platform_length)),
-                              keyby = id]
-
-# Print the first 4 rows -------------------------------------------------------  
-dt_query_2 %>%
-  knitr::kable()
+                              by = id]
 ```
 
-The problem with this approach is that some students switch between courses on the same platform so the platform dwell length can be duplicated if we simply group by students IDs. We can identify how often this occurs by concatenating `id`, `platform` and `platform_start_date` and removing duplicate rows.   
+However, this approach overestimates the total number of days spent on an online platform per student, as some students take multiple courses on the same platform. This means that the platform dwell length contains duplicate values that need to be removed.   
+
+
+# Identify duplicate rows      
+
+You can identify duplicate rows by concatenating `id`, `platform` and `platform_start_date` and counting the total number of rows per concatenation.     
+
+
+## Using `dplyr`    
 
 ```{r}
 # Identify duplicate rows using dplyr ------------------------------------------ 
-student_courses <- student_courses %>%
-  mutate(platform_key = str_c(online_platform, platform_start_date, sep = "-"))
-
-#-----create platform_key using data.table-----  
-student_courses[,
-                platform_key := do.call(paste0, c(.SD, sep = "-")),
-                .SDcols = c("online_platform", "platform_start_date")]
-```
-
-**Note:** The base R function `do.call()` constructs and executes a function call from a name or a function and a list of arguments to be passed to it.  
-
-```{r}
-#-----identify students with duplicate records in dplyr-----
-dply_query_3 <- student_courses %>%
-  group_by(student_id) %>%
-  summarise(unique_platform_signups = n_distinct(platform_key),
-            total_course_signups = n()) 
-
-#-----return student_ids as vector and preview the first 3 elements-----
-dply_query_3 %>%
-  filter(total_course_signups > unique_platform_signups) %>%
-  pull(student_id) %>%
-  .[1:3]
-
-#-----examine duplicate records example-----
 student_courses %>%
-  select(-c(platform_key)) %>%
-  filter(student_id == "00040980")
+  mutate(platform_key = str_c(id, platform, platform_start_date, sep = "-")) %>%
+  count(platform_key, name = "row_number") %>%
+  count(row_number, name = "total_students")
 ```
+
+
+## Using `data.table`    
+
+In `data.table`, `.SD` means 'subset of data' and is used to reference the current sub-table of interest (this is usually a sub-table series that has been split by the `by` operator).     
 
 ```{r}
-#-----identify students with duplicate records in data.table-----  
-dt_query_3 <- student_courses[,
-                              .(unique_platform_signups = length(unique(platform_key)),
-                                total_course_signups = .N),
-                              by = student_id] 
-
-#-----return student_ids as vector and preview the first 3 elements-----
-dt_query_3[total_course_signups > unique_platform_signups, 
-           student_id] %>%
-  .[1:3]
-
-#-----examine duplicate records example-----  
-student_courses[student_id == "00040980",
-                !"platform_key"]  
+# Identify duplicate rows using dplyr using data.table -------------------------  
+student_courses[,
+                platform_key := do.call(str_c, c(.SD, sep = "-")),
+                .SDcols = c("id", "platform", "platform_start_date")] %>%
+  .[, 
+    .N,
+    by = platform_key] %>% 
+  .[,
+    .N,
+    keyby = N] # Use keyby as we also want to sort by N  
 ```
 
- 
+**Note:** The base R function `do.call()` constructs and executes a function call from a name or function and a list of function arguments.    
 
 
-## Group by and `lead` or `lag` operations   
+# Remove duplicate rows and aggregate by group    
+
+Knowing that duplicate `platform_length` records exist, a two-step process would be needed to extract the total number of days each student has spent on an online platform:            
+
++ First, group by `id`, `platform`, `platform_start_date` and extract the first row of each group.     
++ Next, group by `id` and summarise `platform_length` calculations.    
+
+
+## Using `dplyr`    
+
+```{r}
+# Calculate total platform_length per student using dplyr ---------------------- 
+dplyr_query_3 <- student_courses %>%
+  group_by(id, platform, platform_start_date) %>%
+  filter(row_number() == 1L) %>%
+  ungroup() %>%
+  group_by(id) %>%  
+  summarise(total_days = sum(platform_length),
+            min_days = min(platform_length),
+            median_days = median(platform_length),  
+            max_days = max(platform_length)) %>%
+  ungroup()
+
+summary(dplyr_query_2 == dplyr_query_3)
+#>     id          total_days       min_days       median_days      max_days      
+#>  Mode:logical   Mode :logical   Mode :logical   Mode :logical   Mode :logical  
+#>  TRUE:144676    FALSE:14674     FALSE:22        FALSE:9745      FALSE:24       
+#>                 TRUE :130002    TRUE :144654    TRUE :134931    TRUE :144652  
+```
+
+
+## Using `data.table`  
+
+```{r}
+# Calculate total platform_length per student using data.table ----------------- 
+dt_query_3 <- student_courses[,
+                              .SD[1L],
+                              by = .(id, platform, platform_start_date)] %>%
+  .[, 
+    .(total_days = sum(platform_length),
+      min_days = min(platform_length),
+      median_days = median(platform_length),  
+      max_days = max(platform_length)),
+    keyby = id]
+
+summary(setDT(dplyr_query_3) == dt_query_3)
+#>     id          total_days     min_days       median_days    max_days      
+#>  Mode:logical   Mode:logical   Mode:logical   Mode:logical   Mode:logical  
+#>  TRUE:144676    TRUE:144676    TRUE:144676    TRUE:144676    TRUE:144676  
+```
+
+
+## Benchmark data operations     
+
+The `data.table` solutions are significantly faster as group by operations are required.   
+
+```{r, echo=FALSE, results='markup'}
+# Benchmark dplyr and data.table functions -------------------------------------  
+if (!file.exists(here("data", "data-table-benchmarks-2", "query2.rds"))) {
+  
+  query1 <- microbenchmark(dplyr_query_2_funs = student_courses %>%
+                             group_by(id) %>%  
+                             summarise(total_days = sum(platform_length),
+                                       min_days = min(platform_length),
+                                       median_days = median(platform_length),  
+                                       max_days = max(platform_length)) %>%
+                             ungroup(),
+                           dt_query_2_funs = student_courses[, 
+                                                             .(total_days = sum(platform_length),
+                                                               min_days = min(platform_length),
+                                                               median_days = median(platform_length),  
+                                                               max_days = max(platform_length)),
+                                                             by = id]  ,
+                           dplyr_query_3_funs = student_courses %>%
+                             group_by(id, platform, platform_start_date) %>%
+                             filter(row_number() == 1L) %>%
+                             ungroup() %>%
+                             group_by(id) %>%  
+                             summarise(total_days = sum(platform_length),
+                                       min_days = min(platform_length),
+                                       median_days = median(platform_length),  
+                                       max_days = max(platform_length)) %>%
+                             ungroup(), 
+                           dt_query_3_funs = student_courses[,
+                                                             .SD[1L],
+                                                             by = .(id, platform, platform_start_date)] %>%
+                             .[, 
+                               .(total_days = sum(platform_length),
+                                 min_days = min(platform_length),
+                                 median_days = median(platform_length),  
+                                 max_days = max(platform_length)),
+                               keyby = id],
+                           times = 25) 
+  
+  saveRDS(query1, here("data", "data-table-benchmarks-2", "query2.rds"))
+}
+
+# Print summary table ----------------------------------------------------------
+query2 <- readRDS(here("data", "data-table-benchmarks-2", "query2.rds"))
+knitr::kable(summary(query2), caption = "Units: milliseconds")   
+```
+
+
+# Summarise multiple variables   
+
+Imagine that you are interested in how course and platform dwell time varies for each platform.   
+
+## Using `dplyr`  
+
+```{r}
+# Remove duplicate rows using dplyr ---------------------- 
+dplyr_query_4 <- student_courses %>%
+  group_by(id, platform, platform_start_date) %>%
+  filter(row_number() == 1L) %>%
+  ungroup() %>%
+  group_by(id) %>%  
+  summarise(across(where(is.numeric.Date)),
+            mean,
+            sd) %>%
+  ungroup()
+```
+
+
+
+## Using `data.table`  
+
+
+# Use `lag` operations    
 
 
 # Other resources      
 
-+ A great side-by-side comparison of `data.table` versus `dplyr` functions from a [blog post by Atrebas](https://atrebas.github.io/post/2019-03-03-datatable-dplyr/).             
++ A great side-by-side comparison of `data.table` versus `dplyr` functions from a [blog post by Atrebas](https://atrebas.github.io/post/2019-03-03-datatable-dplyr/).           
 
 + A list of advanced `data.table` operations and tricks from a [blog post by Andrew Brooks](http://brooksandrew.github.io/simpleblog/articles/advanced-data-table/).    
+
++ A [stack overflow discussion](https://stackoverflow.com/questions/61322864/is-there-a-visual-explanation-of-why-data-table-operations-are-faster-than-tidyv) about why group by operations are much faster using `data.table`.      

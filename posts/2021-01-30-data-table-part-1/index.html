@@ -2143,6 +2143,7 @@ d-appendix {
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP');
 @import url('https://fonts.googleapis.com/css2?family=Roboto');
 @import url('https://fonts.googleapis.com/css2?family=Inconsolata');
+@import url('https://fonts.googleapis.com/css2?family=New+Tegomin');
 
 html {
   /*-- Main font sizes --*/
@@ -2572,27 +2573,32 @@ code {
 </ul></li>
 <li><a href="#filter-data">Filter data</a>
 <ul>
-<li><a href="#using-dplyr-versus-data.table">Using <code>dplyr</code> versus <code>data.table</code></a></li>
+<li><a href="#using-dplyr">Using <code>dplyr</code></a></li>
+<li><a href="#using-data.table">Using <code>data.table</code></a></li>
 <li><a href="#benchmark-data-filtering">Benchmark data filtering</a></li>
 </ul></li>
 <li><a href="#sort-data">Sort data</a>
 <ul>
-<li><a href="#using-dplyr-versus-data.table-1">Using <code>dplyr</code> versus <code>data.table</code></a></li>
+<li><a href="#using-dplyr-1">Using <code>dplyr</code></a></li>
+<li><a href="#using-data.table-1">Using <code>data.table</code></a></li>
 <li><a href="#benchmark-data-sorting">Benchmark data sorting</a></li>
 </ul></li>
 <li><a href="#select-data-columns">Select data columns</a>
 <ul>
-<li><a href="#using-dplyr-versus-data.table-2">Using <code>dplyr</code> versus <code>data.table</code></a></li>
+<li><a href="#using-dplyr-2">Using <code>dplyr</code></a></li>
+<li><a href="#using-data.table-2">Using <code>data.table</code></a></li>
 <li><a href="#benchmark-column-selection">Benchmark column selection</a></li>
 </ul></li>
 <li><a href="#column-creation">Column creation</a>
 <ul>
-<li><a href="#using-dplyr-versus-data.table-3">Using <code>dplyr</code> versus <code>data.table</code></a></li>
+<li><a href="#using-dplyr-3">Using <code>dplyr</code></a></li>
+<li><a href="#using-data.table-3">Using <code>data.table</code></a></li>
 <li><a href="#benchmark-column-creation">Benchmark column creation</a></li>
 </ul></li>
 <li><a href="#simple-group-by-operations">Simple group by operations</a>
 <ul>
-<li><a href="#using-dplyr-versus-data.table-4">Using <code>dplyr</code> versus <code>data.table</code></a></li>
+<li><a href="#using-dplyr-4">Using <code>dplyr</code></a></li>
+<li><a href="#using-data.table-4">Using <code>data.table</code></a></li>
 <li><a href="#benchmark-simple-group-by-operations">Benchmark simple group by operations</a></li>
 </ul></li>
 <li><a href="#summary">Summary</a></li>
@@ -2775,7 +2781,7 @@ code {
 </div>
 <p><strong>Note:</strong> You do not need to assign datasets to names when modifying by reference using the <code>:=</code> operator.</p>
 <h1 id="filter-data">Filter data</h1>
-<h2 id="using-dplyr-versus-data.table">Using <code>dplyr</code> versus <code>data.table</code></h2>
+<h2 id="using-dplyr">Using <code>dplyr</code></h2>
 <p>The syntax for filtering data is very similar for <code>dplyr</code> and <code>data.table</code>.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
@@ -2803,6 +2809,7 @@ code {
 </code></pre>
 </div>
 </div>
+<h2 id="using-data.table">Using <code>data.table</code></h2>
 <p>A difference is that <code>data.table</code> also contains a list of helper functions with optimised performance for filtering on specific data types like characters or integers.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
@@ -2917,7 +2924,7 @@ code {
 </table>
 </div>
 <h1 id="sort-data">Sort data</h1>
-<h2 id="using-dplyr-versus-data.table-1">Using <code>dplyr</code> versus <code>data.table</code></h2>
+<h2 id="using-dplyr-1">Using <code>dplyr</code></h2>
 <p>Sorting a data frame can be computationally expensive when multiple variables need to be ranked. This is why I recommending sorting your dataset once, right after basic data cleaning operations have been performed.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
@@ -2934,6 +2941,7 @@ code {
 </code></pre>
 </div>
 </div>
+<h2 id="using-data.table-1">Using <code>data.table</code></h2>
 <p>In <code>data.table</code>, sorting is also performed inside <code>i</code> of <code>DT[i, j, by]</code>. Using the operator <code>-</code> in front of a variable allows sorting by descending order.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
@@ -3024,7 +3032,7 @@ code {
 </table>
 </div>
 <h1 id="select-data-columns">Select data columns</h1>
-<h2 id="using-dplyr-versus-data.table-2">Using <code>dplyr</code> versus <code>data.table</code></h2>
+<h2 id="using-dplyr-2">Using <code>dplyr</code></h2>
 <p>In <code>dplyr</code>, performing operations on a tibble will always return another data frame, unless you explicitly use <code>pull()</code> to extract a column as a vector.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
@@ -3053,6 +3061,7 @@ code {
 </code></pre>
 </div>
 </div>
+<h2 id="using-data.table-2">Using <code>data.table</code></h2>
 <p>In <code>data.table</code>, column selection is performed inside <code>j</code> of <code>DT[i, j, by]</code> and returns a <code>data.table</code> if you wrap column names inside a list.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
@@ -3158,7 +3167,7 @@ code {
 </table>
 </div>
 <h1 id="column-creation">Column creation</h1>
-<h2 id="using-dplyr-versus-data.table-3">Using <code>dplyr</code> versus <code>data.table</code></h2>
+<h2 id="using-dplyr-3">Using <code>dplyr</code></h2>
 <p>In <code>dplyr</code> version &gt;= 1.0.0, you can use <code>mutate()</code> in combination with <code>across()</code> to create new columns or apply transformations across one or multiple columns.</p>
 <p>A shallow <code>data.frame</code> copy is created whenever a column is modified, which you then assign a name to.</p>
 <div class="layout-chunk" data-layout="l-body">
@@ -3188,6 +3197,7 @@ code {
 </code></pre>
 </div>
 </div>
+<h2 id="using-data.table-3">Using <code>data.table</code></h2>
 <p>Data frame outputs are slightly different in <code>data.table</code>:</p>
 <ul>
 <li>Column transformations are always modified in place using the operator <code>:=</code>.<br />
@@ -3306,8 +3316,8 @@ code {
 </table>
 </div>
 <h1 id="simple-group-by-operations">Simple group by operations</h1>
-<h2 id="using-dplyr-versus-data.table-4">Using <code>dplyr</code> versus <code>data.table</code></h2>
-<p>Evaluating summary characteristics for data groupings is also where <code>data.table</code> significantly outperforms <code>dplyr</code>. A grouping is specified using the <code>group_by()</code> function in <code>dplyr</code> and inside the <code>by</code> placeholder of <code>DT[i, j, by]</code> in <code>data.table</code>.</p>
+<h2 id="using-dplyr-4">Using <code>dplyr</code></h2>
+<p>Evaluating summary characteristics for data groupings is also where <code>data.table</code> significantly outperforms <code>dplyr</code>. A grouping is specified using the <code>group_by()</code> function in <code>dplyr</code>.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Find total number of courses per student via dplyr ---------------------------    </span>
@@ -3334,6 +3344,8 @@ code {
 </code></pre>
 </div>
 </div>
+<h2 id="using-data.table-4">Using <code>data.table</code></h2>
+<p>In <code>data.table</code>, a grouping is specified inside the <code>by</code> placeholder of <code>DT[i, j, by]</code>.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Find total number of courses per student via data.table ----------------------    </span>
@@ -3359,8 +3371,7 @@ code {
 </div>
 </div>
 <h2 id="benchmark-simple-group-by-operations">Benchmark simple group by operations</h2>
-<p>You can clearly see that groupings are significantly faster in <code>data.table</code> than <code>dplyr</code>.</p>
-<p><strong>Note:</strong> Not all <code>data.table</code> functions outperform their base R or <code>dplyr</code> equivalents. The <code>data.table</code> <code>uniqueN(x)</code> function is much slower than <code>length(unique(x))</code>.</p>
+<p>Group by operations are significantly faster in <code>data.table</code> than <code>dplyr</code>.</p>
 <div class="layout-chunk" data-layout="l-body">
 <table>
 <caption><span id="tab:unnamed-chunk-30">Table 5: </span>Units: milliseconds</caption>
@@ -3460,8 +3471,9 @@ code {
 </tbody>
 </table>
 </div>
+<p><strong>Note:</strong> Not all <code>data.table</code> functions outperform their base R or <code>dplyr</code> equivalents. The <code>data.table</code> <code>uniqueN(x)</code> function is much slower than <code>length(unique(x))</code>.</p>
 <h1 id="summary">Summary</h1>
-<p>Most <code>data.table</code> operations significantly outperform their <code>dplyr</code> equivalents in processing speed. I use <code>data.table</code> when grouping on large datasets (i.e. on datasets with greater than ~ 0.5 million rows) and use <code>dplyr</code> for day-to-day analyses of smaller datasets.</p>
+<p>Most <code>data.table</code> operations significantly outperform their <code>dplyr</code> equivalents in computational speed. I use <code>data.table</code> when grouping on large datasets (i.e. on datasets with greater than ~ 0.5 million rows) and use <code>dplyr</code> for day-to-day analyses of smaller datasets.</p>
 <h1 id="other-resources">Other resources</h1>
 <ul>
 <li><p>A <a href="https://stackoverflow.com/questions/21435339/data-table-vs-dplyr-can-one-do-something-well-the-other-cant-or-does-poorly/27840349#27840349">stack overflow discussion</a> about the best use cases for <code>data.table</code> versus <code>dplyr</code>.</p></li>
