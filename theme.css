@@ -13,7 +13,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP');
 @import url('https://fonts.googleapis.com/css2?family=Roboto');
 @import url('https://fonts.googleapis.com/css2?family=Inconsolata');
-@import url('https://fonts.googleapis.com/css2?family=New+Tegomin');
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand');
 
 html {
   /*-- Main font sizes --*/
@@ -29,10 +29,10 @@ html {
   --aside-color:     rgba(0, 0, 0, 0.6);
   --fig-cap-color:   rgba(0, 0, 0, 0.6);
   /*-- Specify custom fonts ~~~ must be imported above   --*/
-  --heading-font:    'Roboto';
+  --heading-font:    'Patrick Hand';
   --mono-font:       'Roboto Slab';
   --body-font:       'ariel';  
-  --navbar-font:     'Noto+Sans+JP';  /* websites + blogs only */
+  --navbar-font:     'Patrick Hand';  /* websites + blogs only */
 }
 
 /*-- ARTICLE METADATA --*/
@@ -81,9 +81,9 @@ d-appendix {
 
 /* Change front page header */
 .posts-list h1 {
-    font-family    : 'Roboto';
+    font-family    : 'Patrick Hand';
     font-weight    : 900!important;   
-    font-size      : 46px;
+    font-size      : 52px;
     text-transform : uppercase;
     line-height    : 1.1em;
     margin-top     : 20px;
@@ -96,7 +96,7 @@ d-appendix {
 
 /* Change categories sidebar title appearance */
 .posts-sidebar h3 {
-    font-family    : 'Roboto';
+    font-family    : 'Patrick Hand';
     font-size      : 20px;
     font-weight    : 900;
     color          : #2C8980;

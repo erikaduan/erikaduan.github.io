@@ -139,7 +139,7 @@ diseased_vs_healthy %>%
 max(abs(-10), abs(8))
 #> [1] 10  
 
-# Change xlim() ----------------------------------------------------------------  
+# Change xlim() ----------------------------------------------------------------
 # Manually specify x-axis limits   
 vol_plot + 
   geom_hline(yintercept = -log10(0.05),
@@ -197,7 +197,7 @@ diseased_vs_healthy %>%
 In `ggplot2`, you also have the option to visualise different groups by point colour, size, shape and transparency by modifying parameter like `scale_color_manual()` etc. A tidy way of doing this is to separately store your manual specifications as vectors.   
 
 ```{r}
-# Check gene_type categories ---------------------------------------------------    
+# Check gene_type categories ---------------------------------------------------
 diseased_vs_healthy %>%
   distinct(gene_type) %>%
   pull()  
@@ -205,7 +205,7 @@ diseased_vs_healthy %>%
 ```
 
 ```{r, results='markup'}
-# Add colour, size and alpha (transparency) to volcano plot -------------------- 
+# Add colour, size and alpha (transparency) to volcano plot --------------------
 cols <- c("up" = "#ffad73", "down" = "#26b3ff", "ns" = "grey") 
 sizes <- c("up" = 2, "down" = 2, "ns" = 1) 
 alphas <- c("up" = 1, "down" = 1, "ns" = 0.5)
@@ -235,7 +235,7 @@ diseased_vs_healthy %>%
 You can also overlay subplots on top of your main plot. This is useful when you want to highlight a subset of your data using different colours, shapes and etc. When overlaying plots, you should not use `%>%` pipes but use global `ggplot(`data = "..."`)` and local `geom_point(data = ...)` arguments instead.              
 
 ```{r, results='markup'}
-# Add subplot layer to the main volcano plot -----------------------------------  
+# Add subplot layer to the main volcano plot -----------------------------------
 ils <- str_subset(diseased_vs_healthy$symbol, "^[I|i]l[0-9]+$")  
 
 il_genes <- diseased_vs_healthy %>%
@@ -307,11 +307,11 @@ ggplot(data = diseased_vs_healthy,
 If you need to change the order of categorical figure legend values, you will need to `factor()` and re-level your categorical variable. This can be done using the `forcats` package, which allows you to easily modify factor levels.           
 
 ```{r, results='markup'}
-# Modify legend labels by re-ordering gene_type levels -------------------------  
+# Modify legend labels by re-ordering gene_type levels -------------------------
 diseased_vs_healthy <- diseased_vs_healthy %>%
   mutate(gene_type = fct_relevel(gene_type, "up", "down")) 
 
-# Recreate volcano plot --------------------------------------------------------  
+# Recreate volcano plot --------------------------------------------------------
 ggplot(data = diseased_vs_healthy,
        aes(x = log2(fold_change),
            y = -log10(adj_p_val))) + 

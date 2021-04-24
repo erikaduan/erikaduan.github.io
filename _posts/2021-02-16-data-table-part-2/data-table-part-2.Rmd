@@ -16,7 +16,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-# Set up global environment ----------------------------------------------------  
+# Set up global environment ----------------------------------------------------
 knitr::opts_chunk$set(echo=TRUE, results='hide') 
 options(scipen=999)
 ```
@@ -620,29 +620,80 @@ knitr::kable(summary(query2), caption = "Units: milliseconds")
 
 # Summarise multiple variables   
 
-Imagine that you are interested in how course and platform dwell time varies for each platform.   
+Imagine that you are interested in how the length of time spent on a platform varies per student per platform. This involves a similar two-stage step to the one above, except that transformations are specifically applied to selective variable(s):     
 
-## Using `dplyr`  
++ First, group by `id`, `platform`, `platform_start_date` and extract the first row of each group.  
++ Next, group by `id` and `platform`, select variables of interest and apply the required transformation/ aggregation.   
+
+
+## Using `dplyr`    
+
+In `dplyr`, this is facilitated by using `across()` inside `summarise()`, which allows you to perform the same list of statistical calculations of a single or multiple columns.    
 
 ```{r}
-# Remove duplicate rows using dplyr ---------------------- 
+# Remove duplicate rows and summarise across platform_length using dplyr ------- 
 dplyr_query_4 <- student_courses %>%
   group_by(id, platform, platform_start_date) %>%
   filter(row_number() == 1L) %>%
   ungroup() %>%
-  group_by(id) %>%  
-  summarise(across(where(is.numeric.Date)),
-            mean,
-            sd) %>%
-  ungroup()
+  group_by(id, platform) %>%  
+  summarise(across(contains("length"),
+                   list(mean = mean, sd = sd)),
+            .groups = "drop") # Replaces the need to ungroup() after summarise() 
 ```
 
+
+## Using `data.table`   
+
+In `data.table`, the equivalent method is to specify variable(s) of interest using `.SDcols` and perform `lapply(.SD, ...)`.    
+
+```{r}
+# Remove duplicate rows and lapply() across platform_length using data.table ---
+# Solution 1  
+dt_query_4_1 <- student_courses[,
+                              .SD[1L],
+                              by = .(id, platform, platform_start_date)] %>%
+  .[, 
+    unlist(lapply(.SD,
+                  function(x) list(mean = mean(x),
+                                   sd = sd(x))),
+           recursive = F),
+    .SDcols = grep("length", colnames(student_courses)),
+    keyby = .(id, platform)]
+
+# Solution 2
+```
+
+
+## Benchmark data operations     
+
+```{r, echo=FALSE, results='markup'}
+
+```
+
+
+# Use `lag` operations    
 
 
 ## Using `data.table`  
 
+```{r}
 
-# Use `lag` operations    
+```
+
+
+## Using `data.table`  
+
+```{r}
+
+```
+
+
+## Benchmark data operations     
+
+```{r}
+
+```
 
 
 # Other resources      

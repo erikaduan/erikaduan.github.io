@@ -1519,12 +1519,18 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <li><a href="#using-data.table-3">Using <code>data.table</code></a></li>
 <li><a href="#benchmark-data-operations-1">Benchmark data operations</a></li>
 </ul></li>
-<li><a href="#summarise-multiple-conditions">Summarise multiple conditions</a>
+<li><a href="#summarise-multiple-variables">Summarise multiple variables</a>
 <ul>
 <li><a href="#using-dplyr-4">Using <code>dplyr</code></a></li>
 <li><a href="#using-data.table-4">Using <code>data.table</code></a></li>
+<li><a href="#benchmark-data-operations-2">Benchmark data operations</a></li>
 </ul></li>
-<li><a href="#use-lag-operations">Use <code>lag</code> operations</a></li>
+<li><a href="#use-lag-operations">Use <code>lag</code> operations</a>
+<ul>
+<li><a href="#using-data.table-5">Using <code>data.table</code></a></li>
+<li><a href="#using-data.table-6">Using <code>data.table</code></a></li>
+<li><a href="#benchmark-data-operations-3">Benchmark data operations</a></li>
+</ul></li>
 <li><a href="#other-resources">Other resources</a></li>
 </ul>
 </nav>
@@ -1943,10 +1949,67 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 </tbody>
 </table>
 </div>
-<h1 id="summarise-multiple-conditions">Summarise multiple conditions</h1>
+<h1 id="summarise-multiple-variables">Summarise multiple variables</h1>
+<p>Imagine that you are interested in how the length of time spent on a platform varies per student per platform. This involves a similar two-stage step to the one above, except that transformations are specifically applied to selective variable(s):</p>
+<ul>
+<li>First, group by <code>id</code>, <code>platform</code>, <code>platform_start_date</code> and extract the first row of each group.<br />
+</li>
+<li>Next, group by <code>id</code> and <code>platform</code>, select variables of interest and apply the required transformation/ aggregation.</li>
+</ul>
 <h2 id="using-dplyr-4">Using <code>dplyr</code></h2>
+<p>In <code>dplyr</code>, this is facilitated by using <code>across()</code> inside <code>summarise()</code>, which allows you to perform the same list of statistical calculations of a single or multiple columns.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Remove duplicate rows and summarise across platform_length using dplyr ------- </span>
+<span class="va">dplyr_query_4</span> <span class="op">&lt;-</span> <span class="va">student_courses</span> <span class="op">%&gt;%</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span>, <span class="va">platform_start_date</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="fu">row_number</span><span class="op">(</span><span class="op">)</span> <span class="op">==</span> <span class="fl">1L</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span><span class="op">)</span> <span class="op">%&gt;%</span>  
+  <span class="fu">summarise</span><span class="op">(</span><span class="fu">across</span><span class="op">(</span><span class="fu">contains</span><span class="op">(</span><span class="st">&quot;length&quot;</span><span class="op">)</span>,
+                   <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="va">mean</span>, sd <span class="op">=</span> <span class="va">sd</span><span class="op">)</span><span class="op">)</span>,
+            .groups <span class="op">=</span> <span class="st">&quot;drop&quot;</span><span class="op">)</span> <span class="co"># Replaces the need to ungroup() after summarise() </span>
+</code></pre>
+</div>
+</div>
 <h2 id="using-data.table-4">Using <code>data.table</code></h2>
+<p>In <code>data.table</code>, the equivalent method is to specify variable(s) of interest using <code>.SDcols</code> and perform <code>lapply(.SD, ...)</code>.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Remove duplicate rows and lapply() across platform_length using data.table ---</span>
+<span class="co"># Solution 1  </span>
+<span class="va">dt_query_4_1</span> <span class="op">&lt;-</span> <span class="va">student_courses</span><span class="op">[</span>,
+                              <span class="va">.SD</span><span class="op">[</span><span class="fl">1L</span><span class="op">]</span>,
+                              by <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span>, <span class="va">platform_start_date</span><span class="op">)</span><span class="op">]</span> <span class="op">%&gt;%</span>
+  <span class="va">.</span><span class="op">[</span>, 
+    <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">.SD</span>,
+                  <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>,
+                                   sd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,
+           recursive <span class="op">=</span> <span class="cn">F</span><span class="op">)</span>,
+    .SDcols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">grep</a></span><span class="op">(</span><span class="st">&quot;length&quot;</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">student_courses</span><span class="op">)</span><span class="op">)</span>,
+    keyby <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span><span class="op">)</span><span class="op">]</span>
+
+<span class="co"># Solution 2</span>
+</code></pre>
+</div>
+</div>
+<h2 id="benchmark-data-operations-2">Benchmark data operations</h2>
+<div class="layout-chunk" data-layout="l-body">
+
+</div>
 <h1 id="use-lag-operations">Use <code>lag</code> operations</h1>
+<h2 id="using-data.table-5">Using <code>data.table</code></h2>
+<div class="layout-chunk" data-layout="l-body">
+
+</div>
+<h2 id="using-data.table-6">Using <code>data.table</code></h2>
+<div class="layout-chunk" data-layout="l-body">
+
+</div>
+<h2 id="benchmark-data-operations-3">Benchmark data operations</h2>
+<div class="layout-chunk" data-layout="l-body">
+
+</div>
 <h1 id="other-resources">Other resources</h1>
 <ul>
 <li><p>A great side-by-side comparison of <code>data.table</code> versus <code>dplyr</code> functions from a <a href="https://atrebas.github.io/post/2019-03-03-datatable-dplyr/">blog post by Atrebas</a>.</p></li>

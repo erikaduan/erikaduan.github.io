@@ -2143,7 +2143,7 @@ d-appendix {
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP');
 @import url('https://fonts.googleapis.com/css2?family=Roboto');
 @import url('https://fonts.googleapis.com/css2?family=Inconsolata');
-@import url('https://fonts.googleapis.com/css2?family=New+Tegomin');
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand');
 
 html {
   /*-- Main font sizes --*/
@@ -2159,10 +2159,10 @@ html {
   --aside-color:     rgba(0, 0, 0, 0.6);
   --fig-cap-color:   rgba(0, 0, 0, 0.6);
   /*-- Specify custom fonts ~~~ must be imported above   --*/
-  --heading-font:    'Roboto';
+  --heading-font:    'Patrick Hand';
   --mono-font:       'Roboto Slab';
   --body-font:       'ariel';  
-  --navbar-font:     'Noto+Sans+JP';  /* websites + blogs only */
+  --navbar-font:     'Patrick Hand';  /* websites + blogs only */
 }
 
 /*-- ARTICLE METADATA --*/
@@ -2211,9 +2211,9 @@ d-appendix {
 
 /* Change front page header */
 .posts-list h1 {
-    font-family    : 'Roboto';
+    font-family    : 'Patrick Hand';
     font-weight    : 900!important;   
-    font-size      : 46px;
+    font-size      : 52px;
     text-transform : uppercase;
     line-height    : 1.1em;
     margin-top     : 20px;
@@ -2226,7 +2226,7 @@ d-appendix {
 
 /* Change categories sidebar title appearance */
 .posts-sidebar h3 {
-    font-family    : 'Roboto';
+    font-family    : 'Patrick Hand';
     font-size      : 20px;
     font-weight    : 900;
     color          : #2C8980;
@@ -2721,7 +2721,7 @@ code {
 <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="op">-</span><span class="fl">10</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="fl">8</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt; [1] 10  </span>
 
-<span class="co"># Change xlim() ----------------------------------------------------------------  </span>
+<span class="co"># Change xlim() ----------------------------------------------------------------</span>
 <span class="co"># Manually specify x-axis limits   </span>
 <span class="va">vol_plot</span> <span class="op">+</span> 
   <span class="fu">geom_hline</span><span class="op">(</span>yintercept <span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log10</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">)</span>,
@@ -2800,7 +2800,7 @@ code {
 <p>In <code>ggplot2</code>, you also have the option to visualise different groups by point colour, size, shape and transparency by modifying parameter like <code>scale_color_manual()</code> etc. A tidy way of doing this is to separately store your manual specifications as vectors.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Check gene_type categories ---------------------------------------------------    </span>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Check gene_type categories ---------------------------------------------------</span>
 <span class="va">diseased_vs_healthy</span> <span class="op">%&gt;%</span>
   <span class="fu">distinct</span><span class="op">(</span><span class="va">gene_type</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">pull</span><span class="op">(</span><span class="op">)</span>  
@@ -2810,7 +2810,7 @@ code {
 </div>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Add colour, size and alpha (transparency) to volcano plot -------------------- </span>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Add colour, size and alpha (transparency) to volcano plot --------------------</span>
 <span class="va">cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;up&quot;</span> <span class="op">=</span> <span class="st">&quot;#ffad73&quot;</span>, <span class="st">&quot;down&quot;</span> <span class="op">=</span> <span class="st">&quot;#26b3ff&quot;</span>, <span class="st">&quot;ns&quot;</span> <span class="op">=</span> <span class="st">&quot;grey&quot;</span><span class="op">)</span> 
 <span class="va">sizes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;up&quot;</span> <span class="op">=</span> <span class="fl">2</span>, <span class="st">&quot;down&quot;</span> <span class="op">=</span> <span class="fl">2</span>, <span class="st">&quot;ns&quot;</span> <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> 
 <span class="va">alphas</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;up&quot;</span> <span class="op">=</span> <span class="fl">1</span>, <span class="st">&quot;down&quot;</span> <span class="op">=</span> <span class="fl">1</span>, <span class="st">&quot;ns&quot;</span> <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>
@@ -2840,7 +2840,7 @@ code {
 <p>You can also overlay subplots on top of your main plot. This is useful when you want to highlight a subset of your data using different colours, shapes and etc. When overlaying plots, you should not use <code>%&gt;%</code> pipes but use global <code>ggplot(</code>data = “…”<code>)</code> and local <code>geom_point(data = ...)</code> arguments instead.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Add subplot layer to the main volcano plot -----------------------------------  </span>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Add subplot layer to the main volcano plot -----------------------------------</span>
 <span class="va">ils</span> <span class="op">&lt;-</span> <span class="fu">str_subset</span><span class="op">(</span><span class="va">diseased_vs_healthy</span><span class="op">$</span><span class="va">symbol</span>, <span class="st">&quot;^[I|i]l[0-9]+$&quot;</span><span class="op">)</span>  
 
 <span class="va">il_genes</span> <span class="op">&lt;-</span> <span class="va">diseased_vs_healthy</span> <span class="op">%&gt;%</span>
@@ -2910,11 +2910,11 @@ code {
 <p>If you need to change the order of categorical figure legend values, you will need to <code>factor()</code> and re-level your categorical variable. This can be done using the <code>forcats</code> package, which allows you to easily modify factor levels.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Modify legend labels by re-ordering gene_type levels -------------------------  </span>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Modify legend labels by re-ordering gene_type levels -------------------------</span>
 <span class="va">diseased_vs_healthy</span> <span class="op">&lt;-</span> <span class="va">diseased_vs_healthy</span> <span class="op">%&gt;%</span>
   <span class="fu">mutate</span><span class="op">(</span>gene_type <span class="op">=</span> <span class="fu">fct_relevel</span><span class="op">(</span><span class="va">gene_type</span>, <span class="st">&quot;up&quot;</span>, <span class="st">&quot;down&quot;</span><span class="op">)</span><span class="op">)</span> 
 
-<span class="co"># Recreate volcano plot --------------------------------------------------------  </span>
+<span class="co"># Recreate volcano plot --------------------------------------------------------</span>
 <span class="fu">ggplot</span><span class="op">(</span>data <span class="op">=</span> <span class="va">diseased_vs_healthy</span>,
        <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log2</a></span><span class="op">(</span><span class="va">fold_change</span><span class="op">)</span>,
            y <span class="op">=</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log10</a></span><span class="op">(</span><span class="va">adj_p_val</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> 
