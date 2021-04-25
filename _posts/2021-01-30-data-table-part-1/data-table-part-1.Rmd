@@ -66,8 +66,6 @@ Imagine you have a dataset describing how students are engaging with online cour
 + Course start dates are recorded when the student starts a course.    
 + Course end dates are recorded when the student exits a course.    
 
-**Note:** The code used to create this dataset can be accessed from my github repository [here](https://github.com/erikaduan/R-tips/blob/master/03_blog_posts/2020-04-07_data-table-versus-dplyr/2020-04-07_data-table-versus-dplyr.md).    
-
 ```{r, echo=FALSE}
 # Create a function to generate random dates -----------------------------------
 create_start_dates <- function(start_date, end_date, n) {
@@ -359,6 +357,8 @@ student_courses %>%
                              "$(this.api().table().header()).css({'background-color': '#37ACA1', 'color': '#fff'});",
                              "}")))
 ```
+
+**Note:** The code used to create this dataset can be accessed from my github repository [here](https://github.com/erikaduan/R-tips/blob/master/03_blog_posts/2020-04-07_data-table-versus-dplyr/2020-04-07_data-table-versus-dplyr.md).   
 
 
 # Principles of `data.table`     

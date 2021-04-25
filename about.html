@@ -2122,7 +2122,6 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   /* This must remain at the top of this file.                 */
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP');
   @import url('https://fonts.googleapis.com/css2?family=Roboto');
-  @import url('https://fonts.googleapis.com/css2?family=Inconsolata');
   @import url('https://fonts.googleapis.com/css2?family=Patrick+Hand');
 
   html {
@@ -2139,7 +2138,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
     --aside-color:     rgba(0, 0, 0, 0.6);
     --fig-cap-color:   rgba(0, 0, 0, 0.6);
     /*-- Specify custom fonts ~~~ must be imported above   --*/
-    --heading-font:    'Patrick Hand';
+    --heading-font:    'Patrick Hand; ariel';
     --mono-font:       'Roboto Slab';
     --body-font:       'ariel';  
     --navbar-font:     'Patrick Hand';  /* websites + blogs only */
@@ -2171,9 +2170,9 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   /* These properties only apply to Distill sites and blogs  */
 
   .distill-site-header {
-    --title-size:       20px;
+    --title-size:       26px;
     --text-color:       #FFFFFF;
-    --text-size:        18px;
+    --text-size:        26px;
     --hover-color:      #EAF8F8;
     --bkgd-color:       #37ACA1;
   }
@@ -2201,7 +2200,13 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 
   /* Change front page post titles*/
   .posts-list .post-preview h2 {
+      font-family    : 'Patrick Hand'!important;
       font-weight    : 700;
+  }
+
+  /* Change front page post title spacing*/
+  .posts-list .post-preview p {
+      line-height: 2em;
   }
 
   /* Change categories sidebar title appearance */
@@ -2233,8 +2238,14 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
     text-decoration  : none;
   }
 
+  /* Change Contents header font color */ 
+  .d-contents nav h3 {
+    color          : rgba(0, 0, 0, 0.5);
+  }
+
   /* Change article title appearance*/
   d-title h1 {
+      font-family    : 'Patrick Hand';
       font-weight    : 900;
       text-transform : uppercase;
       font-size      : 32px;
@@ -2242,14 +2253,22 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
       margin-top     : 20px;
   }
 
-  /* Change article subtitle appearance*/
+  /* Change article subtitle h1 appearance*/
   d-article h1 {
+      font-family    : 'Patrick Hand';
       font-weight    : 700;
       font-size      : 30px;
   }
 
-  /* Change article subtitle appeance */
-  d-article h2,h3,h4 {
+  /* Change article subtitle h2 appeance */
+  d-article h2 {
+      font-family    : 'Patrick Hand';
+      font-weight    : 700;
+      font-size      : 26px;
+  }
+
+  /* Change article subtitle h3, h4 appeance */
+  d-article h3, h4 {
       font-weight    : 700;
       font-size      : 26px;
   }
@@ -2268,7 +2287,8 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   } 
 
   d-byline .byline h3 {
-      margin-block-start: 0.5em;</style>
+      margin-block-start: 0.5em;
+  }</style>
   <style type="text/css">
   /* base style */
 
@@ -2424,7 +2444,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
     color: var(--hover-color, white);
   }</style>
   <!--/radix_placeholder_distill-->
-  <script src="site_libs/header-attrs-2.6/header-attrs.js"></script>
+  <script src="site_libs/header-attrs-2.7/header-attrs.js"></script>
   <script src="site_libs/popper-2.6.0/popper.min.js"></script>
   <link href="site_libs/tippy-6.2.7/tippy.css" rel="stylesheet" />
   <link href="site_libs/tippy-6.2.7/tippy-light-border.css" rel="stylesheet" />

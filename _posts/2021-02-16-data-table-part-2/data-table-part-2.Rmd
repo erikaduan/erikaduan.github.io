@@ -24,20 +24,10 @@ options(scipen=999)
 
 # Introduction    
 
-This post is a continuation of [my comparison](https://erikaduan.github.io/posts/2021-01-30-data-table-part-1/) of R `data.table` versus `dplyr` functions. Imagine you have a dataset describing how students are engaging with online courses:
-
-+ Each student has a unique ID.   
-+ There are 5 different online platforms, labelled A, B, C, D and E.   
-+ Students have the option of taking different courses within the same platform or switching to a different platform.   
-+ Platform start dates are recorded when the student starts the first course on a new platform.  
-+ Platform end dates are recorded when the student exits a platform.   
-+ Course start dates are recorded when the student starts a course.    
-+ Course end dates are recorded when the student exits a course.    
-
-**Note:** The code used to create this dataset can be accessed from my github repository [here](https://github.com/erikaduan/R-tips/blob/master/03_blog_posts/2020-04-07_data-table-versus-dplyr/2020-04-07_data-table-versus-dplyr.md).    
+This post is an extension of [my comparison](https://erikaduan.github.io/posts/2021-01-30-data-table-part-1/) of simple R `data.table` versus `dplyr` functions.   
 
 ```{r, message=FALSE, warning=FALSE}
-# Load required packages -------------------------------------------------------  
+# Load required packages -------------------------------------------------------
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(here,
                ids, # Generate random IDs
@@ -46,6 +36,16 @@ pacman::p_load(here,
                microbenchmark,
                DT)
 ```
+
+Imagine that you have a dataset describing how students are engaging with online courses:
+
++ Each student has a unique ID.   
++ There are 5 different online platforms, labelled A, B, C, D and E.   
++ Students have the option of taking different courses within the same platform or switching to a different platform.   
++ Platform start dates are recorded when the student starts the first course on a new platform.  
++ Platform end dates are recorded when the student exits a platform.   
++ Course start dates are recorded when the student starts a course.    
++ Course end dates are recorded when the student exits a course.    
 
 ```{r, echo=FALSE}
 # Create a function to generate random dates -----------------------------------
@@ -320,23 +320,23 @@ student_courses <- student_courses %>%
 ```
 
 ```{r, echo=FALSE}
-# Remove all objects except student_courses ------------------------------------  
+# Remove all objects except student_courses ------------------------------------
 rm(list = setdiff(ls(), "student_courses"))
 gc()
 ```
 
 ```{r, echo=FALSE} 
-# Convert data frame to data.table ---------------------------------------------  
+# Convert data frame to data.table ---------------------------------------------
 setDT(student_courses)
 
-class(student_courses) 
-#> [1] "data.table" "data.frame"  
+class(student_courses)
+#> [1] "data.table" "data.frame"   
 ```
 
 The first 12 rows of the dataset can be examined interactively below.        
 
 ```{r, echo=FALSE, results='markup'}
-# Examine the first 12 rows of data --------------------------------------------  
+# Examine the first 12 rows of data --------------------------------------------
 student_courses %>%
   head(12) %>%
   datatable(rownames = F,
@@ -347,18 +347,20 @@ student_courses %>%
                              "}")))
 ```
 
+**Note:** The code used to create this dataset can be accessed from my github repository [here](https://github.com/erikaduan/R-tips/blob/master/03_blog_posts/2020-04-07_data-table-versus-dplyr/2020-04-07_data-table-versus-dplyr.md).    
 
-# Code sequence impact         
+
+# Code sequence impact  
 
 
 ## Using `dplyr`     
 
 Imagine that you would like to subset on fitness training courses from platform C and E and then create a column to denote that these were discounted courses.   
 
-In `dplyr`, this can be written as a single query using the `%>%` pipe to separate each individual function.    
+In `dplyr`, this can be written as a single block of code using the `%>%` pipe to separate each functional step.  
 
 ```{r, results='markup'}
-# Filter and create a new column using dplyr %>% pipes -------------------------    
+# Filter and create a new column using dplyr %>% pipes -------------------------
 dplyr_query_1 <- student_courses %>%
   filter(course == "fitness_training",
          platform %in% c("C", "E")) %>%
@@ -371,7 +373,7 @@ dplyr_query_1 <- student_courses %>%
 In `data.table`, performing these two operations in separate steps or a single step produces different outputs. ^[Performing the two functions in separate steps is equivalent to the `dplyr` approach above.]    
 
 ```{r}
-# Filter and create a new column using data.table in separate steps ------------  
+# Filter and create a new column using data.table in separate steps ------------
 dt_query_1 <- student_courses[(course == "fitness_training") 
                               & (platform %chin% c("C", "E"))] %>%
   .[, percentage_discount := 5]   
@@ -380,7 +382,7 @@ dt_query_1
 ```
 
 ```{r, echo=FALSE, results='markup'}
-# Print the first 4 rows -------------------------------------------------------  
+# Print the first 4 rows -------------------------------------------------------
 # Subset columns which contain "_date"
 date_cols <- grep("_date$", colnames(student_courses), value = T)
 
@@ -391,18 +393,18 @@ dt_query_1[1:4, !..date_cols] %>%
 In `data.table`, applying filtering and a column transformation in a single step retains all dataset rows and only applies the transformation to rows where the filtering condition is `TRUE`.    
 
 ```{r}
-# Filter and create a new column using data.table in a single step -------------  
+# Filter and create a new column using data.table in a single step -------------
 dt_query_1_wrong <- student_courses[(course == "fitness_training") 
                                     & (platform %chin% c("C", "E")), 
                                     percentage_discount := 5]
 ```
 
 ```{r, echo=FALSE, results='markup'}
-# Print the first 4 rows -------------------------------------------------------  
+# Print the first 4 rows -------------------------------------------------------
 dt_query_1_wrong[1:4, !..date_cols] %>%
   knitr::kable()  
 
-# Remove percentage_discount for downstream analyses ---------------------------  
+# Remove percentage_discount for downstream analyses ---------------------------
 student_courses[, percentage_discount := NULL]  
 ```
 
@@ -415,14 +417,14 @@ There is only a slight speed advantage in using `data.table` over `dplyr`, as ou
 # Benchmark dplyr and data.table functions -------------------------------------  
 if (!file.exists(here("data", "data-table-benchmarks-2", "query1.rds"))) {
   
-  query1 <- microbenchmark(dplyr_query_1_funs = student_courses %>%
+  query1 <- microbenchmark(dplyr_query_1_code = student_courses %>%
                              filter(course == "fitness_training",
                                     platform %in% c("C", "E")) %>%
                              mutate(percentage_discount = 5),
-                           dt_query_1_funs = student_courses[(course == "fitness_training") 
+                           dt_query_1_code = student_courses[(course == "fitness_training") 
                                                              & (platform %chin% c("C", "E"))] %>%
                              .[, percentage_discount := 5],
-                           dt_query_1_wrong_funs = student_courses[(course == "fitness_training") 
+                           dt_query_1_wrong_code = student_courses[(course == "fitness_training") 
                                                                    & (platform %chin% c("C", "E")), 
                                                                    percentage_discount := 5]) 
   
@@ -435,9 +437,9 @@ knitr::kable(summary(query1), caption = "Units: milliseconds")
 ```
 
 
-# Aggregate by group          
+# Aggregate by group              
 
-A simple introduction to group by operations is covered [here](https://erikaduan.github.io/posts/2021-01-30-data-table-part-1/#simple-group-by-operations). This post further explores how different outputs can be obtained by modifying `data.table` group by operations in different ways.   
+A simple introduction to group by operations has already been covered [here](https://erikaduan.github.io/posts/2021-01-30-data-table-part-1/#simple-group-by-operations). This post further explores how different outputs can be obtained by performing `data.table` group by operations in different ways.   
 
 Imagine that you are interested in the total number of days each student has spent on an online platform. Could you obtain this by grouping on `id` and summing the total number of days spent on a platform? 
 
@@ -445,10 +447,10 @@ Imagine that you are interested in the total number of days each student has spe
 ## Using `dplyr`  
 
 ```{r}
-# Calculate total platform_length per student using dplyr ----------------------  
+# Calculate total platform_length per student using dplyr ----------------------
 student_courses <- student_courses %>%
   mutate(platform_length = platform_end_date - platform_start_date,
-         platform_length = as.integer(platform_length)) 
+         platform_length = as.integer(platform_length))
 
 dplyr_query_2 <- student_courses %>%
   group_by(id) %>%
@@ -456,38 +458,38 @@ dplyr_query_2 <- student_courses %>%
             min_days = min(platform_length),
             median_days = median(platform_length),  
             max_days = max(platform_length)) %>%
-  ungroup()    
+  ungroup()
 ```
 
-**Note:** In `dplyr`, group by operations should be closed using `ungroup()` to remove object metadata marking row groupings.   
+**Note:** In `dplyr`, group by operations should be closed using `ungroup()` to remove object metadata that marks row groupings.   
 
 
 ## Using `data.table`   
 
-In `data.table`, you can choose which variable(s) to group by using `by` or `keyby`. The effect of `keyby` is that it also orders the results and creates a secondary key for faster subsequent subsetting.   
+In `data.table`, you can choose which variable(s) to group by using `by` or `keyby`. The additional effect of `keyby` is that it also orders the results and creates a secondary key for faster subsequent subsetting. This is useful if you intend to create multiple features from the same grouping.    
 
 ```{r}
-# Calculate total platform_length per student using data.table ----------------- 
+# Calculate total platform_length per student using data.table -----------------
 dt_query_2 <- student_courses[, 
                               .(total_days = sum(platform_length),
                                 min_days = min(platform_length),
-                                median_days = median(platform_length),  
+                                median_days = median(platform_length),
                                 max_days = max(platform_length)),
                               by = id]
 ```
 
-However, this approach overestimates the total number of days spent on an online platform per student, as some students take multiple courses on the same platform. This means that the platform dwell length contains duplicate values that need to be removed.   
+The problem is that this solution overestimates the total number of days spent on an online platform per student, as some students take multiple courses on the same platform. These student records will contain rows with the same platform dwell length but different course start and end dates. ^[It is simpler to calculate and aggregate based on the course dwell length, which is a unique value. But then I wouldn't be able to demonstrate any interesting code.]    
 
 
-# Identify duplicate rows      
+# Identify duplicate rows   
 
-You can identify duplicate rows by concatenating `id`, `platform` and `platform_start_date` and counting the total number of rows per concatenation.     
+To remove duplicate `platform_length` values, we first identify them by concatenating `id`, `platform` and `platform_start_date` and counting the total number of rows per concatenation.   
 
 
-## Using `dplyr`    
+## Using `dplyr`  
 
 ```{r}
-# Identify duplicate rows using dplyr ------------------------------------------ 
+# Identify duplicate rows using dplyr ------------------------------------------
 student_courses %>%
   mutate(platform_key = str_c(id, platform, platform_start_date, sep = "-")) %>%
   count(platform_key, name = "row_number") %>%
@@ -497,36 +499,36 @@ student_courses %>%
 
 ## Using `data.table`    
 
-In `data.table`, `.SD` means 'subset of data' and is used to reference the current sub-table of interest (this is usually a sub-table series that has been split by the `by` operator).     
+In `data.table`, `.SD` means 'subset of data' and is used to reference the current sub-table of interest.       
 
 ```{r}
-# Identify duplicate rows using dplyr using data.table -------------------------  
+# Identify duplicate rows using dplyr using data.table -------------------------
 student_courses[,
-                platform_key := do.call(str_c, c(.SD, sep = "-")),
+                .(platform_key = do.call(str_c, c(.SD, sep = "-"))),
                 .SDcols = c("id", "platform", "platform_start_date")] %>%
   .[, 
-    .N,
+    .(row_number = .N),
     by = platform_key] %>% 
   .[,
-    .N,
-    keyby = N] # Use keyby as we also want to sort by N  
+    .(total_students = .N),
+    keyby = row_number] # Use keyby as we also want to sort by row_number  
 ```
 
-**Note:** The base R function `do.call()` constructs and executes a function call from a name or function and a list of function arguments.    
+**Note:** The base R function `do.call()` constructs and executes a function call from a name or function and a list of function arguments.   
 
 
 # Remove duplicate rows and aggregate by group    
 
-Knowing that duplicate `platform_length` records exist, a two-step process would be needed to extract the total number of days each student has spent on an online platform:            
+Given that duplicate `platform_length` records exist, you would use a two-step process to extract the total `platform_length` per student:    
 
 + First, group by `id`, `platform`, `platform_start_date` and extract the first row of each group.     
-+ Next, group by `id` and summarise `platform_length` calculations.    
++ Next, group by `id` and aggregate for `platform_length` calculations.    
 
 
 ## Using `dplyr`    
 
 ```{r}
-# Calculate total platform_length per student using dplyr ---------------------- 
+# Calculate total platform_length per student using dplyr ----------------------
 dplyr_query_3 <- student_courses %>%
   group_by(id, platform, platform_start_date) %>%
   filter(row_number() == 1L) %>%
@@ -538,7 +540,7 @@ dplyr_query_3 <- student_courses %>%
             max_days = max(platform_length)) %>%
   ungroup()
 
-summary(dplyr_query_2 == dplyr_query_3)
+summary(dplyr_query_3 == dplyr_query_2)
 #>     id          total_days       min_days       median_days      max_days      
 #>  Mode:logical   Mode :logical   Mode :logical   Mode :logical   Mode :logical  
 #>  TRUE:144676    FALSE:14674     FALSE:22        FALSE:9745      FALSE:24       
@@ -549,7 +551,7 @@ summary(dplyr_query_2 == dplyr_query_3)
 ## Using `data.table`  
 
 ```{r}
-# Calculate total platform_length per student using data.table ----------------- 
+# Calculate total platform_length per student using data.table -----------------
 dt_query_3 <- student_courses[,
                               .SD[1L],
                               by = .(id, platform, platform_start_date)] %>%
@@ -560,7 +562,7 @@ dt_query_3 <- student_courses[,
       max_days = max(platform_length)),
     keyby = id]
 
-summary(setDT(dplyr_query_3) == dt_query_3)
+summary(dt_query_3 == setDT(dplyr_query_3))
 #>     id          total_days     min_days       median_days    max_days      
 #>  Mode:logical   Mode:logical   Mode:logical   Mode:logical   Mode:logical  
 #>  TRUE:144676    TRUE:144676    TRUE:144676    TRUE:144676    TRUE:144676  
@@ -575,20 +577,20 @@ The `data.table` solutions are significantly faster as group by operations are r
 # Benchmark dplyr and data.table functions -------------------------------------  
 if (!file.exists(here("data", "data-table-benchmarks-2", "query2.rds"))) {
   
-  query1 <- microbenchmark(dplyr_query_2_funs = student_courses %>%
+  query2 <- microbenchmark(dplyr_query_2_code = student_courses %>%
                              group_by(id) %>%  
                              summarise(total_days = sum(platform_length),
                                        min_days = min(platform_length),
                                        median_days = median(platform_length),  
                                        max_days = max(platform_length)) %>%
                              ungroup(),
-                           dt_query_2_funs = student_courses[, 
+                           dt_query_2_code = student_courses[, 
                                                              .(total_days = sum(platform_length),
                                                                min_days = min(platform_length),
                                                                median_days = median(platform_length),  
                                                                max_days = max(platform_length)),
                                                              by = id]  ,
-                           dplyr_query_3_funs = student_courses %>%
+                           dplyr_query_3_code = student_courses %>%
                              group_by(id, platform, platform_start_date) %>%
                              filter(row_number() == 1L) %>%
                              ungroup() %>%
@@ -598,7 +600,7 @@ if (!file.exists(here("data", "data-table-benchmarks-2", "query2.rds"))) {
                                        median_days = median(platform_length),  
                                        max_days = max(platform_length)) %>%
                              ungroup(), 
-                           dt_query_3_funs = student_courses[,
+                           dt_query_3_code = student_courses[,
                                                              .SD[1L],
                                                              by = .(id, platform, platform_start_date)] %>%
                              .[, 
@@ -609,7 +611,7 @@ if (!file.exists(here("data", "data-table-benchmarks-2", "query2.rds"))) {
                                keyby = id],
                            times = 25) 
   
-  saveRDS(query1, here("data", "data-table-benchmarks-2", "query2.rds"))
+  saveRDS(query2, here("data", "data-table-benchmarks-2", "query2.rds"))
 }
 
 # Print summary table ----------------------------------------------------------
@@ -620,86 +622,292 @@ knitr::kable(summary(query2), caption = "Units: milliseconds")
 
 # Summarise multiple variables   
 
-Imagine that you are interested in how the length of time spent on a platform varies per student per platform. This involves a similar two-stage step to the one above, except that transformations are specifically applied to selective variable(s):     
-
-+ First, group by `id`, `platform`, `platform_start_date` and extract the first row of each group.  
-+ Next, group by `id` and `platform`, select variables of interest and apply the required transformation/ aggregation.   
+Imagine that you are interested in how the length of time spent on a platform varies per student per platform. The solution this similar to the one above, except that transformations are specified for selective variable(s) and more than one variable is specified within a group.    
 
 
 ## Using `dplyr`    
 
-In `dplyr`, this is facilitated by using `across()` inside `summarise()`, which allows you to perform the same list of statistical calculations of a single or multiple columns.    
+In `dplyr`, this selection is facilitated by using `across()` inside `summarise()`, which allows you to perform the same list of functions on a single or multiple columns.    
 
 ```{r}
-# Remove duplicate rows and summarise across platform_length using dplyr ------- 
-dplyr_query_4 <- student_courses %>%
+# Remove duplicate rows and summarise across platform_length using dplyr -------
+# Solution for a single function 
+dplyr_query_4_1 <- student_courses %>%
   group_by(id, platform, platform_start_date) %>%
   filter(row_number() == 1L) %>%
   ungroup() %>%
   group_by(id, platform) %>%  
   summarise(across(contains("length"),
-                   list(mean = mean, sd = sd)),
-            .groups = "drop") # Replaces the need to ungroup() after summarise() 
+                   mean, na.rm = TRUE),
+            .groups = "drop") # Replaces the need to ungroup() after summarise()  
+```
+
+```{r, echo=FALSE, results='markup'}
+# Print the first 4 rows -------------------------------------------------------
+dplyr_query_4_1[1:4, ] %>%
+  knitr::kable()  
+```
+
+```{r}
+# Remove duplicate rows and summarise across platform_length using dplyr -------
+# Solution for a list of functions     
+# Supply a named list to summarise(across(), .groups = "drop)    
+mean_sd <- list(
+  mean = ~mean(.x, na.rm = T),
+  sd = ~sd(.x, na.rm = T)
+)
+
+dplyr_query_4_2 <- student_courses %>%
+  group_by(id, platform, platform_start_date) %>%
+  filter(row_number() == 1L) %>%
+  ungroup() %>%
+  group_by(id, platform) %>%  
+  summarise(across(contains("length"),
+                   mean_sd),
+            .groups = "drop")   
+```
+
+```{r, echo=FALSE, results='markup'}
+# Print the first 4 rows -------------------------------------------------------
+dplyr_query_4_2[1:4, ] %>%
+  knitr::kable()  
 ```
 
 
 ## Using `data.table`   
 
-In `data.table`, the equivalent method is to specify variable(s) of interest using `.SDcols` and perform `lapply(.SD, ...)`.    
+In `data.table`, the equivalent method is to list variable(s) of interest inside `.SDcols` and perform aggregations using `lapply(.SD, ...)`.    
 
 ```{r}
 # Remove duplicate rows and lapply() across platform_length using data.table ---
-# Solution 1  
+# Solution for a single function  
 dt_query_4_1 <- student_courses[,
-                              .SD[1L],
-                              by = .(id, platform, platform_start_date)] %>%
+                                .SD[1L],
+                                by = .(id, platform, platform_start_date)] %>%
+  .[, 
+    lapply(.SD, mean, na.rm = T),
+    .SDcols = grep("length", colnames(student_courses)),
+    keyby = .(id, platform)]
+
+summary(dt_query_4_1 == setDT(dplyr_query_4_1))
+#>     id          platform       platform_length
+#>  Mode:logical   Mode:logical   Mode:logical   
+#>  TRUE:336621    TRUE:336621    TRUE:336621  
+```
+
+```{r}
+# Remove duplicate rows and lapply() across platform_length using data.table ---
+# Solution for a list of functions  
+dt_query_4_2 <- student_courses[,
+                                .SD[1L],
+                                by = .(id, platform, platform_start_date)] %>%
   .[, 
     unlist(lapply(.SD,
                   function(x) list(mean = mean(x),
                                    sd = sd(x))),
            recursive = F),
     .SDcols = grep("length", colnames(student_courses)),
-    keyby = .(id, platform)]
+    keyby = .(id, platform)]  
 
-# Solution 2
+summary(dt_query_4_2 == setDT(dplyr_query_4_2))
+#>     id          platform       platform_length.mean platform_length.sd
+#>  Mode:logical   Mode:logical   Mode:logical         Mode:logical      
+#>  TRUE:336621    TRUE:336621    TRUE:336621          TRUE:118638       
+#>                                                     NA's:217983       
 ```
 
 
+**Note:** The use of `unlist()` inside the `j` placeholder to convert individual list elements into individual columns is explained [here](https://stackoverflow.com/questions/29620783/apply-multiple-functions-to-multiple-columns-in-data-table).    
+
+
 ## Benchmark data operations     
+
+As expected, the `data.table` operations are faster than `dplyr` operations, although there is a non-linear performance decrease when multiple functions are evaluated for a subset of columns.   
 
 ```{r, echo=FALSE, results='markup'}
+# Benchmark dplyr and data.table functions -------------------------------------  
+if (!file.exists(here("data", "data-table-benchmarks-2", "query3.rds"))) {
+  
+  query3 <- microbenchmark(dplyr_query_4_1 = student_courses %>%
+                             group_by(id, platform, platform_start_date) %>%
+                             filter(row_number() == 1L) %>%
+                             ungroup() %>%
+                             group_by(id, platform) %>%  
+                             summarise(across(contains("length"),
+                                              mean, na.rm = TRUE),
+                                       .groups = "drop"),
+                           dt_query_4_1 = student_courses[,
+                                                          .SD[1L],
+                                                          by = .(id, platform, platform_start_date)] %>%
+                             .[, 
+                               lapply(.SD, mean, na.rm = T),
+                               .SDcols = grep("length", colnames(student_courses)),
+                               keyby = .(id, platform)],
+                           dplyr_query_4_2 = student_courses %>%
+                             group_by(id, platform, platform_start_date) %>%
+                             filter(row_number() == 1L) %>%
+                             ungroup() %>%
+                             group_by(id, platform) %>%  
+                             summarise(across(contains("length"),
+                                              mean_sd),
+                                       .groups = "drop"),
+                           dt_query_4_2 = student_courses[,
+                                                          .SD[1L],
+                                                          by = .(id, platform, platform_start_date)] %>%
+                             .[, 
+                               unlist(lapply(.SD,
+                                             function(x) list(mean = mean(x),
+                                                              sd = sd(x))),
+                                      recursive = F),
+                               .SDcols = grep("length", colnames(student_courses)),
+                               keyby = .(id, platform)],  
+                           times = 5) 
+  
+  saveRDS(query3, here("data", "data-table-benchmarks-2", "query3.rds"))
+}
 
+# Print summary table ----------------------------------------------------------
+query3 <- readRDS(here("data", "data-table-benchmarks-2", "query3.rds"))
+knitr::kable(summary(query3), caption = "Units: milliseconds")   
 ```
 
 
-# Use `lag` operations    
+# Use `lag` or `lead` operations    
+
+Another insight you might be interested in is the number of times a student switches between a platform. Deriving this is a multiple step process:  
+
++ First, group by `id` and create `lag_platform`, which denotes the preceding online platform. Evaluating the first row using `lag()` outputs `NA`.     
++ Next, create `is_new_platform` using a `case_when()` condition which outputs `1` when the preceding platform is `NA` or different to the current platform and outputs 0 when the preceding platform is the same as the current platform.    
++ Finally, group by `id` and sum `is_new_platform` to obtain the total number of times a student has switched between a platform.   
+
+
+## Using `dplyr`  
+
+```{r}
+# Calculate total platform switches per student using dplyr --------------------
+# student_courses must already be sorted by id AND platform_start_date
+dplyr_query_5 <- student_courses %>%
+  group_by(id) %>%   
+  mutate(lag_platform = lag(platform, 1L),
+         is_new_platform = case_when(is.na(lag_platform) ~ 1,
+                                     platform != lag_platform ~ 1,
+                                     TRUE ~ 0)) %>%
+  summarise(platform_switch = sum(is_new_platform),
+            .groups = "drop")
+```
 
 
 ## Using `data.table`  
 
 ```{r}
+# Calculate total platform switches per student using data.table ---------------
+dt_query_5 <- student_courses[,
+                              lag_platform := shift(platform, 1L, type = "lag"),
+                              keyby = id] %>%
+  .[,
+    is_new_platform := fcase(
+      is.na(lag_platform), 1,
+      platform != lag_platform, 1,
+      default = 0),
+    by = id] %>%
+  .[,
+    .(platform_switch = sum(is_new_platform)),
+    by = id]
 
+summary(dt_query_5 == setDT(dplyr_query_5))
+#>     id          platform_switch
+#>  Mode:logical   Mode:logical   
+#>  TRUE:144676    TRUE:144676  
 ```
 
 
-## Using `data.table`  
+## Benchmark data operations   
 
-```{r}
+From the benchmark of just the `lag()` code component below, you can see that `lag()` is much faster in `data.table` than `dplyr` but also more computationally expensive overall.  
 
+```{r, echo=FALSE, results='markup'}
+# Benchmark dplyr and data.table functions -------------------------------------  
+if (!file.exists(here("data", "data-table-benchmarks-2", "query4.rds"))) {
+  
+  query4 <- microbenchmark(dplyr_lag = student_courses %>%
+                             group_by(id) %>%   
+                             mutate(lag_platform = lag(platform, 1L)) %>%
+                             ungroup(),
+                           dt_lag = student_courses[,
+                                                    lag_platform := shift(platform, 1L, type = "lag"),
+                                                    keyby = id],
+                           times = 25) 
+  
+  saveRDS(query4, here("data", "data-table-benchmarks-2", "query4.rds"))
+}
+
+# Print summary table ----------------------------------------------------------
+query4 <- readRDS(here("data", "data-table-benchmarks-2", "query4.rds"))
+knitr::kable(summary(query4), caption = "Units: seconds")   
 ```
 
 
-## Benchmark data operations     
+# Lazy `data.table` with `dplyr` verbs   
 
-```{r}
+Whilst I've become familiar with the `data.table` syntax, there is still a way to retain the readability of `dplyr` combined with the performance of `data.table`, by implementing `data.table` [lazy translations](https://dtplyr.tidyverse.org/articles/translation.html) using the `dtplyr` package.   
 
+You can use `lazy_dt()` on `data.frame` objects to convert them into `lazy_dt` objects. Using `dplyr` code on `data.table` objects will also automatically convert that object into a `lazy_dt` object. 
+
+**Note:** I am currently experiencing a package dependency error caused by `dtplyr` which prevents `.list()` functions from evaluating inside `data.table` objects, so the code below has been disabled in this document and exists for demonstration purposes only.   
+
+```{r, eval=FALSE}
+# Install and load dtplyr ------------------------------------------------------
+install.packages("dtplyr")
+library("dtplyr")
+
+# Create data.frame and convert into lazy_dt object ----------------------------
+set.seed(111)
+test_df <- tibble(id = sample(seq(1, 10), size = 500, replace = T),
+                  var_1 = rnorm(500, 0, 1),
+                  var_2 = rnorm(500, 2, 1),
+                  var_3 = rnorm(500, 0, 2))  
+
+test_dt <- lazy_dt(test_df)
+```
+
+The function `show_query()` can also be used to output the generated `data.table` code translation.      
+
+```{r, eval=FALSE}
+# Use show_query() to copy data.table translations -----------------------------
+test_dt %>%
+  arrange(desc(id)) %>%
+  mutate(var_sum = sum(var_1, var_2, var_3)) %>%
+  show_query()
+
+#> `_DT1`[order(desc(id))][, `:=`(var_sum = sum(var_1, var_2, var_3))]  
+
+test_dt %>%
+  group_by(id) %>%
+  summarise(across(starts_with("var_"), mean)) %>%
+  show_query()
+#> `_DT2`[, .(var_1 = mean(var_1), var_2 = mean(var_2), var_3 = mean(var_3)), 
+#>        keyby = .(id)]
+```
+
+Computation of `lazy_dt` objects is only performed if `as.data.frame()`, `as.data.table()`, or `as_tibble()` is explicitly called.    
+
+```{r, eval=FALSE}
+# Perform lazy evaluation to return a data.frame object ------------------------
+test_dt %>%
+  group_by(id) %>%
+  summarise(across(starts_with("var_"), mean)) %>%
+  as_tibble() # Outputs a tibble   
 ```
 
 
 # Other resources      
 
-+ A great side-by-side comparison of `data.table` versus `dplyr` functions from a [blog post by Atrebas](https://atrebas.github.io/post/2019-03-03-datatable-dplyr/).           
++ A great side-by-side comparison of `data.table` versus `dplyr` functions from a [blog post by Atrebas](https://atrebas.github.io/post/2019-03-03-datatable-dplyr/).      
 
 + A list of advanced `data.table` operations and tricks from a [blog post by Andrew Brooks](http://brooksandrew.github.io/simpleblog/articles/advanced-data-table/).    
 
-+ A [stack overflow discussion](https://stackoverflow.com/questions/61322864/is-there-a-visual-explanation-of-why-data-table-operations-are-faster-than-tidyv) about why group by operations are much faster using `data.table`.      
++ A [stack overflow discussion](https://stackoverflow.com/questions/61322864/is-there-a-visual-explanation-of-why-data-table-operations-are-faster-than-tidyv) about why group by operations are much faster using `data.table`.  
+
++ An [R publication by Jose](https://rpubs.com/josemz/SDbf) with tips on using `.SD` in `data.table`.   
+
++ A [blog post by JMount](https://win-vector.com/2019/06/26/data-table-is-much-better-than-you-have-been-told/) which benchmarks base R, `dplyr`, `data.table` versus `lazy_dt` code performance.        
