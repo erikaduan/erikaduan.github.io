@@ -98,14 +98,14 @@ Regular expressions, or regex, can be thought of as a separate syntax for handli
 # Call regular expressions in R ------------------------------------------------
 many_apples <- c("Apple", "apple", "APPLE", "apples")
 
-str_extract(many_apples, "apples?")  
+str_extract(many_apples, "apples?")
 #> [1] NA       "apple"  NA       "apples"
 
 # Call regular expressions in R using regex() ----------------------------------
 # regex() provides additional arguments
 
-str_extract(many_apples, regex("apples?", ignore_case = T))  
-#> [1] "Apple"  "apple"  "APPLE"  "apples"  
+str_extract(many_apples, regex("apples?", ignore_case = T))
+#> [1] "Apple"  "apple"  "APPLE"  "apples"
 ```
 
 
@@ -124,13 +124,13 @@ words_and_spaces <- c(" a cat",
 # "a\\s+cat" calls variations of "a...cat" separated by one or more whitespaces
 # The string "a\ncat" also counts because \n refers to a new line
 
-str_extract(words_and_spaces, "a\\s+cat")  
-#> [1] "a cat"   NA        "a   cat" "a\ncat"  NA      
+str_extract(words_and_spaces, "a\\s+cat")
+#> [1] "a cat"       NA        "a   cat"       "a\ncat"      NA
 
 # "\\S+" refers to everything that is not white space (starting from left to right)
 
-str_extract(words_and_spaces, "\\S+")  
-#> [1] "a"       "acat"    "a"       "a"       "a\\ncat"
+str_extract(words_and_spaces, "\\S+")
+#> [1] "a"       "acat"       "a"        "a"       "a\\ncat"
 ```
 
 **Note:** The special characters `\s` versus `\S` allow the extraction of opposite pattern types. In another example, lowercase `\w` refers to any word character whilst uppercase `\W` and lowercase `[^\w]` both refer to anything that is not a word character.       
@@ -152,14 +152,14 @@ words_and_spaces <- c(" a cat",
 
 # "\\S+" refers to all non-white space read from left to right
 
-str_extract(words_and_spaces, "\\S+")  
-#> [1] "a"       "acat"    "a"       "a"       "a\\ncat"  
+str_extract(words_and_spaces, "\\S+")
+#> [1] "a"       "acat"    "a"       "a"       "a\\ncat"
 
 str_extract(words_and_spaces, "^\\S+")  
-#> [1] NA       "acat"    "a"       "a"       "a\\ncat"   
+#> [1] NA       "acat"    "a"       "a"       "a\\ncat"
 
-str_extract(words_and_spaces, "\\S+$") 
-#> [1] "cat"     "acat"    "cat"     "cat"     "a\\ncat"       
+str_extract(words_and_spaces, "\\S+$")
+#> [1] "cat"     "acat"    "cat"     "cat"     "a\\ncat"
 ```
 
 
@@ -183,15 +183,15 @@ strange_fruits <- c("apple1",
                     "aggle0")
 
 str_extract(strange_fruits, "[a-d]")
-#> [1] "a" "b" "c" "d" NA  "a"  
+#> [1] "a" "b" "c" "d" NA  "a"
 
 str_extract(strange_fruits, "[a-d][^p]")
-#> [1] NA   "ba" "ca" "da" NA   "ag"   
+#> [1] NA   "ba" "ca" "da" NA   "ag"
 
 # [a-d][^p] refers to a chr between a to d followed by a chr that is not p
 
 str_extract(strange_fruits, "[0|4-9]")
-#> [1] NA  NA  NA  "4" "5" "0"   
+#> [1] NA  NA  NA  "4" "5" "0"
 
 # [0|4-9] refers to a number that is zero or a number between 4 to 9
 ```
@@ -203,22 +203,22 @@ strange_fruits <- c("apple1",
                     "capple3",
                     "dapple4",
                     "epple5",
-                    "aggle1")  
+                    "aggle1")
 
 str_extract(strange_fruits, "a(pp|gg)le")
-#> [1] "apple" "apple" "apple" "apple" NA      "aggle"    
+#> [1] "apple"      "apple"      "apple"      "apple"     NA      "aggle"
 
 # Groups can be referenced by their order of appearance i.e. \\1 = first group
 
 str_extract(strange_fruits, "(a)(p|g)\\2")
-#> [1] "app" "app" "app" "app" NA    "agg"
+#> [1] "app"     "app"     "app"     "app"     NA     "agg"
 
 # Group 1 contains (a) and can be called using \\1
 # Group 2 contains (p|g) and can be called using \\2
 ```
 
 
-## Greedy versus lazy matches   
+## Greedy versus lazy matches  
 
 In R, regular expression parsing is non-greedy by default. This means that we need to add quantifiers `*` and `+` to greedily extract zero or more and one or more characters respectively.      
 
@@ -229,36 +229,36 @@ knitr::include_graphics("../../images/2020-12-31_greedy-matches.jpg")
 ```
 
 ```{r}
-# Examples of greedy matches --------------------------------------------------- 
+# Examples of greedy matches ---------------------------------------------------
 messy_dates <- c("Thursday 24th May",
                  "Thursday  24th May  ",
                  " May",
                  "May    ")
 
-str_extract(messy_dates, "^\\w")      
-#> [1] "T" "T" NA  "M"   
+str_extract(messy_dates, "^\\w")
+#> [1] "T" "T" NA  "M"
 
 # Greedily extract the first word in the string
 
-str_extract(messy_dates, "^\\w+")   
-#> [1] "Thursday" "Thursday" NA      "May"   
+str_extract(messy_dates, "^\\w+")
+#> [1] "Thursday" "Thursday" NA      "May"
 
-# The quantifier + and {1,} are equivalent   
+# The quantifier + and {1,} are equivalent
 
-str_extract(messy_dates, "^\\w{1,}")  
-#> [1] "Thursday" "Thursday" NA      "May"    
+str_extract(messy_dates, "^\\w{1,}")
+#> [1] "Thursday" "Thursday" NA      "May"
 
-str_extract(messy_dates, "^(\\S+)")  
-#> [1] "Thursday" "Thursday" NA      "May"    
+str_extract(messy_dates, "^(\\S+)")
+#> [1] "Thursday" "Thursday" NA      "May"
 
 # Examples of non-greedy matches -----------------------------------------------
 str_replace_all(messy_dates, "\\s" , "-") # Replaces each individual whitespace
-#> [1] "Thursday-24th-May"    "Thursday--24th-May--" "-May"            "May----"  
+#> [1] "Thursday-24th-May"    "Thursday--24th-May--" "-May"            "May----"
 
 str_replace_all(messy_dates, "\\s{1,2}" , "-")
-#> [1] "Thursday-24th-May"  "Thursday-24th-May-" "-May"                  "May--"  
+#> [1] "Thursday-24th-May"  "Thursday-24th-May-" "-May"                  "May--"
 
-# Use look-arounds to replace the whitespace(s) after the first word     
+# Use look-arounds to replace the whitespace(s) after the first word
 
 str_replace_all(messy_dates, "(?<=^\\w{1,2})\\s{1,2}" , "-")
 #> [1] "Thursday-24th May"   "Thursday-24th May  " " May"               "May-  "
@@ -286,13 +286,13 @@ recipes <- c("croissant recipes",
 
 # Use positive look-ahead (?=...) to extract the preceding word
 
-str_extract(recipes, "\\S+(?=\\s*recipes?)")   
+str_extract(recipes, "\\S+(?=\\s*recipes?)")
 #> [1] "croissant"   "pie"      "cake"       NA        "KFC-"       "soft-serve"
 
 # Use positive look-behind (?<=) on "secret" to identify the secret recipes
 
-str_extract(recipes, "(?<=secret\\s{1,10})\\S+.+")   
-#> [1] NA                 NA                        NA                           
+str_extract(recipes, "(?<=secret\\s{1,10})\\S+.+")
+#> [1] NA                 NA                        NA
 #> [4] NA                "KFC-recipe"              "McDonalds soft-serve recipe"
 ```
 
@@ -311,11 +311,11 @@ We can improve the readability of the survey by:
 ```{r, results='markup'}
 # Examine survey data ----------------------------------------------------------
 survey %>%
-  head(5)   
+  head(5)
 
 # Remove html tags -------------------------------------------------------------
 # Remove html tags with <[^>]+>
-# Remove html code with \\&\\w+\\;   
+# Remove html code with \\&\\w+\\;
 survey <- survey %>%
   mutate(comment_field = str_replace_all(comment_field, "<[^>]+>", ""),
          comment_field = str_replace_all(comment_field, "\\&\\w+\\;", ""))
@@ -323,7 +323,7 @@ survey <- survey %>%
 # Examine cleaned comment_field ------------------------------------------------
 survey %>%
   select(comment_field) %>%
-  head(5) 
+  head(5)
 ```
 
 We can then split the single long comment field into multiple smaller columns. ^[Many R functions require R regex classes to be wrapped in a second set of `[ ]`, e.g. `[[:punct:]]`.]             
@@ -333,18 +333,18 @@ We can then split the single long comment field into multiple smaller columns. ^
 # Separate on punctuation or conjunctions
 nmax <- max(str_count(survey$comment_field, "[[:punct:]]|and|with|against")) + 1
 
-survey <- survey %>%   
+survey <- survey %>%
   separate(comment_field,
            into = paste0("Field", seq_len(nmax)),
-           sep = "[[:punct:]]|and|with|against",   
+           sep = "[[:punct:]]|and|with|against",
            remove = F,
            extra = "warn",
-           fill = "right") 
+           fill = "right")
 
 # Examine comment_fields -------------------------------------------------------
 survey %>%
   select(starts_with("Field")) %>%
-  head(5) 
+  head(5)
 ```
  
 
@@ -366,14 +366,14 @@ Information about cocoa bean grade is highly structured. This means that extract
 # Extract information about cocoa bean grade, flavour and smoothness -----------
 tidy_survey <- survey %>%
   select(respondee,
-         comment_field) %>% 
+         comment_field) %>%
   mutate(cocoa_grade = str_extract(comment_field, "(?<=[G|g]rade\\s{0,10})[A-C|a-c]"),
          is_caramel = case_when(str_detect(comment_field, "[C|c]aramel") ~ "yes",
-                                TRUE ~ NA_character_), 
+                                TRUE ~ NA_character_),
          is_vanilla = case_when(str_detect(comment_field, "[V|v]anilla") ~ "yes",
                                 TRUE ~ NA_character_),
          is_smooth = case_when(str_detect(comment_field, "[S|s]mooth") ~ "yes",
-                               TRUE ~ NA_character_)) 
+                               TRUE ~ NA_character_))
 
 # We cannot assign TRUE ~ NA inside case_when as NA is of logical type
 ```
@@ -384,25 +384,25 @@ For more descriptive fields such as whether the chocolate melts, I find it easie
 # Extract information about chocolate texture ----------------------------------
 melt_matrix <- survey %>%
   select(respondee,
-         starts_with("Field")) %>%  
-  mutate_at(vars(starts_with("Field")),
-            ~replace(.x, !(str_detect(.x, ".*\\b[M|m]elt.*\\b.*")), NA)) 
+         starts_with("Field")) %>%
+  mutate(across(starts_with("Field"),
+                ~replace(.x, !(str_detect(.x, ".*\\b[M|m]elt.*\\b.*")), NA)))
 
 # Convert fields which do not contain "melt" into NA and unite fields
 
 melt_cols <- str_which(colnames(melt_matrix), "^Field.+")
 
 melt_status <- melt_matrix %>%
-  unite("is_melty", 
-        all_of(melt_cols),  
+  unite("is_melty",
+        all_of(melt_cols),
         sep = "",
         remove = T,
-        na.rm = T) # Make sure to remove NAs    
+        na.rm = T) # Make sure to remove NAs
 
 # Convert responses into factors and re-code factor levels ---------------------
 melt_status$is_melty <- factor(melt_status$is_melty)
 
-levels(melt_status$is_melty) 
+levels(melt_status$is_melty)
 #> [1] ""        " Easily melts"        " Melts easily"
 #> [4] " melts in your mouth"         " Melts well"
 
@@ -426,17 +426,17 @@ This process is repeated for chocolate sweetness. ^[As a repetitive step within 
 # Extract information about chocolate sweetness --------------------------------
 sweetness_matrix <- survey %>%
   select(respondee,
-         starts_with("Field")) %>% 
-  mutate_at(vars(starts_with("Field")),
-            ~replace(.x, !(str_detect(.x, ".*\\b[S|s](weet)|(ugar).*\\b.*")), NA)) 
+         starts_with("Field")) %>%
+  mutate(across(starts_with("Field"),
+                ~replace(.x, !(str_detect(.x, ".*\\b[S|s](weet)|(ugar).*\\b.*")), NA)))
 
 # Convert fields which do not contain "sweet" or "sugar" into NA and unite fields
 
 sweetness_cols <- str_which(colnames(sweetness_matrix), "^Field.+")
 
 sweetness_status <- sweetness_matrix %>%
-  unite("is_sweet", 
-        all_of(sweetness_cols), 
+  unite("is_sweet",
+        all_of(sweetness_cols),
         sep = "",
         remove = T,
         na.rm = T) # Make sure to remove NAs
@@ -445,7 +445,7 @@ sweetness_status <- sweetness_matrix %>%
 sweetness_status$is_sweet <- factor(sweetness_status$is_sweet)
 
 levels(sweetness_status$is_sweet)
-#> [1] ""         " low sugar content "          " not so sweet  I enjoyed this"    
+#> [1] ""         " low sugar content "          " not so sweet  I enjoyed this"
 #> [4] "filled core may be too sweet for some"
 
 sweetness_status <- sweetness_status %>%
@@ -472,7 +472,7 @@ A reason why we might be interested in converting unstructured comment fields in
 # Create final tidy_survey -----------------------------------------------------
 survey_rating <- survey %>%
   select(respondee,
-         rating)  
+         rating)
 
 tidy_survey <- tidy_survey %>%
   select(-comment_field) %>%
@@ -480,9 +480,9 @@ tidy_survey <- tidy_survey %>%
             by = "respondee") %>%
   mutate(respondee = str_extract(respondee, ".+(?=\\_[0-9]+)"))
 
-set.seed(123) # Sample reproducibly  
+set.seed(123) # Sample reproducibly
 tidy_survey %>%
-  sample_n(5)   
+  sample_n(5)
 ```
 
 
@@ -497,28 +497,28 @@ desserts <- c("chocolate",
               "chocolate tart",
               "chocolate icecream",
               "chocolate cookies",
-              "dark chocolate fudge", 
+              "dark chocolate fudge",
               "fruit",
               "fruit tart",
               "fruit sorbet")
 
 grep(".*\\bchocolate\\b.*", desserts, value = F) # Default is value = FALSE
-#> [1] 1 2 3 4 5 6  
+#> [1] 1 2 3 4 5 6
 
 # grep(value = FALSE) only extracts the position of matching elements in the vector
 
-str_which(desserts, ".*\\bchocolate\\b.*")  
-#> [1] 1 2 3 4 5 6  
+str_which(desserts, ".*\\bchocolate\\b.*")
+#> [1] 1 2 3 4 5 6
 
-grep(".*\\bchocolate\\b.*", desserts, value = T) 
+grep(".*\\bchocolate\\b.*", desserts, value = T)
 #> [1] "chocolate"    "chocolate cake"    "chocolate tart"    "chocolate icecream"
-#> [5] "chocolate cookies"    "dark chocolate fudge"   
+#> [5] "chocolate cookies"    "dark chocolate fudge"
 
-# grep(value = TRUE) extracts the matching elements in the vector  
+# grep(value = TRUE) extracts the matching elements in the vector
 
-str_subset(desserts, ".*\\bchocolate\\b.*") 
+str_subset(desserts, ".*\\bchocolate\\b.*")
 #> [1] "chocolate"    "chocolate cake"    "chocolate tart"    "chocolate icecream"
-#> [5] "chocolate cookies"    "dark chocolate fudge"  
+#> [5] "chocolate cookies"    "dark chocolate fudge"
 
 # The function str_subset() is a wrapper around x[str_detect(x, pattern)]
 ```
@@ -530,15 +530,15 @@ desserts <- c("chocolate",
               "chocolate tart",
               "chocolate icecream",
               "chocolate cookies",
-              "dark chocolate fudge", 
+              "dark chocolate fudge",
               "fruit",
               "fruit tart",
               "fruit sorbet")
 
-grepl(".*\\bchocolate\\b.*", desserts) 
+grepl(".*\\bchocolate\\b.*", desserts)
 #> [1]  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE FALSE FALSE FALSE
 
-str_detect(desserts, ".*\\bchocolate\\b.*")  
+str_detect(desserts, ".*\\bchocolate\\b.*")
 #> [1]  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE FALSE FALSE FALSE
 
 desserts[str_detect(desserts, ".*\\bchocolate\\b.*")]
@@ -553,18 +553,18 @@ desserts <- c("chocolate",
               "chocolate tart",
               "chocolate icecream",
               "chocolate cookies",
-              "dark chocolate fudge", 
+              "dark chocolate fudge",
               "fruit",
               "fruit tart",
               "fruit sorbet")
 
-gsub("(dark )?chocolate", "vanilla", desserts) 
+gsub("(dark )?chocolate", "vanilla", desserts)
 #> [1] "vanilla"          "vanilla cake"     "vanilla tart"     "vanilla icecream"
-#> [5] "vanilla cookies"  "vanilla fudge"    "fruit"    "fruit tart"   "fruit sorbet"  
+#> [5] "vanilla cookies"  "vanilla fudge"    "fruit"    "fruit tart"   "fruit sorbet"
 
-str_replace_all(desserts, "(dark )?chocolate", "vanilla") 
+str_replace_all(desserts, "(dark )?chocolate", "vanilla")
 #> [1] "vanilla"          "vanilla cake"     "vanilla tart"     "vanilla icecream"
-#> [5] "vanilla cookies"  "vanilla fudge"    "fruit"    "fruit tart"   "fruit sorbet"  
+#> [5] "vanilla cookies"  "vanilla fudge"    "fruit"    "fruit tart"   "fruit sorbet"
 ```
 
 ```{r, message=FALSE, fig.align='center'}
@@ -573,10 +573,10 @@ baser_vs_stringr <- microbenchmark(grep = grep(".*\\bchocolate\\b.*", desserts, 
                                    gsub = gsub("chocolate", "vanilla", desserts),
                                    str_replace_all = str_replace_all(desserts, "chocolate", "vanilla"),
                                    grepl = grepl(".*\\bchocolate\\b.*", desserts),
-                                   str_detect = str_detect(desserts, ".*\\bchocolate\\b.*"),  
+                                   str_detect = str_detect(desserts, ".*\\bchocolate\\b.*"),
                                    times = 1000)
 
-autoplot(baser_vs_stringr)  
+autoplot(baser_vs_stringr)
 ```
 
 **Note:** Base R functions are significantly faster than their `stringr` equivalents.   

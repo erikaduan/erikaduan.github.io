@@ -78,6 +78,11 @@ d-appendix {
 
 /* MAIN PAGE */  
 
+/* Add coloured border in the front page */
+.posts-list .post-preview {
+    border-bottom: 1.5px solid #37ACA1;
+}
+
 /* Change front page header */
 .posts-list h1 {
     font-family    : 'Patrick Hand';

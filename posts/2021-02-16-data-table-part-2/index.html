@@ -2208,6 +2208,11 @@ d-appendix {
 
 /* MAIN PAGE */  
 
+/* Add coloured border in the front page */
+.posts-list .post-preview {
+    border-bottom: 1.5px solid #37ACA1;
+}
+
 /* Change front page header */
 .posts-list h1 {
     font-family    : 'Patrick Hand';
@@ -2607,7 +2612,7 @@ code {
 <li><a href="#using-data.table-3">Using <code>data.table</code></a></li>
 <li><a href="#benchmark-data-operations-1">Benchmark data operations</a></li>
 </ul></li>
-<li><a href="#summarise-multiple-variables">Summarise multiple variables</a>
+<li><a href="#summarise-across-multiple-variables">Summarise across multiple variables</a>
 <ul>
 <li><a href="#using-dplyr-4">Using <code>dplyr</code></a></li>
 <li><a href="#using-data.table-4">Using <code>data.table</code></a></li>
@@ -2682,7 +2687,7 @@ code {
 <p>The first 12 rows of the dataset can be examined interactively below.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div id="htmlwidget-902014a252d5cb5c915f" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-902014a252d5cb5c915f">{"x":{"filter":"none","data":[["00007f23","00007f23","00007f23","00007f23","00007f23","00007f23","000080c8","000080c8","0000ba9c","0000ba9c","0000ba9c","0000ba9c"],["D","E","E","A","C","A","D","B","E","D","D","C"],["metal_welding","website_design","fitness_training","metal_welding","bread_baking","UX_design","contemporary_dance","fitness_training","website_design","R_beginner","fitness_training","website_design"],["2016-03-09","2016-06-23","2017-05-21","2017-11-29","2018-03-03","2018-09-05","2016-10-31","2018-12-04","2016-10-07","2017-08-08","2018-02-01","2018-09-22"],["2016-04-20","2016-08-01","2017-07-17","2018-01-07","2018-04-22","2018-11-11","2016-11-09","2019-01-25","2016-11-30","2017-09-21","2018-03-29","2018-10-08"],["2016-03-09","2016-06-23","2017-05-21","2017-11-29","2018-03-03","2018-09-05","2016-10-31","2018-12-04","2016-10-07","2017-08-08","2018-02-01","2018-09-22"],["2016-04-20","2016-08-01","2017-07-17","2018-01-07","2018-04-22","2018-11-11","2016-11-09","2019-01-25","2016-11-30","2017-09-21","2018-03-29","2018-10-08"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>id<\/th>\n      <th>platform<\/th>\n      <th>course<\/th>\n      <th>platform_start_date<\/th>\n      <th>platform_end_date<\/th>\n      <th>course_start_date<\/th>\n      <th>course_end_date<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":6,"dom":"tip","initComplete":"function(settings, json) {\n$(this.api().table().header()).css({'background-color': '#37ACA1', 'color': '#fff'});\n}","order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[6,10,25,50,100]}},"evals":["options.initComplete"],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-902014a252d5cb5c915f">{"x":{"filter":"none","data":[["00007f23","00007f23","00007f23","00007f23","00007f23","00007f23","000080c8","000080c8","0000ba9c","0000ba9c","0000ba9c","0000ba9c"],["D","E","E","A","C","A","D","B","E","D","D","C"],["metal_welding","website_design","fitness_training","metal_welding","bread_baking","UX_design","contemporary_dance","fitness_training","website_design","R_beginner","fitness_training","website_design"],["2016-03-09","2016-06-23","2017-05-21","2017-11-29","2018-03-03","2018-09-05","2016-10-31","2018-12-04","2016-10-07","2017-08-08","2018-02-01","2018-09-22"],["2016-04-20","2016-08-01","2017-07-17","2018-01-07","2018-04-22","2018-11-11","2016-11-09","2019-01-25","2016-11-30","2017-09-21","2018-03-29","2018-10-08"],["2016-03-09","2016-06-23","2017-05-21","2017-11-29","2018-03-03","2018-09-05","2016-10-31","2018-12-04","2016-10-07","2017-08-08","2018-02-01","2018-09-22"],["2016-04-20","2016-08-01","2017-07-17","2018-01-07","2018-04-22","2018-11-11","2016-11-09","2019-01-25","2016-11-30","2017-09-21","2018-03-29","2018-10-08"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>id<\/th>\n      <th>platform<\/th>\n      <th>course<\/th>\n      <th>platform_start_date<\/th>\n      <th>platform_end_date<\/th>\n      <th>course_start_date<\/th>\n      <th>course_end_date<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":6,"dom":"tip","scrollX":"400px","initComplete":"function(settings, json) {\n$(this.api().table().header()).css({'background-color': '#37ACA1', 'color': '#fff'});\n}","order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[6,10,25,50,100]}},"evals":["options.initComplete"],"jsHooks":[]}</script>
 </div>
 <p><strong>Note:</strong> The code used to create this dataset can be accessed from my github repository <a href="https://github.com/erikaduan/R-tips/blob/master/03_blog_posts/2020-04-07_data-table-versus-dplyr/2020-04-07_data-table-versus-dplyr.md">here</a>.</p>
 <h1 id="code-sequence-impact">Code sequence impact</h1>
@@ -2704,11 +2709,9 @@ code {
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Filter and create a new column using data.table in separate steps ------------</span>
-<span class="va">dt_query_1</span> <span class="op">&lt;-</span> <span class="va">student_courses</span><span class="op">[</span><span class="op">(</span><span class="va">course</span> <span class="op">==</span> <span class="st">&quot;fitness_training&quot;</span><span class="op">)</span> 
+<span class="va">dt_query_1</span> <span class="op">&lt;-</span> <span class="va">student_courses</span><span class="op">[</span><span class="op">(</span><span class="va">course</span> <span class="op">==</span> <span class="st">&quot;fitness_training&quot;</span><span class="op">)</span>
                               <span class="op">&amp;</span> <span class="op">(</span><span class="va">platform</span> <span class="op">%chin%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;C&quot;</span>, <span class="st">&quot;E&quot;</span><span class="op">)</span><span class="op">)</span><span class="op">]</span> <span class="op">%&gt;%</span>
-  <span class="va">.</span><span class="op">[</span>, <span class="va">percentage_discount</span> <span class="op">:=</span> <span class="fl">5</span><span class="op">]</span>   
-
-<span class="va">dt_query_1</span>
+  <span class="va">.</span><span class="op">[</span>, <span class="va">percentage_discount</span> <span class="op">:=</span> <span class="fl">5</span><span class="op">]</span>
 </code></pre>
 </div>
 </div>
@@ -2754,8 +2757,8 @@ code {
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Filter and create a new column using data.table in a single step -------------</span>
-<span class="va">dt_query_1_wrong</span> <span class="op">&lt;-</span> <span class="va">student_courses</span><span class="op">[</span><span class="op">(</span><span class="va">course</span> <span class="op">==</span> <span class="st">&quot;fitness_training&quot;</span><span class="op">)</span> 
-                                    <span class="op">&amp;</span> <span class="op">(</span><span class="va">platform</span> <span class="op">%chin%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;C&quot;</span>, <span class="st">&quot;E&quot;</span><span class="op">)</span><span class="op">)</span>, 
+<span class="va">dt_query_1_wrong</span> <span class="op">&lt;-</span> <span class="va">student_courses</span><span class="op">[</span><span class="op">(</span><span class="va">course</span> <span class="op">==</span> <span class="st">&quot;fitness_training&quot;</span><span class="op">)</span>
+                                    <span class="op">&amp;</span> <span class="op">(</span><span class="va">platform</span> <span class="op">%chin%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;C&quot;</span>, <span class="st">&quot;E&quot;</span><span class="op">)</span><span class="op">)</span>,
                                     <span class="va">percentage_discount</span> <span class="op">:=</span> <span class="fl">5</span><span class="op">]</span>
 </code></pre>
 </div>
@@ -2850,7 +2853,7 @@ code {
 </table>
 </div>
 <h1 id="aggregate-by-group">Aggregate by group</h1>
-<p>A simple introduction to group by operations has already been covered <a href="https://erikaduan.github.io/posts/2021-01-30-data-table-part-1/#simple-group-by-operations">here</a>. This post further explores how different outputs can be obtained by performing <code>data.table</code> group by operations in different ways.</p>
+<p>A simple introduction to group by operations has already been covered <a href="https://erikaduan.github.io/posts/2021-01-30-data-table-part-1/#simple-group-by-operations">here</a>. This post further explores how different outputs can be obtained by modifying <code>data.table</code> group by operations in different ways.</p>
 <p>Imagine that you are interested in the total number of days each student has spent on an online platform. Could you obtain this by grouping on <code>id</code> and summing the total number of days spent on a platform?</p>
 <h2 id="using-dplyr-1">Using <code>dplyr</code></h2>
 <div class="layout-chunk" data-layout="l-body">
@@ -2864,7 +2867,7 @@ code {
   <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">summarise</span><span class="op">(</span>total_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">platform_length</span><span class="op">)</span>,
             min_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">platform_length</span><span class="op">)</span>,
-            median_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">platform_length</span><span class="op">)</span>,  
+            median_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">platform_length</span><span class="op">)</span>,
             max_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">platform_length</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span>
 </code></pre>
@@ -2876,7 +2879,7 @@ code {
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Calculate total platform_length per student using data.table -----------------</span>
-<span class="va">dt_query_2</span> <span class="op">&lt;-</span> <span class="va">student_courses</span><span class="op">[</span>, 
+<span class="va">dt_query_2</span> <span class="op">&lt;-</span> <span class="va">student_courses</span><span class="op">[</span>,
                               <span class="fu">.</span><span class="op">(</span>total_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">platform_length</span><span class="op">)</span>,
                                 min_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">platform_length</span><span class="op">)</span>,
                                 median_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">platform_length</span><span class="op">)</span>,
@@ -2909,10 +2912,10 @@ code {
                 .SDcols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;id&quot;</span>, <span class="st">&quot;platform&quot;</span>, <span class="st">&quot;platform_start_date&quot;</span><span class="op">)</span><span class="op">]</span> <span class="op">%&gt;%</span>
   <span class="va">.</span><span class="op">[</span>, 
     <span class="fu">.</span><span class="op">(</span>row_number <span class="op">=</span> <span class="va">.N</span><span class="op">)</span>,
-    by <span class="op">=</span> <span class="va">platform_key</span><span class="op">]</span> <span class="op">%&gt;%</span> 
+    by <span class="op">=</span> <span class="va">platform_key</span><span class="op">]</span> <span class="op">%&gt;%</span>
   <span class="va">.</span><span class="op">[</span>,
     <span class="fu">.</span><span class="op">(</span>total_students <span class="op">=</span> <span class="va">.N</span><span class="op">)</span>,
-    keyby <span class="op">=</span> <span class="va">row_number</span><span class="op">]</span> <span class="co"># Use keyby as we also want to sort by row_number  </span>
+    keyby <span class="op">=</span> <span class="va">row_number</span><span class="op">]</span> <span class="co"># Use keyby as we also want to sort by row_number</span>
 </code></pre>
 </div>
 </div>
@@ -2932,18 +2935,18 @@ code {
   <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span>, <span class="va">platform_start_date</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="fu">row_number</span><span class="op">(</span><span class="op">)</span> <span class="op">==</span> <span class="fl">1L</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span><span class="op">)</span> <span class="op">%&gt;%</span>  
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">summarise</span><span class="op">(</span>total_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">platform_length</span><span class="op">)</span>,
             min_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">platform_length</span><span class="op">)</span>,
-            median_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">platform_length</span><span class="op">)</span>,  
+            median_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">platform_length</span><span class="op">)</span>,
             max_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">platform_length</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span>
 
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">dplyr_query_3</span> <span class="op">==</span> <span class="va">dplyr_query_2</span><span class="op">)</span>
-<span class="co">#&gt;     id          total_days       min_days       median_days      max_days      </span>
-<span class="co">#&gt;  Mode:logical   Mode :logical   Mode :logical   Mode :logical   Mode :logical  </span>
-<span class="co">#&gt;  TRUE:144676    FALSE:14674     FALSE:22        FALSE:9745      FALSE:24       </span>
-<span class="co">#&gt;                 TRUE :130002    TRUE :144654    TRUE :134931    TRUE :144652  </span>
+<span class="co">#&gt;     id          total_days       min_days       median_days      max_days</span>
+<span class="co">#&gt;  Mode:logical   Mode :logical   Mode :logical   Mode :logical   Mode :logical</span>
+<span class="co">#&gt;  TRUE:144676    FALSE:14674     FALSE:22        FALSE:9745      FALSE:24</span>
+<span class="co">#&gt;                 TRUE :130002    TRUE :144654    TRUE :134931    TRUE :144652</span>
 </code></pre>
 </div>
 </div>
@@ -2954,17 +2957,17 @@ code {
 <span class="va">dt_query_3</span> <span class="op">&lt;-</span> <span class="va">student_courses</span><span class="op">[</span>,
                               <span class="va">.SD</span><span class="op">[</span><span class="fl">1L</span><span class="op">]</span>,
                               by <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span>, <span class="va">platform_start_date</span><span class="op">)</span><span class="op">]</span> <span class="op">%&gt;%</span>
-  <span class="va">.</span><span class="op">[</span>, 
+  <span class="va">.</span><span class="op">[</span>,
     <span class="fu">.</span><span class="op">(</span>total_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">platform_length</span><span class="op">)</span>,
       min_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="va">platform_length</span><span class="op">)</span>,
-      median_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">platform_length</span><span class="op">)</span>,  
+      median_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html">median</a></span><span class="op">(</span><span class="va">platform_length</span><span class="op">)</span>,
       max_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">platform_length</span><span class="op">)</span><span class="op">)</span>,
     keyby <span class="op">=</span> <span class="va">id</span><span class="op">]</span>
 
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">dt_query_3</span> <span class="op">==</span> <span class="fu">setDT</span><span class="op">(</span><span class="va">dplyr_query_3</span><span class="op">)</span><span class="op">)</span>
-<span class="co">#&gt;     id          total_days     min_days       median_days    max_days      </span>
-<span class="co">#&gt;  Mode:logical   Mode:logical   Mode:logical   Mode:logical   Mode:logical  </span>
-<span class="co">#&gt;  TRUE:144676    TRUE:144676    TRUE:144676    TRUE:144676    TRUE:144676  </span>
+<span class="co">#&gt;     id          total_days     min_days       median_days    max_days</span>
+<span class="co">#&gt;  Mode:logical   Mode:logical   Mode:logical   Mode:logical   Mode:logical</span>
+<span class="co">#&gt;  TRUE:144676    TRUE:144676    TRUE:144676    TRUE:144676    TRUE:144676</span>
 </code></pre>
 </div>
 </div>
@@ -3039,22 +3042,22 @@ code {
 </tbody>
 </table>
 </div>
-<h1 id="summarise-multiple-variables">Summarise multiple variables</h1>
-<p>Imagine that you are interested in how the length of time spent on a platform varies per student per platform. The solution this similar to the one above, except that transformations are specified for selective variable(s) and more than one variable is specified within a group.</p>
+<h1 id="summarise-across-multiple-variables">Summarise across multiple variables</h1>
+<p>Imagine that you are interested in how the length of time spent on a platform varies per student per platform. This solution is similar to the one above, except that transformations are specified for selective variable(s) and more than one variable is specified within a group.</p>
 <h2 id="using-dplyr-4">Using <code>dplyr</code></h2>
-<p>In <code>dplyr</code>, this selection is facilitated by using <code>across()</code> inside <code>summarise()</code>, which allows you to perform the same list of functions on a single or multiple columns.</p>
+<p>In <code>dplyr</code>, this selection is facilitated by using <code>across()</code> inside <code>summarise()</code>, which allows you to apply the same list of functions on a single column or across multiple columns.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Remove duplicate rows and summarise across platform_length using dplyr -------</span>
-<span class="co"># Solution for a single function </span>
+<span class="co"># Solution for a single function</span>
 <span class="va">dplyr_query_4_1</span> <span class="op">&lt;-</span> <span class="va">student_courses</span> <span class="op">%&gt;%</span>
   <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span>, <span class="va">platform_start_date</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="fu">row_number</span><span class="op">(</span><span class="op">)</span> <span class="op">==</span> <span class="fl">1L</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span><span class="op">)</span> <span class="op">%&gt;%</span>  
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">summarise</span><span class="op">(</span><span class="fu">across</span><span class="op">(</span><span class="fu">contains</span><span class="op">(</span><span class="st">&quot;length&quot;</span><span class="op">)</span>,
                    <span class="va">mean</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,
-            .groups <span class="op">=</span> <span class="st">&quot;drop&quot;</span><span class="op">)</span> <span class="co"># Replaces the need to ungroup() after summarise()  </span>
+            .groups <span class="op">=</span> <span class="st">&quot;drop&quot;</span><span class="op">)</span> <span class="co"># Replaces the need to ungroup() after summarise()</span>
 </code></pre>
 </div>
 </div>
@@ -3094,21 +3097,20 @@ code {
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Remove duplicate rows and summarise across platform_length using dplyr -------</span>
-<span class="co"># Solution for a list of functions     </span>
-<span class="co"># Supply a named list to summarise(across(), .groups = &quot;drop)    </span>
-<span class="va">mean_sd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>
-  mean <span class="op">=</span> <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">.x</span>, na.rm <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>,
-  sd <span class="op">=</span> <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">.x</span>, na.rm <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>
-<span class="op">)</span>
+<span class="co"># Solution for a list of functions</span>
+
+<span class="co"># Supply a named list to summarise(across(), .groups = &quot;drop)</span>
+<span class="va">mean_sd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">.x</span>, na.rm <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>,
+                sd <span class="op">=</span> <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">.x</span>, na.rm <span class="op">=</span> <span class="cn">T</span><span class="op">)</span><span class="op">)</span>
 
 <span class="va">dplyr_query_4_2</span> <span class="op">&lt;-</span> <span class="va">student_courses</span> <span class="op">%&gt;%</span>
   <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span>, <span class="va">platform_start_date</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="fu">row_number</span><span class="op">(</span><span class="op">)</span> <span class="op">==</span> <span class="fl">1L</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">ungroup</span><span class="op">(</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span><span class="op">)</span> <span class="op">%&gt;%</span>  
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">summarise</span><span class="op">(</span><span class="fu">across</span><span class="op">(</span><span class="fu">contains</span><span class="op">(</span><span class="st">&quot;length&quot;</span><span class="op">)</span>,
                    <span class="va">mean_sd</span><span class="op">)</span>,
-            .groups <span class="op">=</span> <span class="st">&quot;drop&quot;</span><span class="op">)</span>   
+            .groups <span class="op">=</span> <span class="st">&quot;drop&quot;</span><span class="op">)</span>
 </code></pre>
 </div>
 </div>
@@ -3151,52 +3153,52 @@ code {
 </table>
 </div>
 <h2 id="using-data.table-4">Using <code>data.table</code></h2>
-<p>In <code>data.table</code>, the equivalent method is to list variable(s) of interest inside <code>.SDcols</code> and perform aggregations using <code>lapply(.SD, ...)</code>.</p>
+<p>In <code>data.table</code>, the equivalent method is to list columns of interest inside <code>.SDcols</code> and apply aggregations using <code>lapply(.SD, ...)</code>.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Remove duplicate rows and lapply() across platform_length using data.table ---</span>
-<span class="co"># Solution for a single function  </span>
+<span class="co"># Solution for a single function</span>
 <span class="va">dt_query_4_1</span> <span class="op">&lt;-</span> <span class="va">student_courses</span><span class="op">[</span>,
                                 <span class="va">.SD</span><span class="op">[</span><span class="fl">1L</span><span class="op">]</span>,
                                 by <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span>, <span class="va">platform_start_date</span><span class="op">)</span><span class="op">]</span> <span class="op">%&gt;%</span>
-  <span class="va">.</span><span class="op">[</span>, 
+  <span class="va">.</span><span class="op">[</span>,
     <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">.SD</span>, <span class="va">mean</span>, na.rm <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>,
     .SDcols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">grep</a></span><span class="op">(</span><span class="st">&quot;length&quot;</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">student_courses</span><span class="op">)</span><span class="op">)</span>,
     keyby <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span><span class="op">)</span><span class="op">]</span>
 
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">dt_query_4_1</span> <span class="op">==</span> <span class="fu">setDT</span><span class="op">(</span><span class="va">dplyr_query_4_1</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt;     id          platform       platform_length</span>
-<span class="co">#&gt;  Mode:logical   Mode:logical   Mode:logical   </span>
-<span class="co">#&gt;  TRUE:336621    TRUE:336621    TRUE:336621  </span>
+<span class="co">#&gt;  Mode:logical   Mode:logical   Mode:logical</span>
+<span class="co">#&gt;  TRUE:336621    TRUE:336621    TRUE:336621</span>
 </code></pre>
 </div>
 </div>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Remove duplicate rows and lapply() across platform_length using data.table ---</span>
-<span class="co"># Solution for a list of functions  </span>
+<span class="co"># Solution for a list of functions</span>
 <span class="va">dt_query_4_2</span> <span class="op">&lt;-</span> <span class="va">student_courses</span><span class="op">[</span>,
                                 <span class="va">.SD</span><span class="op">[</span><span class="fl">1L</span><span class="op">]</span>,
                                 by <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span>, <span class="va">platform_start_date</span><span class="op">)</span><span class="op">]</span> <span class="op">%&gt;%</span>
-  <span class="va">.</span><span class="op">[</span>, 
+  <span class="va">.</span><span class="op">[</span>,
     <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">.SD</span>,
                   <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>,
                                    sd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,
            recursive <span class="op">=</span> <span class="cn">F</span><span class="op">)</span>,
     .SDcols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">grep</a></span><span class="op">(</span><span class="st">&quot;length&quot;</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">student_courses</span><span class="op">)</span><span class="op">)</span>,
-    keyby <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span><span class="op">)</span><span class="op">]</span>  
+    keyby <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span><span class="op">)</span><span class="op">]</span>
 
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">dt_query_4_2</span> <span class="op">==</span> <span class="fu">setDT</span><span class="op">(</span><span class="va">dplyr_query_4_2</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt;     id          platform       platform_length.mean platform_length.sd</span>
-<span class="co">#&gt;  Mode:logical   Mode:logical   Mode:logical         Mode:logical      </span>
-<span class="co">#&gt;  TRUE:336621    TRUE:336621    TRUE:336621          TRUE:118638       </span>
-<span class="co">#&gt;                                                     NA&#39;s:217983       </span>
+<span class="co">#&gt;  Mode:logical   Mode:logical   Mode:logical         Mode:logical</span>
+<span class="co">#&gt;  TRUE:336621    TRUE:336621    TRUE:336621          TRUE:118638</span>
+<span class="co">#&gt;                                                     NA&#39;s:217983</span>
 </code></pre>
 </div>
 </div>
 <p><strong>Note:</strong> The use of <code>unlist()</code> inside the <code>j</code> placeholder to convert individual list elements into individual columns is explained <a href="https://stackoverflow.com/questions/29620783/apply-multiple-functions-to-multiple-columns-in-data-table">here</a>.</p>
 <h2 id="benchmark-data-operations-2">Benchmark data operations</h2>
-<p>As expected, the <code>data.table</code> operations are faster than <code>dplyr</code> operations, although there is a non-linear performance decrease when multiple functions are evaluated for a subset of columns.</p>
+<p>As expected, <code>data.table</code> operations run faster than <code>dplyr</code> operations, although there is a non-linear performance decrease when multiple functions are evaluated for a subset of columns using <code>unlist()</code>.</p>
 <div class="layout-chunk" data-layout="l-body">
 <table>
 <caption><span id="tab:unnamed-chunk-30">Table 3: </span>Units: milliseconds</caption>
@@ -3267,11 +3269,11 @@ code {
 </table>
 </div>
 <h1 id="use-lag-or-lead-operations">Use <code>lag</code> or <code>lead</code> operations</h1>
-<p>Another insight you might be interested in is the number of times a student switches between a platform. Deriving this is a multiple step process:</p>
+<p>Finally, what if you were interested in the number of times a student switches between a platform? Obtaining this insight is a multiple step process:</p>
 <ul>
 <li>First, group by <code>id</code> and create <code>lag_platform</code>, which denotes the preceding online platform. Evaluating the first row using <code>lag()</code> outputs <code>NA</code>.<br />
 </li>
-<li>Next, create <code>is_new_platform</code> using a <code>case_when()</code> condition which outputs <code>1</code> when the preceding platform is <code>NA</code> or different to the current platform and outputs 0 when the preceding platform is the same as the current platform.<br />
+<li>Next, create <code>is_new_platform</code> using a <code>case_when()</code> condition which outputs <code>1</code> when the preceding platform is <code>NA</code> or different to the current platform and outputs <code>0</code> when the preceding platform is the same as the current platform.<br />
 </li>
 <li>Finally, group by <code>id</code> and sum <code>is_new_platform</code> to obtain the total number of times a student has switched between a platform.</li>
 </ul>
@@ -3281,7 +3283,7 @@ code {
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Calculate total platform switches per student using dplyr --------------------</span>
 <span class="co"># student_courses must already be sorted by id AND platform_start_date</span>
 <span class="va">dplyr_query_5</span> <span class="op">&lt;-</span> <span class="va">student_courses</span> <span class="op">%&gt;%</span>
-  <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span><span class="op">)</span> <span class="op">%&gt;%</span>   
+  <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">mutate</span><span class="op">(</span>lag_platform <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lag.html">lag</a></span><span class="op">(</span><span class="va">platform</span>, <span class="fl">1L</span><span class="op">)</span>,
          is_new_platform <span class="op">=</span> <span class="fu">case_when</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">lag_platform</span><span class="op">)</span> <span class="op">~</span> <span class="fl">1</span>,
                                      <span class="va">platform</span> <span class="op">!=</span> <span class="va">lag_platform</span> <span class="op">~</span> <span class="fl">1</span>,
@@ -3310,8 +3312,8 @@ code {
 
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">dt_query_5</span> <span class="op">==</span> <span class="fu">setDT</span><span class="op">(</span><span class="va">dplyr_query_5</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#&gt;     id          platform_switch</span>
-<span class="co">#&gt;  Mode:logical   Mode:logical   </span>
-<span class="co">#&gt;  TRUE:144676    TRUE:144676  </span>
+<span class="co">#&gt;  Mode:logical   Mode:logical</span>
+<span class="co">#&gt;  TRUE:144676    TRUE:144676</span>
 </code></pre>
 </div>
 </div>
@@ -3359,7 +3361,7 @@ code {
 <h1 id="lazy-data.table-with-dplyr-verbs">Lazy <code>data.table</code> with <code>dplyr</code> verbs</h1>
 <p>Whilst I’ve become familiar with the <code>data.table</code> syntax, there is still a way to retain the readability of <code>dplyr</code> combined with the performance of <code>data.table</code>, by implementing <code>data.table</code> <a href="https://dtplyr.tidyverse.org/articles/translation.html">lazy translations</a> using the <code>dtplyr</code> package.</p>
 <p>You can use <code>lazy_dt()</code> on <code>data.frame</code> objects to convert them into <code>lazy_dt</code> objects. Using <code>dplyr</code> code on <code>data.table</code> objects will also automatically convert that object into a <code>lazy_dt</code> object.</p>
-<p><strong>Note:</strong> I am currently experiencing a package dependency error caused by <code>dtplyr</code> which prevents <code>.list()</code> functions from evaluating inside <code>data.table</code> objects, so the code below has been disabled in this document and exists for demonstration purposes only.</p>
+<p><strong>Note:</strong> I am currently experiencing a package dependency error caused by <code>dtplyr</code> which prevents <code>.list()</code> functions from evaluating inside <code>data.table</code> objects, so the code below exists for demonstration purposes only.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Install and load dtplyr ------------------------------------------------------</span>
@@ -3371,7 +3373,7 @@ code {
 <span class="va">test_df</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="op">(</span>id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">10</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">500</span>, replace <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>,
                   var_1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">500</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,
                   var_2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">500</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>,
-                  var_3 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">500</span>, <span class="fl">0</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>  
+                  var_3 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">500</span>, <span class="fl">0</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>
 
 <span class="va">test_dt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dtplyr/man/lazy_dt.html">lazy_dt</a></span><span class="op">(</span><span class="va">test_df</span><span class="op">)</span>
 </code></pre>
@@ -3386,13 +3388,13 @@ code {
   <span class="fu">mutate</span><span class="op">(</span>var_sum <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">var_1</span>, <span class="va">var_2</span>, <span class="va">var_3</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">show_query</span><span class="op">(</span><span class="op">)</span>
 
-<span class="co">#&gt; `_DT1`[order(desc(id))][, `:=`(var_sum = sum(var_1, var_2, var_3))]  </span>
+<span class="co">#&gt; `_DT1`[order(desc(id))][, `:=`(var_sum = sum(var_1, var_2, var_3))]</span>
 
 <span class="va">test_dt</span> <span class="op">%&gt;%</span>
   <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">summarise</span><span class="op">(</span><span class="fu">across</span><span class="op">(</span><span class="fu">starts_with</span><span class="op">(</span><span class="st">&quot;var_&quot;</span><span class="op">)</span>, <span class="va">mean</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">show_query</span><span class="op">(</span><span class="op">)</span>
-<span class="co">#&gt; `_DT2`[, .(var_1 = mean(var_1), var_2 = mean(var_2), var_3 = mean(var_3)), </span>
+<span class="co">#&gt; `_DT2`[, .(var_1 = mean(var_1), var_2 = mean(var_2), var_3 = mean(var_3)),</span>
 <span class="co">#&gt;        keyby = .(id)]</span>
 </code></pre>
 </div>
@@ -3404,7 +3406,7 @@ code {
 <span class="va">test_dt</span> <span class="op">%&gt;%</span>
   <span class="fu">group_by</span><span class="op">(</span><span class="va">id</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu">summarise</span><span class="op">(</span><span class="fu">across</span><span class="op">(</span><span class="fu">starts_with</span><span class="op">(</span><span class="st">&quot;var_&quot;</span><span class="op">)</span>, <span class="va">mean</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
-  <span class="fu">as_tibble</span><span class="op">(</span><span class="op">)</span> <span class="co"># Outputs a tibble   </span>
+  <span class="fu">as_tibble</span><span class="op">(</span><span class="op">)</span> <span class="co"># Outputs a tibble</span>
 </code></pre>
 </div>
 </div>
