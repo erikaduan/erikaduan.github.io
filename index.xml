@@ -7,7 +7,7 @@
     <description>A blog featuring R, Python and general data science tips.   
 </description>
     <generator>Distill</generator>
-    <lastBuildDate>Sat, 29 May 2021 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 30 May 2021 00:00:00 +0000</lastBuildDate>
     <item>
       <title>Connecting RStudio to GitHub</title>
       <dc:creator>Erika Duan</dc:creator>
@@ -17,7 +17,7 @@
       <category>GitHub</category>
       <category>Reproducibility</category>
       <guid>https://erikaduan.github.io/posts/2021-05-30-syncing-to-github</guid>
-      <pubDate>Sat, 29 May 2021 00:00:00 +0000</pubDate>
+      <pubDate>Sun, 30 May 2021 00:00:00 +0000</pubDate>
       <media:content url="https://erikaduan.github.io/posts/2021-05-30-syncing-to-github/finalplot.png" medium="image" type="image/png" width="2830" height="1810"/>
     </item>
     <item>
