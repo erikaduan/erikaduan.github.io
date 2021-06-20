@@ -449,10 +449,6 @@ obj_addr(dt)
 #> [1] "0x22b016ed030"
 ```
 
-```{r, results='markup'}
-dt # Check that dt has been modified in place
-```
-
 **Note:** You do not need to assign datasets to names when modifying by reference using the `:=` operator.         
 
 
@@ -461,7 +457,7 @@ dt # Check that dt has been modified in place
 
 ## Using `dplyr`    
 
-The syntax for filtering data is very similar for `dplyr` and `data.table`. 
+The basic syntax for filtering data is very similar for `dplyr` and `data.table`. 
 
 ```{r}
 # Filter student_courses using dplyr -------------------------------------------
@@ -480,17 +476,32 @@ student_courses %>%
 # Using a comma is a substitute for the condition 'and'
 student_courses %>%
   filter(id == "00007f23",
-        between(platform_start_date, "2017-01-01", "2017-12-31"))
+         between(platform_start_date, "2017-01-01", "2017-12-31"))
 
 # Filter by a variable using regex
 student_courses %>%
   filter(str_detect(course, "^R_"))
 ```
 
+In `dplyr` version >= 1.0.0, the functions `if_any()` and `if_all()` can be incorporated to filter across multiple columns.   
+
+```{r}
+# Filter across multiple rows using dplyr --------------------------------------
+# Filter across all date columns where all columns are TRUE  
+student_courses %>%
+  filter(if_all(ends_with("_date"), ~between(., "2017-01-01", "2017-12-31")))
+
+# Filter across all date columns where at least one column is TRUE
+student_courses %>%
+  filter(if_any(ends_with("_date"), ~between(., "2017-01-01", "2017-12-31")))
+```
+
+**Note:** The function `between()` is equivalent to `lower <=x & x <= upper` when `incbounds=TRUE` and `lower < x & y < upper` when `incbounds=FALSE`.   
+
 
 ## Using `data.table`   
 
-A difference is that `data.table` also contains a list of helper functions with optimised performance for filtering on specific data types like characters or integers.       
+A minor difference is that `data.table` also contains a list of helper functions with optimised performance for filtering on specific data types like characters or integers.       
 
 ```{r}
 # Filter student_courses using data.table --------------------------------------
@@ -500,14 +511,26 @@ student_courses[platform == "A"]
 # Filter by all platforms excepting A
 student_courses[platform != "A"]
 
-# Operator %chin% is equivalent to but much faster than %in%
+# Operator %chin% is equivalent to but faster than %in%
 student_courses[platform %chin% c("A", "C")]
 
-# Operator %between% allows you to search for values in a closed inclusive interval
-student_courses[id == "00007f23" & platform_start_date %between% c("2017-01-01", "2017-12-31")]
+# Operator %between% or data.table::between() searches across a range of values
+student_courses[id == "00007f23" &
+                platform_start_date %between% c("2017-01-01", "2017-12-31")]
 
 # Operator %like% allows you to search for a pattern in a character vector
 student_courses[course %like% "R_"]
+```
+
+Currently, `dplyr` offers more versatility than `data.table` in terms of filtering across multiple columns. A readable `data.table` equivalent to `if_all()` currently does not exist and the equivalent to `if_any` [can be solved using `get()`](https://stackoverflow.com/questions/48641680/filter-data-table-on-same-condition-for-multiple-columns) to return the value of multiple columns.    
+
+```{r}
+# Filter across multiple rows using data.table ---------------------------------
+# Filter across all date columns where at least one column is TRUE
+date_cols <- str_subset(colnames(student_courses), "_date$")
+student_courses[get(date_cols) %between% c("2017-01-01", "2017-12-31"), .SDcols = date_cols]
+
+# get(date_cols) == condition is equivalent to if_any(condition) == TRUE
 ```
 
 
@@ -526,7 +549,9 @@ if (!file.exists(here("data", "data-table-benchmarks", "fmb.rds"))) {
                         filter(student_courses, platform %in% c("A", "C")),
                         student_courses[platform %chin% c("A", "C")],
                         filter(student_courses, str_detect(course, "^R_")),
-                        student_courses[course %like% "R_"]) 
+                        student_courses[course %like% "R_"],
+                        dplyr_filter_if_any = filter(student_courses, if_any(ends_with("_date"), ~between(., "2017-01-01", "2017-12-31"))),
+                        data.table_filter_get_cols = student_courses[get(date_cols) %between% c("2017-01-01", "2017-12-31"), .SDcols = date_cols]) 
   
   saveRDS(fmb, here("data", "data-table-benchmarks", "fmb.rds"))
 }
@@ -631,6 +656,11 @@ student_courses %>%
   pull(id) %>%
   class()
 #> [1] "character"
+
+student_courses %>%
+  .[["id"]] %>%
+  class()
+#> [1] "character"
 ```
 
 
@@ -649,12 +679,12 @@ student_courses[,
                   course)]
 
 # Select column(s) using regex
-grep("date", names(student_courses), value = T)
-#> [1] "platform_start_date" "platform_end_date"
+str_subset(colnames(student_courses), "date")
+#> [1] "platform_start_date" "platform_end_date"   "course_start_date"   "course_end_date"    
 
 student_courses[,
-                grep("date", names(student_courses), value = T),
-                with = F]
+                str_subset(colnames(student_courses), "date"),
+                with = F] 
 
 # Output data frame by wrapping column names inside a list ---------------------
 class(student_courses[, .(id)])
@@ -667,6 +697,8 @@ class(student_courses[, id])
 class(student_courses[["id"]])
 #> [1] "character"
 ```   
+
+**Note:** In `data.table`, `.(cols)` is just a shorthand for `list(cols)` and is used to list columns in the `j` placeholder.    
 
 
 ## Benchmark column selection     
@@ -696,33 +728,54 @@ knitr::kable(summary(slmb), caption = "Units: milliseconds")
 
 ## Using `dplyr`    
 
-In `dplyr` version >= 1.0.0, you can use `mutate()` in combination with `across()` to create new columns or apply transformations across one or multiple columns.   
-
-A shallow `data.frame` copy is created whenever a column is modified, which you then assign a name to.   
+As `dplyr` objects are data frames, a shallow `data.frame` copy is created whenever a column is modified using `mutate()`.     
 
 ```{r}
 # Create column(s) using dplyr -------------------------------------------------
 # Create new columns from existing variables
-student_courses <- student_courses %>%
+student_courses %>%
   mutate(platform_dwell_length = platform_end_date - platform_start_date,
          platform_start_year = as.numeric(str_extract(platform_start_date, "^.{4}(?!//-)")))
 
 # Create column(s) with multiple conditions using dplyr ------------------------
 str_subset(unique(student_courses$course), "^R_")
 #> [1] "R_beginner"     "R_advanced"     "R_intermediate"
+
 str_subset(unique(student_courses$course), "^Python_")
 #> [1] "Python_intermediate" "Python_advanced"     "Python_beginner"
 
-student_courses <- student_courses %>%
+student_courses %>%
   mutate(studied_programming = case_when(str_detect(course, "^R_") ~ "Studied R",
                                          str_detect(course, "^Python_") ~ "Studied Python",
                                          TRUE ~ "No"))
+```
 
-# Remove newly created columns using dplyr -------------------------------------
-student_courses <- student_courses %>%
-  select(-c(platform_dwell_length,
-            platform_start_year,
-            studied_programming))
+In `dplyr` version >= 1.0.0, you can use `mutate()` in combination with `across()` to apply transformations across one or multiple columns.   
+
+```{r}
+# Create multiple columns using dplyr ------------------------------------------
+# across() accepts function names or ~function(.x) syntax
+student_courses %>%
+  mutate(across(c(id, platform, course, course), ~toupper(.x)))
+
+# where() can be used inside across() to select columns by type
+student_courses %>%
+  mutate(across(where(is.character), ~toupper(.x)))
+```
+
+In contrast to `mutate()`, `transmute()` only returns the transformed column(s) of interest.  
+
+```{r}
+# Create and only return column(s) using dplyr ---------------------------------
+student_courses %>%
+  transmute(across(c(id, platform, course), ~toupper(.x))) %>%
+  ncol()
+#> [1] 3
+
+student_courses %>%
+  mutate(across(c(id, platform, course, course), ~toupper(.x))) %>%
+  ncol()
+#> [1] 7
 ```
 
 
@@ -732,7 +785,7 @@ Data frame outputs are slightly different in `data.table`:
 
 + Column transformations are always modified in place using the operator `:=`.    
 + Multiple columns can be concurrently modified, as long as the newly created columns do not depend on each other.    
-+ Use subassignment to only extract the columns transformed inside `j` of `DT[i, j, by]`.    
++ Use subassignment with `=` (instead of `:=`) to extract only the columns transformed inside `j` of `DT[i, j, by]`.   
 
 ```{r}
 # Create column(s) using data.table --------------------------------------------
@@ -758,22 +811,43 @@ student_courses[,
                   "studied_programming") := NULL]
 ```
 
-```{r}
-# Only columns transformed inside j are kept -----------------------------------
-# Use subassignment only if you want to subset the transformed columns
-platform_records <- student_courses[,
-                                    .(id = toupper(id),
-                                      platform = tolower(platform))]
+In `data.table`, the solution to creating multiple columns is to [specify columns of interest into `.SDcols` and then loop through each column using `lapply(function)`](https://stackoverflow.com/questions/68055613/transform-multiple-columns-and-return-all-columns-using-data-table-in-r/68055663#68055663).      
 
-ncol(platform_records)
-#> [1] 2
+```{r}
+# Create multiple columns using data.table -------------------------------------
+# (col_vector) or c("x", "y") := lapply(...) modifies all columns in place
+cols <- c("id", "platform", "course")
+student_courses[,
+                (cols) := lapply(.SD, toupper),
+                .SDcols = cols]
+
+# Equivalent code
+student_courses[,
+                c("id", "platform", "course") := lapply(.SD, toupper),
+                .SDcols = c("id", "platform", "course")]
+```
+
+```{r}
+# Use subassignment with `=` to return only transformed columns ----------------
+dt_subset <- student_courses[,
+                             .(id = toupper(id),
+                               platform = toupper(platform),
+                               course = toupper(course))]
+
+ncol(dt_subset)
+#> [1] 3
+
+# Equivalent code using .SDcols and lapply()
+dt_subset <- student_courses[,
+                             lapply(.SD, toupper),
+                             .SDcols = cols]
 ```
 
 
 ## Benchmark column creation            
 
 ```{r, echo=FALSE, results='markup'}
-# Benchmark dplyr and data.table functions -------------------------------------  
+# Benchmark dplyr and data.table functions -------------------------------------
 if (!file.exists(here("data", "data-table-benchmarks", "ccmb.rds"))) {
   
   ccmb <- microbenchmark(mutate(student_courses,
@@ -803,7 +877,7 @@ knitr::kable(summary(ccmb), caption = "Units: milliseconds")
 
 ## Using `dplyr`    
 
-Evaluating summary characteristics for data groupings is also where `data.table` significantly outperforms `dplyr`. A grouping is specified using the `group_by()` function in `dplyr`.         
+Summarising by group is also where `data.table` significantly outperforms `dplyr`. A grouping is specified using the `group_by()` function in `dplyr`.         
 
 ```{r}
 # Find total number of courses per student via dplyr ---------------------------
@@ -862,7 +936,7 @@ student_courses[,
 Group by operations are significantly faster in `data.table` than `dplyr`.    
 
 ```{r, echo=FALSE, results='markup'}
-# Benchmark dplyr and data.table functions ------------------------------------- 
+# Benchmark dplyr and data.table functions -------------------------------------
 if (!file.exists(here("data", "data-table-benchmarks", "gbmb.rds"))) {
   
   gbmb <- microbenchmark(student_courses %>% group_by(id) %>% summarise(total_courses = n()),                                                         student_courses[, .(total_courses = .N), by = id],    

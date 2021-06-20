@@ -2550,6 +2550,9 @@ code {
 <a href="http://github.com/erikaduan/">
 <i class="fa fa-github fa-lg" aria-hidden="true"></i>
 </a>
+<a href="https://stackoverflow.com/users/12104647/emd">
+<i class="fa fa-stack-overflow" aria-hidden="true"></i>
+</a>
 <a href="https://twitter.com/erikaduan">
 <i class="fa fa-twitter" aria-hidden="true"></i>
 </a>
@@ -2791,22 +2794,10 @@ code {
 </code></pre>
 </div>
 </div>
-<div class="layout-chunk" data-layout="l-body">
-<div class="sourceCode">
-<pre class="sourceCode r"><code class="sourceCode r"><span class="va">dt</span> <span class="co"># Check that dt has been modified in place</span>
-</code></pre>
-</div>
-<pre><code>   id letter
-1:  1      A
-2:  2      B
-3:  3      C
-4:  4      D
-5:  5      E</code></pre>
-</div>
 <p><strong>Note:</strong> You do not need to assign datasets to names when modifying by reference using the <code>:=</code> operator.</p>
 <h1 id="filter-data">Filter data</h1>
 <h2 id="using-dplyr">Using <code>dplyr</code></h2>
-<p>The syntax for filtering data is very similar for <code>dplyr</code> and <code>data.table</code>.</p>
+<p>The basic syntax for filtering data is very similar for <code>dplyr</code> and <code>data.table</code>.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Filter student_courses using dplyr -------------------------------------------</span>
@@ -2825,7 +2816,7 @@ code {
 <span class="co"># Using a comma is a substitute for the condition &#39;and&#39;</span>
 <span class="va">student_courses</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">id</span> <span class="op">==</span> <span class="st">&quot;00007f23&quot;</span>,
-        <span class="fu">between</span><span class="op">(</span><span class="va">platform_start_date</span>, <span class="st">&quot;2017-01-01&quot;</span>, <span class="st">&quot;2017-12-31&quot;</span><span class="op">)</span><span class="op">)</span>
+         <span class="fu">between</span><span class="op">(</span><span class="va">platform_start_date</span>, <span class="st">&quot;2017-01-01&quot;</span>, <span class="st">&quot;2017-12-31&quot;</span><span class="op">)</span><span class="op">)</span>
 
 <span class="co"># Filter by a variable using regex</span>
 <span class="va">student_courses</span> <span class="op">%&gt;%</span>
@@ -2833,8 +2824,23 @@ code {
 </code></pre>
 </div>
 </div>
+<p>In <code>dplyr</code> version &gt;= 1.0.0, the functions <code>if_any()</code> and <code>if_all()</code> can be incorporated to filter across multiple columns.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Filter across multiple rows using dplyr --------------------------------------</span>
+<span class="co"># Filter across all date columns where all columns are TRUE  </span>
+<span class="va">student_courses</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="fu">if_all</span><span class="op">(</span><span class="fu">ends_with</span><span class="op">(</span><span class="st">&quot;_date&quot;</span><span class="op">)</span>, <span class="op">~</span><span class="fu">between</span><span class="op">(</span><span class="va">.</span>, <span class="st">&quot;2017-01-01&quot;</span>, <span class="st">&quot;2017-12-31&quot;</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="co"># Filter across all date columns where at least one column is TRUE</span>
+<span class="va">student_courses</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="fu">if_any</span><span class="op">(</span><span class="fu">ends_with</span><span class="op">(</span><span class="st">&quot;_date&quot;</span><span class="op">)</span>, <span class="op">~</span><span class="fu">between</span><span class="op">(</span><span class="va">.</span>, <span class="st">&quot;2017-01-01&quot;</span>, <span class="st">&quot;2017-12-31&quot;</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+</code></pre>
+</div>
+</div>
+<p><strong>Note:</strong> The function <code>between()</code> is equivalent to <code>lower &lt;=x &amp; x &lt;= upper</code> when <code>incbounds=TRUE</code> and <code>lower &lt; x &amp; y &lt; upper</code> when <code>incbounds=FALSE</code>.</p>
 <h2 id="using-data.table">Using <code>data.table</code></h2>
-<p>A difference is that <code>data.table</code> also contains a list of helper functions with optimised performance for filtering on specific data types like characters or integers.</p>
+<p>A minor difference is that <code>data.table</code> also contains a list of helper functions with optimised performance for filtering on specific data types like characters or integers.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Filter student_courses using data.table --------------------------------------</span>
@@ -2844,14 +2850,27 @@ code {
 <span class="co"># Filter by all platforms excepting A</span>
 <span class="va">student_courses</span><span class="op">[</span><span class="va">platform</span> <span class="op">!=</span> <span class="st">&quot;A&quot;</span><span class="op">]</span>
 
-<span class="co"># Operator %chin% is equivalent to but much faster than %in%</span>
+<span class="co"># Operator %chin% is equivalent to but faster than %in%</span>
 <span class="va">student_courses</span><span class="op">[</span><span class="va">platform</span> <span class="op">%chin%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;A&quot;</span>, <span class="st">&quot;C&quot;</span><span class="op">)</span><span class="op">]</span>
 
-<span class="co"># Operator %between% allows you to search for values in a closed inclusive interval</span>
-<span class="va">student_courses</span><span class="op">[</span><span class="va">id</span> <span class="op">==</span> <span class="st">&quot;00007f23&quot;</span> <span class="op">&amp;</span> <span class="va">platform_start_date</span> <span class="op">%between%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;2017-01-01&quot;</span>, <span class="st">&quot;2017-12-31&quot;</span><span class="op">)</span><span class="op">]</span>
+<span class="co"># Operator %between% or data.table::between() searches across a range of values</span>
+<span class="va">student_courses</span><span class="op">[</span><span class="va">id</span> <span class="op">==</span> <span class="st">&quot;00007f23&quot;</span> <span class="op">&amp;</span>
+                <span class="va">platform_start_date</span> <span class="op">%between%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;2017-01-01&quot;</span>, <span class="st">&quot;2017-12-31&quot;</span><span class="op">)</span><span class="op">]</span>
 
 <span class="co"># Operator %like% allows you to search for a pattern in a character vector</span>
 <span class="va">student_courses</span><span class="op">[</span><span class="va">course</span> <span class="op">%like%</span> <span class="st">&quot;R_&quot;</span><span class="op">]</span>
+</code></pre>
+</div>
+</div>
+<p>Currently, <code>dplyr</code> offers more versatility than <code>data.table</code> in terms of filtering across multiple columns. A readable <code>data.table</code> equivalent to <code>if_all()</code> currently does not exist and the equivalent to <code>if_any</code> <a href="https://stackoverflow.com/questions/48641680/filter-data-table-on-same-condition-for-multiple-columns">can be solved using <code>get()</code></a> to return the value of multiple columns.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Filter across multiple rows using data.table ---------------------------------</span>
+<span class="co"># Filter across all date columns where at least one column is TRUE</span>
+<span class="va">date_cols</span> <span class="op">&lt;-</span> <span class="fu">str_subset</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">student_courses</span><span class="op">)</span>, <span class="st">&quot;_date$&quot;</span><span class="op">)</span>
+<span class="va">student_courses</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/get.html">get</a></span><span class="op">(</span><span class="va">date_cols</span><span class="op">)</span> <span class="op">%between%</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;2017-01-01&quot;</span>, <span class="st">&quot;2017-12-31&quot;</span><span class="op">)</span>, .SDcols <span class="op">=</span> <span class="va">date_cols</span><span class="op">]</span>
+
+<span class="co"># get(date_cols) == condition is equivalent to if_any(condition) == TRUE</span>
 </code></pre>
 </div>
 </div>
@@ -2860,15 +2879,15 @@ code {
 <p>The function <code>microbenchmark()</code> runs each expression 100 times by default with the argument <code>times = 100L</code>. It outputs summary statistics on how long it takes to evaluate a single expression.</p>
 <div class="layout-chunk" data-layout="l-body">
 <table>
-<caption><span id="tab:unnamed-chunk-17">Table 1: </span>Units: milliseconds</caption>
+<caption><span id="tab:unnamed-chunk-18">Table 1: </span>Units: milliseconds</caption>
 <colgroup>
 <col style="width: 45%" />
 <col style="width: 7%" />
-<col style="width: 7%" />
 <col style="width: 8%" />
 <col style="width: 8%" />
 <col style="width: 8%" />
-<col style="width: 7%" />
+<col style="width: 9%" />
+<col style="width: 8%" />
 <col style="width: 5%" />
 </colgroup>
 <thead>
@@ -2886,62 +2905,82 @@ code {
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">filter(student_courses, platform == “A”)</td>
-<td style="text-align: right;">8.6185</td>
-<td style="text-align: right;">9.85425</td>
-<td style="text-align: right;">14.02690</td>
-<td style="text-align: right;">10.63355</td>
-<td style="text-align: right;">12.59240</td>
-<td style="text-align: right;">32.5160</td>
+<td style="text-align: right;">9.0241</td>
+<td style="text-align: right;">9.89670</td>
+<td style="text-align: right;">17.45452</td>
+<td style="text-align: right;">10.77120</td>
+<td style="text-align: right;">13.19065</td>
+<td style="text-align: right;">188.7689</td>
 <td style="text-align: right;">100</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">student_courses[platform == “A”]</td>
-<td style="text-align: right;">8.1147</td>
-<td style="text-align: right;">8.68425</td>
-<td style="text-align: right;">11.79464</td>
-<td style="text-align: right;">9.23450</td>
-<td style="text-align: right;">10.76145</td>
-<td style="text-align: right;">29.5605</td>
+<td style="text-align: right;">8.4162</td>
+<td style="text-align: right;">9.12350</td>
+<td style="text-align: right;">11.79773</td>
+<td style="text-align: right;">9.60965</td>
+<td style="text-align: right;">10.48005</td>
+<td style="text-align: right;">35.0547</td>
 <td style="text-align: right;">100</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">filter(student_courses, platform %in% c(“A”, “C”))</td>
-<td style="text-align: right;">13.6701</td>
-<td style="text-align: right;">14.83205</td>
-<td style="text-align: right;">20.73142</td>
-<td style="text-align: right;">16.04955</td>
-<td style="text-align: right;">18.52705</td>
-<td style="text-align: right;">133.6671</td>
+<td style="text-align: right;">12.1439</td>
+<td style="text-align: right;">13.05705</td>
+<td style="text-align: right;">20.04014</td>
+<td style="text-align: right;">14.65670</td>
+<td style="text-align: right;">33.03505</td>
+<td style="text-align: right;">41.0345</td>
 <td style="text-align: right;">100</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">student_courses[platform %chin% c(“A”, “C”)]</td>
-<td style="text-align: right;">12.5168</td>
-<td style="text-align: right;">13.84470</td>
-<td style="text-align: right;">19.00417</td>
-<td style="text-align: right;">14.96820</td>
-<td style="text-align: right;">16.58040</td>
-<td style="text-align: right;">126.5837</td>
+<td style="text-align: right;">13.4523</td>
+<td style="text-align: right;">14.65795</td>
+<td style="text-align: right;">19.35104</td>
+<td style="text-align: right;">15.47045</td>
+<td style="text-align: right;">16.69780</td>
+<td style="text-align: right;">46.3068</td>
 <td style="text-align: right;">100</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">filter(student_courses, str_detect(course, “^R_”))</td>
-<td style="text-align: right;">88.7389</td>
-<td style="text-align: right;">97.34130</td>
-<td style="text-align: right;">104.40473</td>
-<td style="text-align: right;">102.87980</td>
-<td style="text-align: right;">107.93375</td>
-<td style="text-align: right;">142.4213</td>
+<td style="text-align: right;">83.2341</td>
+<td style="text-align: right;">88.54035</td>
+<td style="text-align: right;">97.67838</td>
+<td style="text-align: right;">91.93555</td>
+<td style="text-align: right;">102.11460</td>
+<td style="text-align: right;">214.3023</td>
 <td style="text-align: right;">100</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">student_courses[course %like% “R_”]</td>
-<td style="text-align: right;">59.2113</td>
-<td style="text-align: right;">66.55935</td>
-<td style="text-align: right;">71.34264</td>
-<td style="text-align: right;">70.67060</td>
-<td style="text-align: right;">73.52060</td>
-<td style="text-align: right;">96.0989</td>
+<td style="text-align: right;">53.7119</td>
+<td style="text-align: right;">57.01275</td>
+<td style="text-align: right;">62.96518</td>
+<td style="text-align: right;">58.66400</td>
+<td style="text-align: right;">62.27945</td>
+<td style="text-align: right;">224.8972</td>
+<td style="text-align: right;">100</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">dplyr_filter_if_any</td>
+<td style="text-align: right;">34.7018</td>
+<td style="text-align: right;">37.33390</td>
+<td style="text-align: right;">49.85545</td>
+<td style="text-align: right;">41.14285</td>
+<td style="text-align: right;">59.23520</td>
+<td style="text-align: right;">215.8179</td>
+<td style="text-align: right;">100</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">data.table_filter_get_cols</td>
+<td style="text-align: right;">13.6371</td>
+<td style="text-align: right;">14.82760</td>
+<td style="text-align: right;">21.16597</td>
+<td style="text-align: right;">15.69680</td>
+<td style="text-align: right;">17.09135</td>
+<td style="text-align: right;">186.9853</td>
 <td style="text-align: right;">100</td>
 </tr>
 </tbody>
@@ -2988,7 +3027,7 @@ code {
 <p>You can see that <code>order()</code> from <code>data.table</code> sorts data much faster than its equivalent <code>dplyr</code> function.</p>
 <div class="layout-chunk" data-layout="l-body">
 <table>
-<caption><span id="tab:unnamed-chunk-20">Table 2: </span>Units: milliseconds</caption>
+<caption><span id="tab:unnamed-chunk-21">Table 2: </span>Units: milliseconds</caption>
 <colgroup>
 <col style="width: 49%" />
 <col style="width: 7%" />
@@ -3082,6 +3121,11 @@ code {
   <span class="fu">pull</span><span class="op">(</span><span class="va">id</span><span class="op">)</span> <span class="op">%&gt;%</span>
   <span class="fu"><a href="https://rdrr.io/r/base/class.html">class</a></span><span class="op">(</span><span class="op">)</span>
 <span class="co">#&gt; [1] &quot;character&quot;</span>
+
+<span class="va">student_courses</span> <span class="op">%&gt;%</span>
+  <span class="va">.</span><span class="op">[[</span><span class="st">&quot;id&quot;</span><span class="op">]</span><span class="op">]</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/class.html">class</a></span><span class="op">(</span><span class="op">)</span>
+<span class="co">#&gt; [1] &quot;character&quot;</span>
 </code></pre>
 </div>
 </div>
@@ -3099,12 +3143,12 @@ code {
                   <span class="va">course</span><span class="op">)</span><span class="op">]</span>
 
 <span class="co"># Select column(s) using regex</span>
-<span class="fu"><a href="https://rdrr.io/r/base/grep.html">grep</a></span><span class="op">(</span><span class="st">&quot;date&quot;</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">student_courses</span><span class="op">)</span>, value <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>
-<span class="co">#&gt; [1] &quot;platform_start_date&quot; &quot;platform_end_date&quot;</span>
+<span class="fu">str_subset</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">student_courses</span><span class="op">)</span>, <span class="st">&quot;date&quot;</span><span class="op">)</span>
+<span class="co">#&gt; [1] &quot;platform_start_date&quot; &quot;platform_end_date&quot;   &quot;course_start_date&quot;   &quot;course_end_date&quot;    </span>
 
 <span class="va">student_courses</span><span class="op">[</span>,
-                <span class="fu"><a href="https://rdrr.io/r/base/grep.html">grep</a></span><span class="op">(</span><span class="st">&quot;date&quot;</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">student_courses</span><span class="op">)</span>, value <span class="op">=</span> <span class="cn">T</span><span class="op">)</span>,
-                with <span class="op">=</span> <span class="cn">F</span><span class="op">]</span>
+                <span class="fu">str_subset</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">student_courses</span><span class="op">)</span>, <span class="st">&quot;date&quot;</span><span class="op">)</span>,
+                with <span class="op">=</span> <span class="cn">F</span><span class="op">]</span> 
 
 <span class="co"># Output data frame by wrapping column names inside a list ---------------------</span>
 <span class="fu"><a href="https://rdrr.io/r/base/class.html">class</a></span><span class="op">(</span><span class="va">student_courses</span><span class="op">[</span>, <span class="fu">.</span><span class="op">(</span><span class="va">id</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>
@@ -3119,11 +3163,12 @@ code {
 </code></pre>
 </div>
 </div>
+<p><strong>Note:</strong> In <code>data.table</code>, <code>.(cols)</code> is just a shorthand for <code>list(cols)</code> and is used to list columns in the <code>j</code> placeholder.</p>
 <h2 id="benchmark-column-selection">Benchmark column selection</h2>
 <p>Interestingly, the benchmark below shows that <code>dplyr</code> is slightly faster than <code>data.table</code> for column selections.</p>
 <div class="layout-chunk" data-layout="l-body">
 <table>
-<caption><span id="tab:unnamed-chunk-23">Table 3: </span>Units: milliseconds</caption>
+<caption><span id="tab:unnamed-chunk-24">Table 3: </span>Units: milliseconds</caption>
 <colgroup>
 <col style="width: 58%" />
 <col style="width: 5%" />
@@ -3192,32 +3237,56 @@ code {
 </div>
 <h1 id="column-creation">Column creation</h1>
 <h2 id="using-dplyr-3">Using <code>dplyr</code></h2>
-<p>In <code>dplyr</code> version &gt;= 1.0.0, you can use <code>mutate()</code> in combination with <code>across()</code> to create new columns or apply transformations across one or multiple columns.</p>
-<p>A shallow <code>data.frame</code> copy is created whenever a column is modified, which you then assign a name to.</p>
+<p>As <code>dplyr</code> objects are data frames, a shallow <code>data.frame</code> copy is created whenever a column is modified using <code>mutate()</code>.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Create column(s) using dplyr -------------------------------------------------</span>
 <span class="co"># Create new columns from existing variables</span>
-<span class="va">student_courses</span> <span class="op">&lt;-</span> <span class="va">student_courses</span> <span class="op">%&gt;%</span>
+<span class="va">student_courses</span> <span class="op">%&gt;%</span>
   <span class="fu">mutate</span><span class="op">(</span>platform_dwell_length <span class="op">=</span> <span class="va">platform_end_date</span> <span class="op">-</span> <span class="va">platform_start_date</span>,
          platform_start_year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">as.numeric</a></span><span class="op">(</span><span class="fu">str_extract</span><span class="op">(</span><span class="va">platform_start_date</span>, <span class="st">&quot;^.{4}(?!//-)&quot;</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
 
 <span class="co"># Create column(s) with multiple conditions using dplyr ------------------------</span>
 <span class="fu">str_subset</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">student_courses</span><span class="op">$</span><span class="va">course</span><span class="op">)</span>, <span class="st">&quot;^R_&quot;</span><span class="op">)</span>
 <span class="co">#&gt; [1] &quot;R_beginner&quot;     &quot;R_advanced&quot;     &quot;R_intermediate&quot;</span>
+
 <span class="fu">str_subset</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">student_courses</span><span class="op">$</span><span class="va">course</span><span class="op">)</span>, <span class="st">&quot;^Python_&quot;</span><span class="op">)</span>
 <span class="co">#&gt; [1] &quot;Python_intermediate&quot; &quot;Python_advanced&quot;     &quot;Python_beginner&quot;</span>
 
-<span class="va">student_courses</span> <span class="op">&lt;-</span> <span class="va">student_courses</span> <span class="op">%&gt;%</span>
+<span class="va">student_courses</span> <span class="op">%&gt;%</span>
   <span class="fu">mutate</span><span class="op">(</span>studied_programming <span class="op">=</span> <span class="fu">case_when</span><span class="op">(</span><span class="fu">str_detect</span><span class="op">(</span><span class="va">course</span>, <span class="st">&quot;^R_&quot;</span><span class="op">)</span> <span class="op">~</span> <span class="st">&quot;Studied R&quot;</span>,
                                          <span class="fu">str_detect</span><span class="op">(</span><span class="va">course</span>, <span class="st">&quot;^Python_&quot;</span><span class="op">)</span> <span class="op">~</span> <span class="st">&quot;Studied Python&quot;</span>,
                                          <span class="cn">TRUE</span> <span class="op">~</span> <span class="st">&quot;No&quot;</span><span class="op">)</span><span class="op">)</span>
+</code></pre>
+</div>
+</div>
+<p>In <code>dplyr</code> version &gt;= 1.0.0, you can use <code>mutate()</code> in combination with <code>across()</code> to apply transformations across one or multiple columns.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Create multiple columns using dplyr ------------------------------------------</span>
+<span class="co"># across() accepts function names or ~function(.x) syntax</span>
+<span class="va">student_courses</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span><span class="fu">across</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span>, <span class="va">course</span>, <span class="va">course</span><span class="op">)</span>, <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/chartr.html">toupper</a></span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
 
-<span class="co"># Remove newly created columns using dplyr -------------------------------------</span>
-<span class="va">student_courses</span> <span class="op">&lt;-</span> <span class="va">student_courses</span> <span class="op">%&gt;%</span>
-  <span class="fu">select</span><span class="op">(</span><span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">platform_dwell_length</span>,
-            <span class="va">platform_start_year</span>,
-            <span class="va">studied_programming</span><span class="op">)</span><span class="op">)</span>
+<span class="co"># where() can be used inside across() to select columns by type</span>
+<span class="va">student_courses</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span><span class="fu">across</span><span class="op">(</span><span class="fu">where</span><span class="op">(</span><span class="va">is.character</span><span class="op">)</span>, <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/chartr.html">toupper</a></span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+</code></pre>
+</div>
+</div>
+<p>In contrast to <code>mutate()</code>, <code>transmute()</code> only returns the transformed column(s) of interest.</p>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Create and only return column(s) using dplyr ---------------------------------</span>
+<span class="va">student_courses</span> <span class="op">%&gt;%</span>
+  <span class="fu">transmute</span><span class="op">(</span><span class="fu">across</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span>, <span class="va">course</span><span class="op">)</span>, <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/chartr.html">toupper</a></span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="op">)</span>
+<span class="co">#&gt; [1] 3</span>
+
+<span class="va">student_courses</span> <span class="op">%&gt;%</span>
+  <span class="fu">mutate</span><span class="op">(</span><span class="fu">across</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">id</span>, <span class="va">platform</span>, <span class="va">course</span>, <span class="va">course</span><span class="op">)</span>, <span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/chartr.html">toupper</a></span><span class="op">(</span><span class="va">.x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="op">)</span>
+<span class="co">#&gt; [1] 7</span>
 </code></pre>
 </div>
 </div>
@@ -3228,7 +3297,7 @@ code {
 </li>
 <li>Multiple columns can be concurrently modified, as long as the newly created columns do not depend on each other.<br />
 </li>
-<li>Use subassignment to only extract the columns transformed inside <code>j</code> of <code>DT[i, j, by]</code>.</li>
+<li>Use subassignment with <code>=</code> (instead of <code>:=</code>) to extract only the columns transformed inside <code>j</code> of <code>DT[i, j, by]</code>.</li>
 </ul>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
@@ -3256,23 +3325,45 @@ code {
 </code></pre>
 </div>
 </div>
+<p>In <code>data.table</code>, the solution to creating multiple columns is to <a href="https://stackoverflow.com/questions/68055613/transform-multiple-columns-and-return-all-columns-using-data-table-in-r/68055663#68055663">specify columns of interest into <code>.SDcols</code> and then loop through each column using <code>lapply(function)</code></a>.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
-<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Only columns transformed inside j are kept -----------------------------------</span>
-<span class="co"># Use subassignment only if you want to subset the transformed columns</span>
-<span class="va">platform_records</span> <span class="op">&lt;-</span> <span class="va">student_courses</span><span class="op">[</span>,
-                                    <span class="fu">.</span><span class="op">(</span>id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/chartr.html">toupper</a></span><span class="op">(</span><span class="va">id</span><span class="op">)</span>,
-                                      platform <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/chartr.html">tolower</a></span><span class="op">(</span><span class="va">platform</span><span class="op">)</span><span class="op">)</span><span class="op">]</span>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Create multiple columns using data.table -------------------------------------</span>
+<span class="co"># (col_vector) or c(&quot;x&quot;, &quot;y&quot;) := lapply(...) modifies all columns in place</span>
+<span class="va">cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;id&quot;</span>, <span class="st">&quot;platform&quot;</span>, <span class="st">&quot;course&quot;</span><span class="op">)</span>
+<span class="va">student_courses</span><span class="op">[</span>,
+                <span class="op">(</span><span class="va">cols</span><span class="op">)</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">.SD</span>, <span class="va">toupper</span><span class="op">)</span>,
+                .SDcols <span class="op">=</span> <span class="va">cols</span><span class="op">]</span>
 
-<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">platform_records</span><span class="op">)</span>
-<span class="co">#&gt; [1] 2</span>
+<span class="co"># Equivalent code</span>
+<span class="va">student_courses</span><span class="op">[</span>,
+                <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;id&quot;</span>, <span class="st">&quot;platform&quot;</span>, <span class="st">&quot;course&quot;</span><span class="op">)</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">.SD</span>, <span class="va">toupper</span><span class="op">)</span>,
+                .SDcols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;id&quot;</span>, <span class="st">&quot;platform&quot;</span>, <span class="st">&quot;course&quot;</span><span class="op">)</span><span class="op">]</span>
+</code></pre>
+</div>
+</div>
+<div class="layout-chunk" data-layout="l-body">
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Use subassignment with `=` to return only transformed columns ----------------</span>
+<span class="va">dt_subset</span> <span class="op">&lt;-</span> <span class="va">student_courses</span><span class="op">[</span>,
+                             <span class="fu">.</span><span class="op">(</span>id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/chartr.html">toupper</a></span><span class="op">(</span><span class="va">id</span><span class="op">)</span>,
+                               platform <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/chartr.html">toupper</a></span><span class="op">(</span><span class="va">platform</span><span class="op">)</span>,
+                               course <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/chartr.html">toupper</a></span><span class="op">(</span><span class="va">course</span><span class="op">)</span><span class="op">)</span><span class="op">]</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">dt_subset</span><span class="op">)</span>
+<span class="co">#&gt; [1] 3</span>
+
+<span class="co"># Equivalent code using .SDcols and lapply()</span>
+<span class="va">dt_subset</span> <span class="op">&lt;-</span> <span class="va">student_courses</span><span class="op">[</span>,
+                             <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">.SD</span>, <span class="va">toupper</span><span class="op">)</span>,
+                             .SDcols <span class="op">=</span> <span class="va">cols</span><span class="op">]</span>
 </code></pre>
 </div>
 </div>
 <h2 id="benchmark-column-creation">Benchmark column creation</h2>
 <div class="layout-chunk" data-layout="l-body">
 <table style="width:100%;">
-<caption><span id="tab:unnamed-chunk-27">Table 4: </span>Units: milliseconds</caption>
+<caption><span id="tab:unnamed-chunk-31">Table 4: </span>Units: milliseconds</caption>
 <colgroup>
 <col style="width: 60%" />
 <col style="width: 5%" />
@@ -3341,7 +3432,7 @@ code {
 </div>
 <h1 id="simple-group-by-operations">Simple group by operations</h1>
 <h2 id="using-dplyr-4">Using <code>dplyr</code></h2>
-<p>Evaluating summary characteristics for data groupings is also where <code>data.table</code> significantly outperforms <code>dplyr</code>. A grouping is specified using the <code>group_by()</code> function in <code>dplyr</code>.</p>
+<p>Summarising by group is also where <code>data.table</code> significantly outperforms <code>dplyr</code>. A grouping is specified using the <code>group_by()</code> function in <code>dplyr</code>.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Find total number of courses per student via dplyr ---------------------------</span>
@@ -3398,7 +3489,7 @@ code {
 <p>Group by operations are significantly faster in <code>data.table</code> than <code>dplyr</code>.</p>
 <div class="layout-chunk" data-layout="l-body">
 <table>
-<caption><span id="tab:unnamed-chunk-30">Table 5: </span>Units: milliseconds</caption>
+<caption><span id="tab:unnamed-chunk-34">Table 5: </span>Units: milliseconds</caption>
 <colgroup>
 <col style="width: 57%" />
 <col style="width: 6%" />
@@ -3507,7 +3598,7 @@ code {
 <li><p>A benchmark of <code>dplyr</code> versus <code>data.table</code> functions from a <a href="https://tysonbarrett.com/jekyll/update/2019/10/06/datatable_memory/">blog post by Tyson Barrett</a><br />
 </p></li>
 </ul>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <section class="footnotes" role="doc-endnotes">
 <hr />
 <ol>

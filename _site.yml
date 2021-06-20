@@ -14,6 +14,8 @@ navbar:
       href: about.html
     - icon: fa-github fa-lg
       href: http://github.com/erikaduan/ 
+    - icon: fa fa-stack-overflow    
+      href: https://stackoverflow.com/users/12104647/emd  
     - icon: fa fa-twitter
       href: https://twitter.com/erikaduan  
     - icon: fa fa-linkedin
