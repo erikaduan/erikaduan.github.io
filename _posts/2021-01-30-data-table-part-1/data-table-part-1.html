@@ -2229,7 +2229,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 </code></pre>
 </div>
 </div>
-<p>In <code>data.table</code>, the solution to creating multiple columns is to <a href="https://stackoverflow.com/questions/68055613/transform-multiple-columns-and-return-all-columns-using-data-table-in-r/68055663#68055663">specify columns of interest into <code>.SDcols</code> and then loop through each column using <code>lapply(function)</code></a>.</p>
+<p>In <code>data.table</code>, the <a href="https://stackoverflow.com/questions/68055613/transform-multiple-columns-and-return-all-columns-using-data-table-in-r/68055663#68055663">solution</a> to creating multiple columns is to specify columns of interest into <code>.SDcols</code> and then loop through each column using <code>lapply(function)</code>.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Create multiple columns using data.table -------------------------------------</span>
@@ -2269,12 +2269,12 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <table style="width:100%;">
 <caption><span id="tab:unnamed-chunk-31">Table 4: </span>Units: milliseconds</caption>
 <colgroup>
-<col style="width: 60%" />
+<col style="width: 59%" />
 <col style="width: 5%" />
 <col style="width: 6%" />
 <col style="width: 6%" />
 <col style="width: 6%" />
-<col style="width: 5%" />
+<col style="width: 6%" />
 <col style="width: 5%" />
 <col style="width: 3%" />
 </colgroup>
@@ -2293,42 +2293,62 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">mutate(student_courses, platform_dwell_length = platform_end_date - platform_start_date)</td>
-<td style="text-align: right;">4.6293</td>
-<td style="text-align: right;">7.76910</td>
-<td style="text-align: right;">38.18618</td>
-<td style="text-align: right;">9.09385</td>
-<td style="text-align: right;">13.0911</td>
-<td style="text-align: right;">287.4840</td>
+<td style="text-align: right;">5.0602</td>
+<td style="text-align: right;">6.90770</td>
+<td style="text-align: right;">25.55252</td>
+<td style="text-align: right;">8.26925</td>
+<td style="text-align: right;">9.68500</td>
+<td style="text-align: right;">173.8566</td>
 <td style="text-align: right;">100</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">student_courses[, <code>:=</code>(“platform_dwell_length”, platform_end_date - platform_start_date)]</td>
-<td style="text-align: right;">3.4639</td>
-<td style="text-align: right;">4.95785</td>
-<td style="text-align: right;">22.75289</td>
-<td style="text-align: right;">6.51215</td>
-<td style="text-align: right;">8.9081</td>
-<td style="text-align: right;">282.2970</td>
+<td style="text-align: right;">3.6370</td>
+<td style="text-align: right;">5.19895</td>
+<td style="text-align: right;">25.54544</td>
+<td style="text-align: right;">6.33755</td>
+<td style="text-align: right;">7.82895</td>
+<td style="text-align: right;">171.3265</td>
 <td style="text-align: right;">100</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">dplyr_case_when</td>
-<td style="text-align: right;">258.4914</td>
-<td style="text-align: right;">296.83920</td>
-<td style="text-align: right;">359.38240</td>
-<td style="text-align: right;">330.48085</td>
-<td style="text-align: right;">402.0158</td>
-<td style="text-align: right;">608.2437</td>
+<td style="text-align: right;">225.6839</td>
+<td style="text-align: right;">249.70800</td>
+<td style="text-align: right;">269.89679</td>
+<td style="text-align: right;">267.90020</td>
+<td style="text-align: right;">279.05350</td>
+<td style="text-align: right;">458.1452</td>
 <td style="text-align: right;">100</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">data.table_fcase</td>
-<td style="text-align: right;">211.6162</td>
-<td style="text-align: right;">240.15240</td>
-<td style="text-align: right;">280.84042</td>
-<td style="text-align: right;">262.18765</td>
-<td style="text-align: right;">312.7383</td>
-<td style="text-align: right;">443.5078</td>
+<td style="text-align: right;">195.9269</td>
+<td style="text-align: right;">208.36720</td>
+<td style="text-align: right;">221.09485</td>
+<td style="text-align: right;">213.40350</td>
+<td style="text-align: right;">227.35105</td>
+<td style="text-align: right;">377.5954</td>
+<td style="text-align: right;">100</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">dplyr_mutate_across</td>
+<td style="text-align: right;">371.1676</td>
+<td style="text-align: right;">385.88140</td>
+<td style="text-align: right;">404.99245</td>
+<td style="text-align: right;">396.43500</td>
+<td style="text-align: right;">407.44485</td>
+<td style="text-align: right;">499.2400</td>
+<td style="text-align: right;">100</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">data.table_lapply_SDcols</td>
+<td style="text-align: right;">366.4740</td>
+<td style="text-align: right;">386.23370</td>
+<td style="text-align: right;">405.55840</td>
+<td style="text-align: right;">392.76045</td>
+<td style="text-align: right;">411.39315</td>
+<td style="text-align: right;">497.5348</td>
 <td style="text-align: right;">100</td>
 </tr>
 </tbody>

@@ -811,7 +811,7 @@ student_courses[,
                   "studied_programming") := NULL]
 ```
 
-In `data.table`, the solution to creating multiple columns is to [specify columns of interest into `.SDcols` and then loop through each column using `lapply(function)`](https://stackoverflow.com/questions/68055613/transform-multiple-columns-and-return-all-columns-using-data-table-in-r/68055663#68055663).      
+In `data.table`, the [solution](https://stackoverflow.com/questions/68055613/transform-multiple-columns-and-return-all-columns-using-data-table-in-r/68055663#68055663) to creating multiple columns is to specify columns of interest into `.SDcols` and then loop through each column using `lapply(function)`.        
 
 ```{r}
 # Create multiple columns using data.table -------------------------------------
@@ -861,6 +861,10 @@ if (!file.exists(here("data", "data-table-benchmarks", "ccmb.rds"))) {
                            str_detect(course, "^R_"), "Studied R",
                            str_detect(course, "^Python_"), "Studied Python",
                            default = "No")], 
+                         dplyr_mutate_across =  mutate(student_courses, across(c(id, platform, course, course), ~toupper(.x))),
+                         data.table_lapply_SDcols = student_courses[,
+                                                                    c("id", "platform", "course") := lapply(.SD, toupper),
+                                                                    .SDcols = c("id", "platform", "course")],
                          times = 100)  
   
   saveRDS(ccmb, here("data", "data-table-benchmarks", "ccmb.rds"))
